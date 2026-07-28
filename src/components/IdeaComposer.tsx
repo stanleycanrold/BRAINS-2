@@ -91,7 +91,11 @@ export function IdeaComposer({
     if (!el) return;
     const ceiling = Math.min(320, Math.round(window.innerHeight * 0.35));
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, Math.max(96, ceiling))}px`;
+    // The floor is two lines rather than one. An empty box is a single row
+    // tall, which left the animated example spilling out of it and over the
+    // attach button on a narrow screen.
+    const floor = 72;
+    el.style.height = `${Math.max(floor, Math.min(el.scrollHeight, Math.max(96, ceiling)))}px`;
   }, [value]);
 
   function onKeyDown(event: React.KeyboardEvent) {
@@ -141,14 +145,14 @@ export function IdeaComposer({
           </ul>
         ) : null}
 
-        <div className="relative">
+        <div className="relative overflow-hidden">
           {/* Painted behind the textarea rather than driven through the
               placeholder attribute, so the caret and the animation never
               fight over the same property. */}
           {showTypewriter ? (
             <div
               aria-hidden="true"
-              className="type-body-l pointer-events-none absolute inset-0 px-4 pt-4 pb-2 text-tertiary"
+              className="type-body-l pointer-events-none absolute inset-0 overflow-hidden px-4 pt-4 pb-2 text-tertiary"
             >
               <span>{typed}</span>
               <span className="ml-px inline-block h-[1.1em] w-px translate-y-[0.18em] animate-pulse bg-tertiary" />

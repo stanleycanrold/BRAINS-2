@@ -31,6 +31,7 @@ export function Disclosure({
   defaultOpen = false,
   children,
   className,
+  flush,
 }: {
   title: string;
   /** Shown beside the title - how much is inside, without opening it. */
@@ -45,6 +46,8 @@ export function Disclosure({
   defaultOpen?: boolean;
   children: React.ReactNode;
   className?: string;
+  /** Drops the panel chrome, for when it already sits inside a card. */
+  flush?: boolean;
 }) {
   const [persisted, setPersisted] = usePersistedFlag(
     storageKey ?? "__disclosure_unused",
@@ -58,7 +61,12 @@ export function Disclosure({
   const id = React.useId();
 
   return (
-    <section className={cn("rounded-[12px] border border-line bg-raised", className)}>
+    <section
+      className={cn(
+        flush ? "border-t border-line" : "rounded-[12px] border border-line bg-raised",
+        className,
+      )}
+    >
       <h2>
         <button
           type="button"
@@ -66,8 +74,11 @@ export function Disclosure({
           aria-expanded={open}
           aria-controls={id}
           className={cn(
-            "flex w-full items-center gap-3 rounded-[12px] px-5 py-4 text-left",
+            "flex w-full items-center gap-3 text-left",
             "transition-colors duration-[120ms] hover:bg-wash-hover",
+            flush
+              ? "-mx-2 w-[calc(100%+1rem)] rounded-[8px] px-2 py-3"
+              : "rounded-[12px] px-5 py-4",
           )}
         >
           <CaretRightIcon
@@ -94,7 +105,12 @@ export function Disclosure({
       </h2>
 
       {open ? (
-        <div id={id} className="border-t border-line px-5 py-5 sm:px-6">
+        <div
+          id={id}
+          className={cn(
+            flush ? "pt-1 pb-1" : "border-t border-line px-5 py-5 sm:px-6",
+          )}
+        >
           {children}
         </div>
       ) : null}

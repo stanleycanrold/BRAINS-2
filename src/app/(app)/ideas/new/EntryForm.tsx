@@ -76,10 +76,10 @@ const STAGE_OPTIONS: {
  * exactly what a phone does not have.
  */
 const EXAMPLES = [
-  "A tool for freelance designers who lose hours chasing unpaid invoices…",
-  "A marketplace connecting small farms with restaurants that buy direct…",
-  "Replacing the spreadsheet clinic receptionists use to juggle appointments…",
-  "An app for parents splitting childcare pickup across the week…",
+  "A tool for freelancers who lose hours chasing unpaid invoices…",
+  "A marketplace putting small farms in touch with restaurants…",
+  "Replacing the spreadsheet receptionists use for appointments…",
+  "An app for parents splitting the childcare run each week…",
 ];
 
 const STARTERS = [

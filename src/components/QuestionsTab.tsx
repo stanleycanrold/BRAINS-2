@@ -179,13 +179,141 @@ export function QuestionsTab({
       ) : null}
 
 
-      <div className="mt-5 space-y-3">
+      {/**
+        * One panel, with the link at the top of it.
+        *
+        * Getting a link and sending it is the whole job of this tab, so it is
+        * visible the moment the tab opens rather than behind a fold. The
+        * questions are the long part and the part you only open when you
+        * intend to edit, so they are the one thing that folds.
+        */}
+      <div className="mt-5 rounded-[12px] border border-line bg-raised p-5">
+      {/* ── Share link ─────────────────────────────────────────────────── */}
+      <div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="type-body-l font-medium text-primary">
+              {panelUrl ? "Your own link" : "Share as a link"}
+            </h3>
+            <p className="type-body-m mt-1 max-w-prose text-secondary">
+              Send it to anyone. They answer without signing up, and every reply
+              lands in the same pool as your interviews - analysed together.
+              {panelUrl
+                ? " Answers here are counted as your own outreach."
+                : ""}
+            </p>
+          </div>
+          {!shareUrl ? (
+            <Button
+              variant="primary"
+              loading={saving}
+              onClick={() => void patch({ share: true }, "Link created")}
+              iconLeft={<LinkSimpleIcon size={16} aria-hidden="true" />}
+            >
+              Create link
+            </Button>
+          ) : null}
+        </div>
+
+        {shareUrl ? (
+          <>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <code className="type-data-s min-w-0 flex-1 truncate rounded-[6px] border border-line bg-page px-3 py-2 text-secondary">
+                {shareUrl}
+              </code>
+              <Button
+                variant="secondary"
+                onClick={() => void copyLink(shareUrl)}
+                iconLeft={
+                  copied ? (
+                    <CheckIcon size={15} aria-hidden="true" />
+                  ) : (
+                    <CopyIcon size={15} aria-hidden="true" />
+                  )
+                }
+              >
+                {copied ? "Copied" : "Copy"}
+              </Button>
+              <a
+                href={shareUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="type-body-m inline-flex items-center gap-1.5 px-2 text-brand hover:underline"
+              >
+                Preview
+                <ArrowSquareOutIcon size={14} aria-hidden="true" />
+              </a>
+            </div>
+
+            <div className="mt-4 border-t border-line pt-4">
+              <Toggle
+                checked={questionnaire.accepting_responses}
+                onChange={(v) =>
+                  void patch(
+                    { accepting_responses: v },
+                    v ? "Accepting responses" : "Questionnaire closed",
+                  )
+                }
+                label="Accepting responses"
+                description="Turn this off when you've got enough - the link stays, it just stops collecting."
+              />
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      {/* ── The paid round's link ──────────────────────────────────────── */}
+      {panelUrl ? (
+        <div className="mt-5 rounded-[10px] border border-brand/30 bg-page p-4">
+          <div className="flex items-start gap-2.5">
+            <LightningIcon
+              size={18}
+              weight="fill"
+              className="mt-0.5 shrink-0 text-brand"
+              aria-hidden="true"
+            />
+            <div className="min-w-0 flex-1">
+              <h3 className="type-body-l font-medium text-primary">
+                Fast Track link
+              </h3>
+              <p className="type-body-m mt-1 max-w-prose text-secondary">
+                The interviews you paid for come in on this link, so they stay
+                countable separately from your own outreach. You don&rsquo;t
+                need to send it anywhere - it&rsquo;s here so you can see where
+                each answer came from.
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <code className="type-data-s min-w-0 flex-1 truncate rounded-[6px] border border-line bg-page px-3 py-2 text-secondary">
+                  {panelUrl}
+                </code>
+                <Button
+                  variant="secondary"
+                  onClick={() => void copyLink(panelUrl)}
+                  iconLeft={
+                    copied ? (
+                      <CheckIcon size={15} aria-hidden="true" />
+                    ) : (
+                      <CopyIcon size={15} aria-hidden="true" />
+                    )
+                  }
+                >
+                  {copied ? "Copied" : "Copy"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+
         <Disclosure
           title="Your questions"
           count={questions.length}
           summary="What every respondent is asked"
           storageKey={`brains-questions-list-${ideaId}`}
-          defaultOpen
+          flush
+          className="mt-5"
         >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <p className="type-body-m max-w-prose flex-1 text-secondary">
@@ -407,138 +535,8 @@ export function QuestionsTab({
           ) : null}
         </div>
         </Disclosure>
-
-        <Disclosure
-          title={panelUrl ? "Share links" : "Share as a link"}
-          count={panelUrl ? 2 : shareUrl ? 1 : undefined}
-          summary={
-            shareUrl
-              ? "Send it to anyone, no signup needed"
-              : "Create a link people can answer without signing up"
-          }
-          storageKey={`brains-questions-share-${ideaId}`}
-          defaultOpen={!shareUrl}
-        >
-        {/* ── Share link ─────────────────────────────────────────────────── */}
-        <div>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="type-body-l font-medium text-primary">
-                {panelUrl ? "Your own link" : "Share as a link"}
-              </h3>
-              <p className="type-body-m mt-1 max-w-prose text-secondary">
-                Send it to anyone. They answer without signing up, and every reply
-                lands in the same pool as your interviews - analysed together.
-                {panelUrl
-                  ? " Answers here are counted as your own outreach."
-                  : ""}
-              </p>
-            </div>
-            {!shareUrl ? (
-              <Button
-                variant="primary"
-                loading={saving}
-                onClick={() => void patch({ share: true }, "Link created")}
-                iconLeft={<LinkSimpleIcon size={16} aria-hidden="true" />}
-              >
-                Create link
-              </Button>
-            ) : null}
-          </div>
-
-          {shareUrl ? (
-            <>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <code className="type-data-s min-w-0 flex-1 truncate rounded-[6px] border border-line bg-page px-3 py-2 text-secondary">
-                  {shareUrl}
-                </code>
-                <Button
-                  variant="secondary"
-                  onClick={() => void copyLink(shareUrl)}
-                  iconLeft={
-                    copied ? (
-                      <CheckIcon size={15} aria-hidden="true" />
-                    ) : (
-                      <CopyIcon size={15} aria-hidden="true" />
-                    )
-                  }
-                >
-                  {copied ? "Copied" : "Copy"}
-                </Button>
-                <a
-                  href={shareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="type-body-m inline-flex items-center gap-1.5 px-2 text-brand hover:underline"
-                >
-                  Preview
-                  <ArrowSquareOutIcon size={14} aria-hidden="true" />
-                </a>
-              </div>
-
-              <div className="mt-4 border-t border-line pt-4">
-                <Toggle
-                  checked={questionnaire.accepting_responses}
-                  onChange={(v) =>
-                    void patch(
-                      { accepting_responses: v },
-                      v ? "Accepting responses" : "Questionnaire closed",
-                    )
-                  }
-                  label="Accepting responses"
-                  description="Turn this off when you've got enough - the link stays, it just stops collecting."
-                />
-              </div>
-            </>
-          ) : null}
-        </div>
-
-        {/* ── The paid round's link ──────────────────────────────────────── */}
-        {panelUrl ? (
-          <div className="mt-5 rounded-[10px] border border-brand/30 bg-page p-4">
-            <div className="flex items-start gap-2.5">
-              <LightningIcon
-                size={18}
-                weight="fill"
-                className="mt-0.5 shrink-0 text-brand"
-                aria-hidden="true"
-              />
-              <div className="min-w-0 flex-1">
-                <h3 className="type-body-l font-medium text-primary">
-                  Fast Track link
-                </h3>
-                <p className="type-body-m mt-1 max-w-prose text-secondary">
-                  The interviews you paid for come in on this link, so they stay
-                  countable separately from your own outreach. You don&rsquo;t
-                  need to send it anywhere - it&rsquo;s here so you can see where
-                  each answer came from.
-                </p>
-
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <code className="type-data-s min-w-0 flex-1 truncate rounded-[6px] border border-line bg-page px-3 py-2 text-secondary">
-                    {panelUrl}
-                  </code>
-                  <Button
-                    variant="secondary"
-                    onClick={() => void copyLink(panelUrl)}
-                    iconLeft={
-                      copied ? (
-                        <CheckIcon size={15} aria-hidden="true" />
-                      ) : (
-                        <CopyIcon size={15} aria-hidden="true" />
-                      )
-                    }
-                  >
-                    {copied ? "Copied" : "Copy"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        </Disclosure>
       </div>
+
     </>
   );
 }
