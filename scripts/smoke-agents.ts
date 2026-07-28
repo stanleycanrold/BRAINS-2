@@ -5,7 +5,7 @@
  */
 import { getLLM, getSearch } from "../src/lib/llm";
 import { toJsonSchema } from "../src/lib/agents/schema";
-import { researchAgent } from "../src/lib/agents/definitions";
+import { researchAgent } from "../src/lib/agents/catalog";
 
 async function main() {
   const llm = getLLM();

@@ -13,7 +13,7 @@ import {
   commentDraftingAgent,
   questionnaireAgent,
   monitorAgent,
-} from "./definitions";
+} from "./catalog";
 import { updateCurrentState } from "@/lib/data/ideas";
 import {
   computeConfirmationRate,
