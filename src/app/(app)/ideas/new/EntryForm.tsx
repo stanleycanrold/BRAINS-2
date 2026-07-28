@@ -66,6 +66,22 @@ const STAGE_OPTIONS: {
  * they do about it today. A blank box gets "an app for fitness"; this gets
  * something the agent can actually search for.
  */
+/**
+ * Cycled inside the box while it is empty.
+ *
+ * These replace the paragraph that used to sit above the composer. A line of
+ * instructions is read once and then ignored; watching three concrete
+ * examples get written shows what a usable description looks like without
+ * asking anyone to read anything, and it costs no vertical space - which is
+ * exactly what a phone does not have.
+ */
+const EXAMPLES = [
+  "A tool for freelance designers who lose hours chasing unpaid invoices…",
+  "A marketplace connecting small farms with restaurants that buy direct…",
+  "Replacing the spreadsheet clinic receptionists use to juggle appointments…",
+  "An app for parents splitting childcare pickup across the week…",
+];
+
 const STARTERS = [
   {
     label: "A tool for a job people do already",
@@ -280,6 +296,7 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
   return (
     <>
       <IdeaComposer
+        examples={EXAMPLES}
         value={description}
         onChange={setDescription}
         onSubmit={begin}
@@ -301,8 +318,8 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
         // room. Four long labels wrapping into four stacked lines was most of
         // what made this screen look broken on mobile. The row bleeds to the
         // screen edge so it reads as scrollable rather than clipped.
-        <div className="-mx-4 mt-3 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
-          <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap sm:justify-center">
+        <div className="mt-3 hidden sm:block">
+          <div className="flex flex-wrap justify-center gap-2">
             {STARTERS.map((starter) => (
               <button
                 key={starter.label}
@@ -367,27 +384,40 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
  */
 export function EntryScreen({ heading }: { heading: string }) {
   return (
-    <div className="mx-auto flex w-full max-w-[720px] flex-col px-1 pt-[5vh] pb-16 sm:pt-[9vh]">
-      {/* The mark gets its own line.
-          Beside the heading it had to shrink to fit, which on a phone left a
-          small icon crowding a wrapped title. On its own line it can be the
-          size it deserves and the heading gets the full width. */}
-      <LogoMark
-        size={112}
-        priority
-        className="mx-auto size-[clamp(44px,12vw,60px)]"
-      />
+    /**
+     * Two layouts, one component.
+     *
+     * On a phone this is a chat screen: it fills the viewport exactly, does
+     * not scroll, and the composer sits at the bottom where a thumb already
+     * is. Nothing lives below the box, so there is nothing to scroll to and
+     * nothing to cut off. The negative margin cancels the padding the app
+     * shell puts on every page, which is what would otherwise force a scroll.
+     *
+     * From `sm` up it goes back to an ordinary centred page with the starters
+     * and the highlights underneath, where there is room for them.
+     */
+    <div
+      className={cn(
+        "mx-auto w-full max-w-[720px]",
+        "-my-8 flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden",
+        "sm:my-0 sm:block sm:h-auto sm:overflow-visible sm:pt-[9vh] sm:pb-16",
+      )}
+    >
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center sm:block sm:flex-none">
+        <LogoMark
+          size={112}
+          priority
+          className="mx-auto size-[clamp(44px,12vw,60px)]"
+        />
 
-      <h1 className="type-display-xl mt-4 text-center text-primary">
-        {heading}
-      </h1>
+        {/* One sentence. Everything the paragraph here used to explain is
+            now shown inside the box instead, by example. */}
+        <h1 className="type-display-xl mt-4 text-center text-primary">
+          {heading}
+        </h1>
+      </div>
 
-      <p className="type-body-l mx-auto mt-3 max-w-[46ch] text-center text-secondary">
-        Describe it in a paragraph. Attach anything you have. We will find out
-        whether the problem is real before you build for it.
-      </p>
-
-      <div className="mt-7 sm:mt-8">
+      <div className="pb-4 sm:mt-8 sm:pb-0">
         <EntryForm />
       </div>
 
@@ -425,7 +455,7 @@ function Highlights() {
    * section sits closer to the composer instead of floating in space.
    */
   return (
-    <div className="mt-10 grid gap-5 border-t border-line pt-7 sm:mt-14 sm:grid-cols-3 sm:gap-6 sm:pt-8">
+    <div className="mt-10 hidden gap-5 border-t border-line pt-7 sm:mt-14 sm:grid sm:grid-cols-3 sm:gap-6 sm:pt-8">
       {items.map((item) => (
         <div key={item.title} className="flex gap-3 sm:block">
           <span className="mt-0.5 shrink-0 text-brand sm:mt-0">

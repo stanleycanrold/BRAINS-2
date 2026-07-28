@@ -9,6 +9,7 @@ import {
   SpinnerGapIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
+import { useTypewriter } from "@/lib/use-typewriter";
 import {
   MIN_IDEA,
   MAX_IDEA,
@@ -44,6 +45,7 @@ export function IdeaComposer({
   reading,
   submitting,
   placeholder = "Describe what you're building…",
+  examples,
   autoFocus,
 }: {
   value: string;
@@ -55,10 +57,19 @@ export function IdeaComposer({
   reading?: boolean;
   submitting?: boolean;
   placeholder?: string;
+  /** Cycled through as an animated placeholder while the box is empty. */
+  examples?: string[];
   autoFocus?: boolean;
 }) {
   const fileInput = React.useRef<HTMLInputElement>(null);
   const textarea = React.useRef<HTMLTextAreaElement>(null);
+
+  // Stops the moment anything is typed: an animation running behind real text
+  // would be a distraction rather than a prompt.
+  const typed = useTypewriter(examples ?? [], {
+    enabled: Boolean(examples?.length) && value.length === 0,
+  });
+  const showTypewriter = Boolean(examples?.length) && value.length === 0;
 
   const trimmed = value.trim();
   // Same check the server runs, so the send button never promises something
@@ -67,13 +78,20 @@ export function IdeaComposer({
   const ready = problem === null;
   const tooLong = trimmed.length > MAX_IDEA;
 
-  // Grow to fit, then scroll. Done on every render rather than on change so
-  // it is also correct when the value is set from outside (a starter chip).
+  /**
+   * Grow to fit, then scroll inside.
+   *
+   * The ceiling is a share of the viewport rather than a fixed 320px, because
+   * on a phone the composer is pinned to the bottom of a screen that does not
+   * scroll - a box tall enough to be comfortable on a laptop would push the
+   * heading off the top of a small handset.
+   */
   React.useLayoutEffect(() => {
     const el = textarea.current;
     if (!el) return;
+    const ceiling = Math.min(320, Math.round(window.innerHeight * 0.35));
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 320)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, Math.max(96, ceiling))}px`;
   }, [value]);
 
   function onKeyDown(event: React.KeyboardEvent) {
@@ -123,15 +141,29 @@ export function IdeaComposer({
           </ul>
         ) : null}
 
-        <textarea
-          ref={textarea}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder={placeholder}
-          rows={1}
-          autoFocus={autoFocus}
-          aria-label="Describe your idea"
+        <div className="relative">
+          {/* Painted behind the textarea rather than driven through the
+              placeholder attribute, so the caret and the animation never
+              fight over the same property. */}
+          {showTypewriter ? (
+            <div
+              aria-hidden="true"
+              className="type-body-l pointer-events-none absolute inset-0 px-4 pt-4 pb-2 text-tertiary"
+            >
+              <span>{typed}</span>
+              <span className="ml-px inline-block h-[1.1em] w-px translate-y-[0.18em] animate-pulse bg-tertiary" />
+            </div>
+          ) : null}
+
+          <textarea
+            ref={textarea}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={showTypewriter ? "" : placeholder}
+            rows={1}
+            autoFocus={autoFocus}
+            aria-label="Describe your idea"
           /**
            * The container draws the focus ring, not the textarea.
            *
@@ -142,11 +174,13 @@ export function IdeaComposer({
            * around the whole control.
            */
           data-focus-ring="none"
-          className={cn(
-            "type-body-l block w-full resize-none bg-transparent px-4 pt-4 pb-2",
-            "text-primary placeholder:text-tertiary focus:outline-none",
-          )}
-        />
+            className={cn(
+              "type-body-l relative block w-full resize-none bg-transparent",
+              "px-4 pt-4 pb-2",
+              "text-primary placeholder:text-tertiary focus:outline-none",
+            )}
+          />
+        </div>
 
         <div className="flex items-center gap-2 px-3 pt-1 pb-3">
           <input
