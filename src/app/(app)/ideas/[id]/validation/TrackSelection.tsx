@@ -16,6 +16,7 @@ import { TopBar } from "@/components/shell/AppShell";
 import { PipelineStepper } from "@/components/shell/PipelineStepper";
 import { cn } from "@/lib/cn";
 import type { IdeaState } from "@/lib/domain/types";
+import { ValidationInProgress } from "@/components/ValidationInProgress";
 import { recalculate, type Estimate } from "@/lib/pricing-math";
 
 /**
@@ -134,6 +135,15 @@ export function TrackSelection({
           you it matters. Two ways to do that — same report at the end.
         </p>
       </header>
+
+      {/* An abandoned checkout is otherwise invisible here: the order exists
+          but the track never moved, so without this the founder has no way
+          back to a payment they started. */}
+      <ValidationInProgress
+        ideaId={ideaId}
+        state={initialState}
+        className="mt-6"
+      />
 
       <div className="mt-8 grid items-start gap-5 lg:grid-cols-2">
         {/* ── Normal Track ─────────────────────────────────────────────── */}

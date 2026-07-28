@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { IdeaTopBar } from "../../IdeaTopBar";
-import { FastTrackTeaser } from "@/components/FastTrackTeaser";
+import { ValidationInProgress } from "@/components/ValidationInProgress";
 import { QuestionsTab } from "@/components/QuestionsTab";
 import { cn } from "@/lib/cn";
 import {
@@ -189,18 +189,15 @@ export function NormalTrack({
                 onLogged={setState}
               />
 
-              {/* Shown once the founder has seen how slow this is, and only
-                  while they're still short of a usable sample. It disappears
-                  the moment they no longer need it. */}
-              {paymentsEnabled && remaining > 0 ? (
-                <div className="mt-8 flex justify-end">
-                  <FastTrackTeaser
-                    ideaId={ideaId}
-                    perInterviewPrice={fastTrackPerInterview}
-                    responsesLogged={total}
-                  />
-                </div>
-              ) : null}
+              {/* This round is already running by definition — reaching this
+                  tab required choosing a track. So: state where it stands,
+                  and keep the hand-it-over option available as plain text
+                  rather than selling a round they've already begun. */}
+              <ValidationInProgress
+                ideaId={ideaId}
+                state={state}
+                className="mt-8"
+              />
             </TabPanel>
           ) : null}
         </div>

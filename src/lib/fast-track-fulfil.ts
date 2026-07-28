@@ -68,14 +68,29 @@ export async function patchIdeaState(
   const state = ideaStateSchema.parse(version.stateJson);
   if (!state.fast_track_order) return;
 
+  // The idea moves onto the Fast Track when the money does, not when checkout
+  // opens — see the note in the checkout route. `pending_sourcing` is the
+  // unpaid state, so it must leave the founder's own track alone.
+  const paid = status !== "pending_sourcing";
+
   const next = {
     ...state,
+    ...(paid
+      ? {
+          status: "validating_fast" as const,
+          validation: { ...state.validation, track: "fast" as const },
+        }
+      : {}),
     fast_track_order: { ...state.fast_track_order, status },
     updated_at: new Date().toISOString(),
   };
 
   await db
     .update(schema.ideaStateVersions)
-    .set({ stateJson: next, updatedAt: new Date() })
+    .set({
+      stateJson: next,
+      ...(paid ? { status: "validating_fast" as const } : {}),
+      updatedAt: new Date(),
+    })
     .where(eq(schema.ideaStateVersions.id, versionId));
 }

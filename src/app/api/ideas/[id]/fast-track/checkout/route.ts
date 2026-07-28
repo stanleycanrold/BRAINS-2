@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
@@ -51,6 +51,36 @@ export async function POST(
         {
           error:
             "Finish the research step first — the interview questions are built from it.",
+        },
+        { status: 409 },
+      );
+    }
+
+    /**
+     * One paid round per version.
+     *
+     * Every order is tied to `idea.versionId`, not just the idea — the
+     * interviews run against the questions belonging to THIS round. Without
+     * this check a founder could open checkout twice and be charged twice for
+     * the same set of questions. Redoing validation forks a new version, which
+     * gets its own order and its own payment.
+     */
+    const existing = await db
+      .select()
+      .from(schema.fastTrackOrders)
+      .where(
+        and(
+          eq(schema.fastTrackOrders.ideaStateVersionId, idea.versionId),
+          eq(schema.fastTrackOrders.paymentStatus, "paid"),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This round is already paid for and underway. Redo the validation if you want another round.",
         },
         { status: 409 },
       );
@@ -145,12 +175,19 @@ export async function POST(
       .set({ paymentRef: session.id })
       .where(eq(schema.fastTrackOrders.id, order.id));
 
-    // Reflect the pending order on the idea so the UI can show the tracker
-    // even if the founder abandons the Stripe page and comes back.
+    /**
+     * Record the pending order, but do NOT move the idea onto the Fast Track
+     * yet.
+     *
+     * Opening checkout is not a decision to buy. Flipping `status` and
+     * `validation.track` here stranded anyone who abandoned payment on a track
+     * they hadn't paid for and couldn't leave — their own in-progress round
+     * effectively disappeared. The order alone is enough for the UI to offer
+     * them a way to finish paying; the track moves when the money does, in
+     * markOrderPaid().
+     */
     await updateCurrentState(idea.versionId, (s) => ({
       ...s,
-      status: "validating_fast",
-      validation: { ...s.validation, track: "fast" },
       fast_track_order: {
         order_id: order.id,
         n_requested: estimate.nRequested,

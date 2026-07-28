@@ -19,6 +19,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 import { FastTrackTeaser } from "@/components/FastTrackTeaser";
+import { ValidationInProgress } from "@/components/ValidationInProgress";
+import { canMarketFastTrack } from "@/lib/validation-stage";
 import type { IdeaState, Question } from "@/lib/domain/types";
 
 /**
@@ -49,6 +51,7 @@ export function QuestionsTab({
     questionnaire.questions,
   );
   const [generating, setGenerating] = React.useState(false);
+  const marketFastTrack = canMarketFastTrack(state);
   const [saving, setSaving] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
 
@@ -152,9 +155,11 @@ export function QuestionsTab({
         </Button>
       </div>
 
-      {/* Offered beside the work, not on top of it: the founder now has the
-          questions and is about to discover that asking them is the slow part. */}
-      {paymentsEnabled && fastTrackPerInterview ? (
+      {/* By the time anyone reaches this tab a track has been chosen, so the
+          round is underway and this slot states where it stands. Pitching
+          "start validation" here would ignore what they've already started —
+          the offer belongs at the track decision, before they'd pay. */}
+      {marketFastTrack && paymentsEnabled && fastTrackPerInterview ? (
         <div className="mt-5 flex justify-end">
           <FastTrackTeaser
             ideaId={ideaId}
@@ -162,7 +167,13 @@ export function QuestionsTab({
             responsesLogged={state.validation.responses.length}
           />
         </div>
-      ) : null}
+      ) : (
+        <ValidationInProgress
+          ideaId={ideaId}
+          state={state}
+          className="mt-5"
+        />
+      )}
 
       {/* ── Share link ─────────────────────────────────────────────────── */}
       <Card elevation="raised" className="mt-6 p-5">

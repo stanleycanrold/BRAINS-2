@@ -15,7 +15,8 @@
     "db:migrate": "drizzle-kit migrate",
     "smoke": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-pipeline.ts",
     "smoke:stripe": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-stripe.ts",
-    "smoke:questions": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-questionnaire.ts"
+    "smoke:questions": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-questionnaire.ts",
+    "smoke:offer": "tsx scripts/smoke-offer.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

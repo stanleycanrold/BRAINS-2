@@ -8,12 +8,12 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { DashboardTopBar } from "./DashboardTopBar";
 import { EntryForm } from "../ideas/new/EntryForm";
-import {
-  MIN_RESPONSES,
-  stageForStatus,
-  type IdeaStatus,
-} from "@/lib/domain/types";
+import { stageForStatus, type IdeaStatus } from "@/lib/domain/types";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
+import {
+  canMarketFastTrack,
+  validationStage,
+} from "@/lib/validation-stage";
 import { paymentsEnabled } from "@/lib/stripe";
 import { FastTrackInline, LoopReminder } from "@/components/FastTrackTeaser";
 
@@ -80,18 +80,25 @@ export default async function DashboardPage() {
    * and "how far along are they" answers the question just as well as "how
    * long since they touched it".
    */
-  const stalled = live.find(
-    (idea) =>
-      idea.status === "validating_normal" &&
-      idea.state.validation.responses.length < MIN_RESPONSES,
+  /**
+   * Who the Fast Track offer is for: someone whose research is done but who
+   * hasn't yet committed to how they'll gather answers. That's the moment
+   * before they'd pay, and the only moment the pitch is useful.
+   *
+   * Previously this targeted founders already mid-round, which meant selling
+   * validation to people who had visibly already started it. A redo lands
+   * back here on its own — forkVersion resets the track.
+   */
+  const readyToChoose = live.find(
+    (idea) => idea.state.research_report != null && canMarketFastTrack(idea.state),
   );
 
   // The per-interview rate, not a total — a total is a door people close.
-  const teaserPrice = stalled
+  const teaserPrice = readyToChoose
     ? formatMoney(
         (
           await estimateFastTrack({
-            tier: stalled.state.structured.niche_tier,
+            tier: readyToChoose.state.structured.niche_tier,
             n: 5,
           })
         ).costPerInterviewCents,
@@ -112,9 +119,9 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          {stalled && teaserPrice && paymentsEnabled() ? (
+          {readyToChoose && teaserPrice && paymentsEnabled() ? (
             <FastTrackInline
-              ideaId={stalled.id}
+              ideaId={readyToChoose.id}
               perInterviewPrice={teaserPrice}
             />
           ) : null}
@@ -162,9 +169,7 @@ function IdeaCard({
   const gate = idea.state.decision_gate;
   const hasScore = Boolean(gate?.signal);
   const stage = stageForStatus(idea.status);
-  const fastTrackPaid =
-    idea.state.fast_track_order != null &&
-    idea.state.fast_track_order.status !== "pending_sourcing";
+  const roundStage = validationStage(idea.state);
 
   return (
     <article
@@ -228,7 +233,7 @@ function IdeaCard({
               actually cleared. The idea flips to validating_fast when checkout
               OPENS, so keying off status alone would promise work on an
               abandoned checkout. `pending_sourcing` means unpaid. */}
-          {fastTrackPaid ? (
+          {roundStage === "underway" ? (
             <span className="type-caption inline-flex items-center gap-1.5 rounded-full bg-brand-subtle px-2.5 py-1 text-brand">
               <span className="size-1.5 animate-pulse rounded-full bg-brand" />
               Interviews running
