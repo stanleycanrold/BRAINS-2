@@ -60,6 +60,15 @@ export function PipelineStepper({
           const isComplete = index < reachedIndex;
           const isReachable = index <= reachedIndex;
 
+          /**
+           * On a phone only the current stage is named.
+           *
+           * Four labels plus their separators are wider than a 360px screen
+           * once the menu button and the idea actions are also in the bar,
+           * which pushed the actions off the edge. The other stages stay as
+           * dots: still tappable, still showing position, just not spelling
+           * out where you are not.
+           */
           const label = (
             <span className="flex items-center gap-1.5">
               {isComplete ? (
@@ -79,7 +88,7 @@ export function PipelineStepper({
               {index > 0 ? (
                 <span
                   aria-hidden="true"
-                  className="mx-0.5 h-px w-4 bg-line sm:w-6"
+                  className="mx-0.5 h-px w-2 bg-line sm:w-6"
                 />
               ) : null}
 
@@ -88,19 +97,37 @@ export function PipelineStepper({
                   href={hrefForStage(ideaId, stage)}
                   aria-current={isActive ? "step" : undefined}
                   className={cn(
-                    "type-caption rounded-full px-2.5 py-1 transition-colors duration-[120ms]",
+                    "type-caption rounded-full transition-colors duration-[120ms]",
+                    "px-2.5 py-1",
                     isActive
                       ? "bg-brand-subtle font-medium text-brand"
                       : "text-secondary hover:bg-wash-hover hover:text-primary",
+                    !isActive && "hidden sm:flex",
                   )}
                 >
                   {label}
                 </Link>
               ) : (
-                <span className="type-caption cursor-default px-2.5 py-1 text-tertiary">
+                <span
+                  className={cn(
+                    "type-caption cursor-default px-2.5 py-1 text-tertiary",
+                    !isActive && "hidden sm:flex",
+                  )}
+                >
                   {label}
                 </span>
               )}
+
+              {/* The stand-in for a hidden stage, small screens only. */}
+              {!isActive ? (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-1.5 rounded-full sm:hidden",
+                    isReachable ? "bg-brand/50" : "bg-line",
+                  )}
+                />
+              ) : null}
             </li>
           );
         })}

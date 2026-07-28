@@ -197,8 +197,10 @@ body {
 .type-display-xl {
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
-  font-size: 40px;
-  line-height: 48px;
+  /* Scales with the viewport so a heading does not wrap into three lines on
+     a phone, and does not shrink on a desktop. */
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
@@ -273,11 +275,19 @@ body {
    Visible keyboard focus on every interactive element. Never a browser
    default, never removed without a replacement.                            */
 
-:focus-visible {
+:focus-visible:not([data-focus-ring="none"]) {
   outline: 2px solid var(--accent-brand);
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/*
+   data-focus-ring="none" is for a control whose CONTAINER draws the ring
+   instead - the idea composer, where an outline on the inner textarea drew a
+   second box inside the one that had already lit up. It is an opt-out from
+   where the ring is painted, never from having one: anything using it must
+   show focus some other way.
+*/
 
 :focus:not(:focus-visible) {
   outline: none;

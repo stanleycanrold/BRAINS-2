@@ -310,8 +310,16 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
 export function EntryScreen({ heading }: { heading: string }) {
   return (
     <div className="mx-auto flex w-full max-w-[720px] flex-col justify-center px-1 pt-[6vh] pb-16 sm:pt-[10vh]">
-      <div className="flex items-center justify-center gap-3">
-        <LogoMark size={26} priority />
+      {/* The mark is sized in CSS rather than by its width attribute so it
+          tracks the heading, which now scales with the viewport. At 26px it
+          sat noticeably below the cap height of 40px text and read as an
+          afterthought next to it. */}
+      <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+        <LogoMark
+          size={64}
+          priority
+          className="size-[clamp(26px,6.4vw,37px)]"
+        />
         <h1 className="type-display-xl text-center text-primary">{heading}</h1>
       </div>
 

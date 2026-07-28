@@ -102,12 +102,22 @@ export function Modal({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
+        /**
+         * Capped to the viewport, with the body scrolling inside it.
+         *
+         * Opening a dialog locks scrolling on the page behind it, so without
+         * a height cap a tall form simply ran off the bottom of the screen
+         * with no way to reach the rest of it. Header and footer stay put and
+         * only the middle moves, so the title and the buttons are always
+         * visible while a long form is being filled in.
+         */
         className={cn(
-          "animate-rise relative w-full max-w-[480px] rounded-[12px] border border-line",
+          "animate-rise relative flex w-full max-w-[480px] flex-col rounded-[12px]",
+          "max-h-[calc(100dvh-2rem)] border border-line",
           "bg-raised shadow-[var(--shadow-overlay)] outline-none",
         )}
       >
-        <div className="px-6 pt-6 pb-4">
+        <div className="shrink-0 px-6 pt-6 pb-4">
           <h2
             id={titleId}
             className={cn(
@@ -123,10 +133,16 @@ export function Modal({
             </div>
           ) : null}
         </div>
-        {children ? <div className="px-6 pb-4">{children}</div> : null}
+        {children ? (
+          // overscroll-contain stops a flick at the end of the list from
+          // scrolling the page behind the dialog.
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-4">
+            {children}
+          </div>
+        ) : null}
         {footer ? (
           // Actions right-aligned, Secondary left of Primary/Destructive.
-          <div className="flex items-center justify-end gap-3 border-t border-line px-6 py-4">
+          <div className="flex shrink-0 items-center justify-end gap-3 border-t border-line px-6 py-4">
             {footer}
           </div>
         ) : null}

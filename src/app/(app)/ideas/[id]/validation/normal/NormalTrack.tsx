@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Tab, TabList, TabPanel } from "@/components/ui/Tabs";
-import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { Textarea, Input, FormField } from "@/components/ui/Field";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -202,7 +201,10 @@ export function NormalTrack({
       </div>
 
       {/* Soft gate: a nudge with a real reason, never a locked door (§4.5) */}
-      <div className="sticky bottom-0 mt-10 -mx-4 border-t border-line bg-page/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+      {/* Bleeds to the edge at every breakpoint. The inset has to match the
+          main padding exactly (px-4 / sm:px-6 / lg:px-8) or the bar stops
+          short of the edge on wide screens. */}
+      <div className="sticky bottom-0 mt-10 -mx-4 border-t border-line bg-page/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Button
             variant="primary"
@@ -417,47 +419,76 @@ function ResponsesTab({
           it&rsquo;s fresh.
         </EmptyState>
       ) : (
-        <div className="mt-6 rounded-[8px] border border-line bg-raised">
-          <Table>
-            <Thead>
-              <tr>
-                <Th>Confirmed</Th>
-                <Th>Channel</Th>
-                <Th>Source</Th>
-                <Th>Notes</Th>
-              </tr>
-            </Thead>
-            <Tbody>
-              {responses.map((r) => (
-                <Tr key={r.id}>
-                  <Td>
-                    <Badge
-                      tone={
-                        r.confirmed === "yes"
-                          ? "success"
-                          : r.confirmed === "no"
-                            ? "danger"
-                            : "caution"
-                      }
-                      dot
-                    >
-                      {r.confirmed === "yes"
-                        ? "Yes"
-                        : r.confirmed === "no"
-                          ? "No"
-                          : "Unsure"}
-                    </Badge>
-                  </Td>
-                  <Td className="whitespace-nowrap text-secondary">
-                    {CHANNEL_LABELS[r.channel]}
-                  </Td>
-                  <Td className="text-secondary">{r.source || "-"}</Td>
-                  <Td className="min-w-[240px]">{r.notes || "-"}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </div>
+        // A list, not a table. Notes are the point of this screen - the
+        // synthesis reads them and so does the founder - and a four-column
+        // table squeezed them into the narrowest cell while giving equal room
+        // to a one-word channel. On a phone it also meant scrolling sideways
+        // to reach the thing you came to read.
+        <ul className="mt-6 space-y-2.5">
+          {responses.map((r) => (
+            <li
+              key={r.id}
+              className={cn(
+                "rounded-[10px] border border-line bg-raised p-4",
+                r.review_status === "rejected" && "opacity-60",
+              )}
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  tone={
+                    r.confirmed === "yes"
+                      ? "success"
+                      : r.confirmed === "no"
+                        ? "danger"
+                        : "caution"
+                  }
+                  dot
+                >
+                  {r.confirmed === "yes"
+                    ? "Yes"
+                    : r.confirmed === "no"
+                      ? "No"
+                      : "Unsure"}
+                </Badge>
+                <span className="type-body-m text-tertiary">
+                  {CHANNEL_LABELS[r.channel]}
+                </span>
+                {r.source ? (
+                  <>
+                    <span className="text-tertiary" aria-hidden="true">
+                      ·
+                    </span>
+                    <span className="type-body-m min-w-0 truncate text-secondary">
+                      {r.source}
+                    </span>
+                  </>
+                ) : null}
+
+                {/* Only ever shown when it changes what counts. */}
+                {r.review_status === "rejected" ? (
+                  <span className="type-caption rounded-full bg-danger-subtle px-2 py-0.5 text-danger">
+                    not counted
+                  </span>
+                ) : null}
+                {r.review_status === "pending" ? (
+                  <span className="type-caption rounded-full bg-wash-hover px-2 py-0.5 text-tertiary">
+                    checking
+                  </span>
+                ) : null}
+              </div>
+
+              {r.notes ? (
+                <p className="type-body-m mt-2 whitespace-pre-wrap text-primary">
+                  {r.notes}
+                </p>
+              ) : (
+                <p className="type-body-m mt-2 text-tertiary">
+                  No notes written down.
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
 
       <Modal

@@ -90,7 +90,9 @@ export function IdeaComposer({
       <div
         className={cn(
           "rounded-[16px] border bg-inset transition-colors duration-[120ms]",
-          "focus-within:border-brand/60",
+          // The whole control lights up, which is what replaces the inner
+          // outline suppressed on the textarea below.
+          "focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25",
           tooLong ? "border-danger/60" : "border-line",
         )}
       >
@@ -130,6 +132,16 @@ export function IdeaComposer({
           rows={1}
           autoFocus={autoFocus}
           aria-label="Describe your idea"
+          /**
+           * The container draws the focus ring, not the textarea.
+           *
+           * The global :focus-visible rule puts a 2px outline on every
+           * focusable element, which here drew a second box INSIDE the
+           * composer the moment anyone typed. Suppressing it costs nothing:
+           * focus is still obvious, because the container border lights up
+           * around the whole control.
+           */
+          data-focus-ring="none"
           className={cn(
             "type-body-l block w-full resize-none bg-transparent px-4 pt-4 pb-2",
             "text-primary placeholder:text-tertiary focus:outline-none",
