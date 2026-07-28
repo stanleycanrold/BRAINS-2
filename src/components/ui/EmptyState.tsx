@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 /**
  * Design system §3.12 and §1.7.
  *
- * Second-person invitation with the relevant action inline — never a dead end,
+ * Second-person invitation with the relevant action inline - never a dead end,
  * and deliberately never a decorative illustration (§Part 6 anti-patterns).
  */
 export function EmptyState({
@@ -36,7 +36,7 @@ export function EmptyState({
   );
 }
 
-/** Design system §3.13 — per-component skeletons matching the real shape. */
+/** Design system §3.13 - per-component skeletons matching the real shape. */
 export function Skeleton({
   className,
   ...props

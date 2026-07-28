@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * A determinate-looking arc, not a bouncing-dots animation. Used inline in
- * buttons and beside narrative status lines — never as a full-page loader
+ * buttons and beside narrative status lines - never as a full-page loader
  * (§3.13 mandates per-component skeletons for that).
  */
 export function Spinner({

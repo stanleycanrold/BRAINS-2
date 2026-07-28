@@ -19,11 +19,11 @@ import { FastTrackButton } from "../FastTrackButton";
 import { type Estimate } from "@/lib/pricing-math";
 
 /**
- * B4 — Validation Track Selection (design system §4.4).
+ * B4 - Validation Track Selection (design system §4.4).
  *
  * Two tracks, presented side by side, both converging on the same
  * `validation_report` shape. The tracks differ in who does the legwork and how
- * fast — not in which capabilities are available: questionnaire generation and
+ * fast - not in which capabilities are available: questionnaire generation and
  * social engagement assistance are shared by both (PRD §4.3 note).
  */
 
@@ -44,7 +44,7 @@ export function TrackSelection({
   const [starting, setStarting] = React.useState(false);
 
   // Only the per-interview rate is shown here, and it doesn't vary with
-  // quantity — so this screen no longer re-prices as anything changes.
+  // quantity - so this screen no longer re-prices as anything changes.
   // Quantity, totals and confirmation all live at checkout.
   const estimate = initialEstimate;
 
@@ -102,7 +102,7 @@ export function TrackSelection({
         </h1>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           Research says the problem probably exists. Only people can tell you it
-          matters. Pick either — you get the same analysed report at the end.
+          matters. Pick either - you get the same analysed report at the end.
         </p>
       </header>
 
@@ -119,7 +119,7 @@ export function TrackSelection({
         * Two options, equal weight, decided at a glance.
         *
         * This screen previously asked for an interview count and showed an
-        * itemised price table before the founder had chosen anything — a
+        * itemised price table before the founder had chosen anything - a
         * spreadsheet in the middle of a yes/no decision. Quantity and
         * itemisation belong at checkout, where they already exist and where
         * someone has decided to buy. Here the only job is: which of these two.
@@ -178,7 +178,7 @@ export function TrackSelection({
           </p>
 
           <ul className="mt-5 flex-1 space-y-2.5">
-            <Feature>You choose how many — more interviews, firmer signal</Feature>
+            <Feature>You choose how many - more interviews, firmer signal</Feature>
             <Feature>Nothing for you to chase or schedule</Feature>
             <Feature>Finished report on your dashboard in 1&ndash;2 weeks</Feature>
           </ul>
@@ -216,7 +216,7 @@ export function TrackSelection({
                   Payment not connected yet
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Pricing is live — checkout switches on with your Stripe keys.
+                  Pricing is live - checkout switches on with your Stripe keys.
                 </p>
               </>
             )}

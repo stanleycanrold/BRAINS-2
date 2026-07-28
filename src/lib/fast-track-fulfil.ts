@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 import { db, schema } from "@/lib/db";
@@ -10,7 +11,7 @@ import { ideaStateSchema } from "@/lib/domain/types";
  * Two paths reach this: the Stripe webhook (the authority) and the
  * return-from-checkout reconcile call (which covers webhook lag, and local
  * development where nobody is running `stripe listen`). They must agree
- * exactly — an order marked paid down one path but not the other would either
+ * exactly - an order marked paid down one path but not the other would either
  * charge a founder without queueing work, or queue work without a payment. So
  * the transition lives here once and both callers use it.
  *
@@ -42,7 +43,7 @@ export async function markOrderPaid(
       paymentRef: session.payment_intent
         ? String(session.payment_intent)
         : session.id,
-      // Payment verified — only NOW does this become an Ops work item.
+      // Payment verified - only NOW does this become an Ops work item.
       status: "scheduling",
     })
     .where(eq(schema.fastTrackOrders.id, orderId));
@@ -69,16 +70,37 @@ export async function patchIdeaState(
   if (!state.fast_track_order) return;
 
   // The idea moves onto the Fast Track when the money does, not when checkout
-  // opens — see the note in the checkout route. `pending_sourcing` is the
+  // opens - see the note in the checkout route. `pending_sourcing` is the
   // unpaid state, so it must leave the founder's own track alone.
   const paid = status !== "pending_sourcing";
+
+  /**
+   * Issue the paid round its own public link.
+   *
+   * Separate from the founder's own share link so responses can be told
+   * apart: the token an answer arrives on is what decides whether it counts
+   * as `fast` or `normal`. Minted here rather than at question-generation
+   * time because an unpaid round has no interviews to attribute.
+   */
+  const panelToken =
+    paid && !version.panelToken ? randomUUID().replace(/-/g, "") : null;
 
   const next = {
     ...state,
     ...(paid
       ? {
           status: "validating_fast" as const,
-          validation: { ...state.validation, track: "fast" as const },
+          validation: {
+            ...state.validation,
+            track: "fast" as const,
+            questionnaire: {
+              ...state.validation.questionnaire,
+              panel_share_token:
+                panelToken ??
+                version.panelToken ??
+                state.validation.questionnaire.panel_share_token,
+            },
+          },
         }
       : {}),
     fast_track_order: { ...state.fast_track_order, status },
@@ -90,6 +112,7 @@ export async function patchIdeaState(
     .set({
       stateJson: next,
       ...(paid ? { status: "validating_fast" as const } : {}),
+      ...(panelToken ? { panelToken } : {}),
       updatedAt: new Date(),
     })
     .where(eq(schema.ideaStateVersions.id, versionId));

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 /**
- * POST /ideas/:id/research — runs the Step-2 pipeline.
+ * POST /ideas/:id/research - runs the Step-2 pipeline.
  *
  * The client kicks this off after the entry record exists and polls the idea
  * for the result, so a slow research pass shows progress rather than blocking
@@ -46,7 +46,7 @@ export async function POST(
         error:
           err instanceof Error
             ? err.message
-            : "Research didn't complete. Your idea is saved — try again.",
+            : "Research didn't complete. Your idea is saved - try again.",
       },
       { status: 500 },
     );

@@ -10,11 +10,11 @@ import { useToast } from "@/components/ui/Toast";
 import { STAGE_LABELS, type StageAtEntry } from "@/lib/domain/types";
 
 /**
- * B2 — Entry Point (design system §4.2, PRD §4.1).
+ * B2 - Entry Point (design system §4.2, PRD §4.1).
  *
  * The form is DYNAMIC by stage, not merely conditionally showing extra fields:
  * at "Idea only" the product-link field is absent from the layout entirely, so
- * there is nothing to skip past. At MVP/Live a single link field appears —
+ * there is nothing to skip past. At MVP/Live a single link field appears -
  * that is the only thing the founder types for that part; everything else is
  * fetched automatically rather than asked for.
  */
@@ -35,7 +35,7 @@ export function EntryForm() {
   const [productLink, setProductLink] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
 
-  // Errors appear on blur, never on every keystroke — don't punish someone
+  // Errors appear on blur, never on every keystroke - don't punish someone
   // mid-typing (§1.7).
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
 
@@ -43,7 +43,7 @@ export function EntryForm() {
 
   const descriptionError =
     touched.description && description.trim().length < MIN_DESCRIPTION
-      ? `Describe it in a bit more detail — at least ${MIN_DESCRIPTION} characters so we have something to research.`
+      ? `Describe it in a bit more detail - at least ${MIN_DESCRIPTION} characters so we have something to research.`
       : null;
 
   const audienceError =
@@ -105,7 +105,7 @@ export function EntryForm() {
         label="What are you building?"
         htmlFor="description"
         error={descriptionError}
-        hint="A paragraph beats a tagline. What's the situation, and what goes wrong today? This doesn't have to be a whole product — if only one feature is uncertain, describe just that."
+        hint="A paragraph beats a tagline. What's the situation, and what goes wrong today? This doesn't have to be a whole product - if only one feature is uncertain, describe just that."
       >
         <Textarea
           id="description"
@@ -134,13 +134,13 @@ export function EntryForm() {
         />
       </div>
 
-      {/* Absent from the layout entirely at Idea-only — not hidden (§4.2) */}
+      {/* Absent from the layout entirely at Idea-only - not hidden (§4.2) */}
       {showsLinkField ? (
         <FormField
           label="Link to your product"
           htmlFor="product-link"
           error={linkError}
-          hint="Website or app store listing. We'll read it and pull in what we find — you won't need to type your metrics."
+          hint="Website or app store listing. We'll read it and pull in what we find - you won't need to type your metrics."
         >
           <Input
             id="product-link"

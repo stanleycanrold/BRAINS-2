@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
  * Design system §3.6.
  *
  * 48px rows (40px in dense/Ops contexts), hairline row borders, and NO zebra
- * striping — more precise at this data density, less decorative (§Part 6).
+ * striping - more precise at this data density, less decorative (§Part 6).
  */
 
 export function Table({

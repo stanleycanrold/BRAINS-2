@@ -7,7 +7,7 @@ import { Button } from "./Button";
 /**
  * Design system §3.7.
  *
- * Reserved for irreversible / high-consequence actions ONLY — killing an idea,
+ * Reserved for irreversible / high-consequence actions ONLY - killing an idea,
  * confirming a Fast Track payment, deleting an account. Never for routine
  * multi-step flows; those live on their own pages (§Part 6 anti-patterns).
  *

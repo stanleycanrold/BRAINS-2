@@ -19,7 +19,7 @@ const markSchema = z.object({
   status: z.enum(["edited", "posted"]),
 });
 
-/** POST — generate drafts for this idea's communities (PRD §6.8 / §6.9). */
+/** POST - generate drafts for this idea's communities (PRD §6.8 / §6.9). */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -60,10 +60,10 @@ export async function POST(
 }
 
 /**
- * PATCH — save an edit, or mark a draft as posted.
+ * PATCH - save an edit, or mark a draft as posted.
  *
  * "Posted" is the founder telling us they published it themselves. BRAINS
- * never publishes anything, on any tier — this endpoint records an action
+ * never publishes anything, on any tier - this endpoint records an action
  * that already happened elsewhere.
  */
 export async function PATCH(

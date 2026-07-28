@@ -9,7 +9,7 @@ import { AccountTopBar } from "./AccountTopBar";
 
 export const metadata: Metadata = { title: "Billing & account" };
 
-/** B12 — Account & Billing (design system §4.12). */
+/** B12 - Account & Billing (design system §4.12). */
 export default async function AccountPage() {
   const user = await requireUser();
   const ideas = await listIdeas(user.id);
@@ -33,7 +33,7 @@ export default async function AccountPage() {
         <Card elevation="raised" className="p-5">
           <h2 className="type-caption text-tertiary uppercase">Signed in as</h2>
           <p className="type-body-l mt-2 font-medium text-primary">
-            {user.name || "—"}
+            {user.name || "-"}
           </p>
           <p className="type-body-m text-secondary">{user.email}</p>
           {ops ? (
@@ -110,7 +110,7 @@ export default async function AccountPage() {
                 Fast Track &amp; Continued Social Scan
               </h3>
               <p className="type-body-m mt-1 max-w-prose text-secondary">
-                Paid options — we run the interviews, or keep scanning
+                Paid options - we run the interviews, or keep scanning
                 communities for you between rounds.
               </p>
             </div>
@@ -141,7 +141,7 @@ export default async function AccountPage() {
             <Tbody>
               <Tr>
                 <Td colSpan={3} className="py-6 text-center text-tertiary">
-                  Nothing billed yet — you haven&rsquo;t bought anything.
+                  Nothing billed yet - you haven&rsquo;t bought anything.
                 </Td>
               </Tr>
             </Tbody>

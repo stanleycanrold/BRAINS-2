@@ -5,7 +5,7 @@ import type { NicheTier } from "@/lib/domain/types";
 import { priceFor, type Estimate, type PricingRates } from "./pricing-math";
 
 /**
- * Fast Track pricing (PRD §4.3.2.1) — the server half.
+ * Fast Track pricing (PRD §4.3.2.1) - the server half.
  *
  * Rates are read from the `pricing_config` table, never hardcoded, so Ops can
  * retune them without a deploy. The arithmetic itself lives in `pricing-math`
@@ -73,7 +73,7 @@ export async function getPricingForTier(
  *
  * Deliberately deterministic rather than an LLM call: a founder is about to be
  * charged this number, so it must be reproducible and auditable. The judgment
- * that DOES need a model — which niche tier this idea falls into — already
+ * that DOES need a model - which niche tier this idea falls into - already
  * happened during extraction and is stored on the idea.
  */
 export async function estimateFastTrack(params: {

@@ -6,7 +6,7 @@ import { MIN_RESPONSES } from "@/lib/domain/types";
 /**
  * How much a given number of interviews is actually worth.
  *
- * The bands here are not decorative — they mirror what the Decision Gate does
+ * The bands here are not decorative - they mirror what the Decision Gate does
  * with the result. Below MIN_RESPONSES the gate raises sample size as a
  * high-severity risk and discounts the score, so the meter says so plainly
  * rather than implying any number is fine. Diversity and depth still matter;

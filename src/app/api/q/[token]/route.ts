@@ -13,7 +13,7 @@ const bodySchema = z.object({
 });
 
 /**
- * Public submission endpoint — deliberately unauthenticated.
+ * Public submission endpoint - deliberately unauthenticated.
  *
  * The share token IS the credential. It only ever grants: read the questions,
  * post one set of answers. There is no read path here for the idea, the

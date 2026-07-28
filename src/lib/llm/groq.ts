@@ -8,12 +8,12 @@ import type {
 } from "./types";
 
 /**
- * Groq adapter — the phase-1 provider.
+ * Groq adapter - the phase-1 provider.
  *
  * Two distinct models are used, deliberately:
- *  • GROQ_MODEL        — a fast instruct model with strict JSON-schema
+ *  • GROQ_MODEL - a fast instruct model with strict JSON-schema
  *                        decoding, for every structured agent call.
- *  • GROQ_SEARCH_MODEL — Groq's agentic "compound" model, which performs real
+ *  • GROQ_SEARCH_MODEL - Groq's agentic "compound" model, which performs real
  *                        web searches server-side and returns the underlying
  *                        results. That is what lets research output carry
  *                        genuine source URLs rather than model recall, which
@@ -48,7 +48,7 @@ function isRateLimited(err: unknown): boolean {
  * Groq's free tier is token-per-minute limited (8k TPM on the default model at
  * the time of writing), and a validation pipeline issues several agent calls
  * in quick succession. Rather than surface a rate-limit error to a founder
- * mid-run, back off and retry — honouring the server's own `retry-after`.
+ * mid-run, back off and retry - honouring the server's own `retry-after`.
  */
 async function withRateLimitRetry<T>(
   operation: () => Promise<T>,
@@ -90,13 +90,13 @@ export function createGroqProvider(): LLMProvider {
 
       // Not every Groq model supports strict schema decoding. Where it isn't
       // available we fall back to plain JSON mode with the schema inlined into
-      // the system prompt — the zod parse below is the real guarantee either
+      // the system prompt - the zod parse below is the real guarantee either
       // way, so behaviour is identical, just less constrained during decoding.
       const strict = !noSchemaSupport.has(model);
 
       const system = strict
         ? req.system
-        : `${req.system}\n\nRespond with a single JSON object conforming exactly to this JSON Schema. Output JSON only — no prose, no markdown fences.\n\n${JSON.stringify(
+        : `${req.system}\n\nRespond with a single JSON object conforming exactly to this JSON Schema. Output JSON only - no prose, no markdown fences.\n\n${JSON.stringify(
             req.jsonSchema,
           )}`;
 
@@ -108,7 +108,7 @@ export function createGroqProvider(): LLMProvider {
       let lastError: unknown;
       let raw = "";
 
-      // One retry with the validation error fed back — models occasionally
+      // One retry with the validation error fed back - models occasionally
       // miss an enum value, and a targeted repair is far cheaper than failing
       // the whole pipeline step.
       for (let attempt = 0; attempt < 2; attempt++) {
@@ -235,7 +235,7 @@ export function createGroqSearchProvider(): SearchProvider {
               {
                 role: "system",
                 content:
-                  "You are a research assistant. Use web search to answer. Prefer primary sources, forum and community threads, and product pages. Do not speculate. Keep your written answer to a few lines — the caller reads the underlying search results, not your prose.",
+                  "You are a research assistant. Use web search to answer. Prefer primary sources, forum and community threads, and product pages. Do not speculate. Keep your written answer to a few lines - the caller reads the underlying search results, not your prose.",
               },
               { role: "user", content: query },
             ],

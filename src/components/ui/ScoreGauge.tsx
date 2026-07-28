@@ -5,11 +5,11 @@ import { cn } from "@/lib/cn";
 import { useMediaQuery } from "@/lib/client-state";
 
 /**
- * Design system §3.5 — the Score gauge. The product's signature element.
+ * Design system §3.5 - the Score gauge. The product's signature element.
  *
  * A 270° arc, not a full circle: the gap reads as a gauge (an instrument),
  * not a donut chart. The centre number is ALWAYS Data L / JetBrains Mono with
- * tabular figures, in every context it appears — never the display sans.
+ * tabular figures, in every context it appears - never the display sans.
  *
  * Motion budget (§1.6) is spent once, on the report reveal: the large variant
  * animates 0 → score over 600ms on load; the small variant used on dashboard
@@ -74,7 +74,7 @@ export function ScoreGauge({
     let raf = 0;
     const duration = 600;
     const start = performance.now();
-    // ease-out cubic — decelerates into the final value, like a needle settling
+    // ease-out cubic - decelerates into the final value, like a needle settling
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
 
     const tick = (now: number) => {
@@ -126,7 +126,7 @@ export function ScoreGauge({
         <div className="absolute inset-0 flex items-center justify-center">
           <span
             className={cn(
-              // Data L, always — never the display sans, in any context.
+              // Data L, always - never the display sans, in any context.
               "font-mono font-medium tabular-nums text-primary leading-none",
               font,
             )}

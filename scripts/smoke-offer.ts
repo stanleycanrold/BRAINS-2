@@ -9,7 +9,7 @@ import { canMarketFastTrack, validationStage } from "../src/lib/validation-stage
 let failures = 0;
 function check(label: string, ok: boolean, detail = "") {
   if (!ok) failures++;
-  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` — ${detail}` : ""}`);
+  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` - ${detail}` : ""}`);
 }
 
 const base = (): IdeaState =>
@@ -34,12 +34,13 @@ const order = (status: OrderStatus) => ({
   analysis_fee: 15000,
   total_cost: 55000,
   currency: "usd",
+  location_preference: "",
   status,
   scheduled_count: 0,
   completed_count: status === "completed" ? 10 : 0,
 });
 
-console.log("\nFast Track offer — when it may be shown\n");
+console.log("\nFast Track offer - when it may be shown\n");
 
 console.log("1. Before a track is chosen (the decision point)");
 {
@@ -62,10 +63,10 @@ console.log("\n3. Checkout opened but not paid");
   s.fast_track_order = order("pending_sourcing");
   check("stage is awaiting_payment", validationStage(s) === "awaiting_payment", validationStage(s));
   check("offer is NOT re-marketed", !canMarketFastTrack(s));
-  check("track untouched — founder isn't stranded", s.validation.track === null);
+  check("track untouched - founder isn't stranded", s.validation.track === null);
 }
 
-console.log("\n4. Paid — we're running it");
+console.log("\n4. Paid - we're running it");
 {
   const s = base();
   s.validation.track = "fast";
@@ -83,7 +84,7 @@ console.log("\n5. Round delivered");
   check("offer is NOT marketed", !canMarketFastTrack(s));
 }
 
-console.log("\n6. Redo — a fork resets track and order");
+console.log("\n6. Redo - a fork resets track and order");
 {
   // Mirrors what forkVersion() writes for a new round.
   const s = base();

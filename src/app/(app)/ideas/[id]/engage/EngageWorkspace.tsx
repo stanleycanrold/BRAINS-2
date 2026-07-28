@@ -20,13 +20,13 @@ import { TrackedSpaces } from "@/components/TrackedSpaces";
 import type { DraftedComment, DraftedPost, IdeaState } from "@/lib/domain/types";
 
 /**
- * B8 — Engage workspace (design system §4.8).
+ * B8 - Engage workspace (design system §4.8).
  *
  * Posts and comments are separate tabs because they are separate writing
  * tasks with separate agents: a cold-open post has to earn attention from
  * strangers; a reply has to respond to what someone actually said.
  *
- * "Mark as posted" is gated behind an "I edited this" checkbox — a soft nudge,
+ * "Mark as posted" is gated behind an "I edited this" checkbox - a soft nudge,
  * not a hard block. Unedited drafts read as templated, and templated posts get
  * treated as spam by exactly the communities we need.
  */
@@ -128,7 +128,7 @@ export function EngageWorkspace({
             <p className="type-body-m max-w-prose text-secondary">
               {tab === "post"
                 ? "Standalone posts that open a genuine question, one per community."
-                : "Replies to specific threads we found — each responds to what that person actually said."}
+                : "Replies to specific threads we found - each responds to what that person actually said."}
             </p>
             <Button
               variant={drafts.length > 0 ? "secondary" : "primary"}
@@ -143,7 +143,7 @@ export function EngageWorkspace({
           {drafts.length === 0 ? (
             <EmptyState title="No drafts yet" className="mt-6">
               {state.validation.communities.length === 0
-                ? "We need to find your communities first — start a validation track on this idea."
+                ? "We need to find your communities first - start a validation track on this idea."
                 : `We'll write one ${tab === "post" ? "post" : "reply"} per community we found.`}
             </EmptyState>
           ) : (
@@ -221,7 +221,7 @@ function DraftCard({
       onUpdated(body.state);
       toast(
         status === "posted"
-          ? "Saved — we'll keep this space so you can check back"
+          ? "Saved - we'll keep this space so you can check back"
           : "Draft saved",
         "success",
       );
@@ -298,7 +298,7 @@ function DraftCard({
               checked={acknowledged || changed}
               onChange={setAcknowledged}
               label="I've made this sound like me"
-              description="Word-for-word drafts read as templated — and get treated that way."
+              description="Word-for-word drafts read as templated - and get treated that way."
             />
 
             <Input

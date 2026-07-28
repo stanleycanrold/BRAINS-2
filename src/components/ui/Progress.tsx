@@ -9,7 +9,7 @@ import { Spinner } from "./Spinner";
  *
  * The linear bar is the ONE legitimate literal progress bar in the product,
  * because it tracks a real count toward a known total (Fast Track orders).
- * The fraction is always shown as text alongside — never rely on bar length
+ * The fraction is always shown as text alongside - never rely on bar length
  * alone.
  */
 export function ProgressBar({
@@ -51,7 +51,7 @@ export function ProgressBar({
 }
 
 /**
- * Everywhere else — research agent processing and similar — a narrative status
+ * Everywhere else - research agent processing and similar - a narrative status
  * line is used instead, since there is nothing to show a percentage *of* yet
  * (§3.11, §3.13).
  */

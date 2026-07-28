@@ -9,7 +9,7 @@ import { cn } from "@/lib/cn";
 /**
  * How many interviews to run.
  *
- * A slider alone is a guessing game once the range is wide — a founder who
+ * A slider alone is a guessing game once the range is wide - a founder who
  * knows they want 24 shouldn't have to hunt for it. So the number is a real
  * text field they can type into, with the slider kept as the coarse control
  * and steppers for nudging.
@@ -34,7 +34,7 @@ export function InterviewCount({
    * `draft` holds the raw text ONLY while the founder is mid-edit; the rest of
    * the time it's null and the field simply shows `value`. Mirroring `value`
    * into state with an effect would re-render twice on every slider tick and
-   * briefly show a stale number — this way there is one source of truth and no
+   * briefly show a stale number - this way there is one source of truth and no
    * synchronisation to get wrong.
    */
   const [draft, setDraft] = React.useState<string | null>(null);

@@ -19,7 +19,7 @@ import { useSessionFlag } from "@/lib/client-state";
  *  1. Lead with the PER-INTERVIEW price, never a total. "From $40 an
  *     interview" invites someone in; "from $530" makes them close the tab
  *     before they've seen that they choose the quantity. The total is honest
- *     and unavoidable at checkout — it just shouldn't be the opening line.
+ *     and unavoidable at checkout - it just shouldn't be the opening line.
  *
  *  2. Small and dismissible. This is an offer beside the founder's work, not
  *     an interruption of it. A full-width block competes with the thing they
@@ -37,13 +37,13 @@ export function FastTrackTeaser({
   dismissible = true,
 }: {
   ideaId: string;
-  /** Formatted per-interview price, e.g. "$40" — never a total. */
+  /** Formatted per-interview price, e.g. "$40" - never a total. */
   perInterviewPrice: string;
   responsesLogged?: number;
   className?: string;
   dismissible?: boolean;
 }) {
-  // Dismissal sticks for the session only — see useSessionFlag.
+  // Dismissal sticks for the session only - see useSessionFlag.
   const [dismissed, setDismissed] = useSessionFlag(DISMISS_KEY);
 
   if (dismissible && dismissed) return null;
@@ -82,7 +82,7 @@ export function FastTrackTeaser({
           </h3>
 
           <p className="type-body-m mt-1 text-secondary">
-            Get the interviews done and analysed for you — from{" "}
+            Get the interviews done and analysed for you - from{" "}
             <span className="font-medium text-primary">
               {perInterviewPrice} an interview
             </span>
@@ -103,7 +103,7 @@ export function FastTrackTeaser({
 }
 
 /**
- * A one-line variant for tight spaces — same offer, same per-interview
+ * A one-line variant for tight spaces - same offer, same per-interview
  * framing, no card.
  */
 export function FastTrackInline({
@@ -141,7 +141,7 @@ export function FastTrackInline({
  * The rework loop, stated plainly.
  *
  * Founders read a low score as a verdict on them and quietly abandon the idea.
- * Saying the loop is unlimited — and that nothing is thrown away — is what
+ * Saying the loop is unlimited - and that nothing is thrown away - is what
  * turns a "rethink" into a next step instead of an exit.
  */
 export function LoopReminder({ className }: { className?: string }) {
@@ -155,7 +155,7 @@ export function LoopReminder({ className }: { className?: string }) {
       <span className="font-medium text-primary">
         Validation is a loop, not a verdict.
       </span>{" "}
-      If the signal is weak, sharpen the idea and run it again — there&rsquo;s
+      If the signal is weak, sharpen the idea and run it again - there&rsquo;s
       no limit on rounds, and every version you&rsquo;ve been through stays
       readable. You can also narrow the next round to a single feature rather
       than the whole product.

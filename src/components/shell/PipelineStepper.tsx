@@ -11,7 +11,7 @@ import {
 } from "@/lib/domain/types";
 
 /**
- * Design system §2.2 — the pipeline stepper in the top bar.
+ * Design system §2.2 - the pipeline stepper in the top bar.
  *
  * This is navigation and progress indicator at once, and it is what makes the
  * PRD's "nothing becomes unreachable once you continue" rule actually visible:

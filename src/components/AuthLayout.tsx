@@ -1,7 +1,7 @@
 import { Logo } from "@/components/brand/Logo";
 
 /**
- * The signed-out shell. Deliberately quiet — this is the instrument panel's
+ * The signed-out shell. Deliberately quiet - this is the instrument panel's
  * front door, not a landing page (marketing site is a separate property).
  */
 export function AuthLayout({
@@ -18,7 +18,7 @@ export function AuthLayout({
       <div className="w-full max-w-[420px]">
         <div className="mb-8 text-center">
           <div className="flex justify-center">
-            <Logo size={20} priority />
+            <Logo size={23} priority />
           </div>
           <h1 className="type-display-l mt-6 text-primary">{title}</h1>
           <p className="type-body-l mt-2 text-secondary">{subtitle}</p>

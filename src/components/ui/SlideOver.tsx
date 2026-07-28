@@ -9,7 +9,7 @@ import { cn } from "@/lib/cn";
  *
  * Distinct from a Modal (§3.7), which is reserved for irreversible decisions
  * and deliberately blocks everything else. A slide-over is for work that runs
- * ALONGSIDE the page — you dip into it, act, and come back — so it keeps the
+ * ALONGSIDE the page - you dip into it, act, and come back - so it keeps the
  * underlying context visible rather than replacing it.
  *
  * Same accessibility contract as the modal: focus trap, Escape to close,

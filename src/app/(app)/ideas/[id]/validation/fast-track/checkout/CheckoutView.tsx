@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InterviewCount } from "@/components/InterviewCount";
+import { Input } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
 import { IdeaTopBar } from "../../../IdeaTopBar";
 import { useTheme } from "@/components/ThemeProvider";
@@ -25,11 +26,11 @@ import type { IdeaState } from "@/lib/domain/types";
 import { recalculate, type Estimate } from "@/lib/pricing-math";
 
 /**
- * B6 — Fast Track: Estimate & Checkout (design system §4.6).
+ * B6 - Fast Track: Estimate & Checkout (design system §4.6).
  *
  * Payment happens INSIDE the product. Stripe's embedded checkout renders the
  * card fields in an iframe it owns, so no card data touches our servers and
- * PCI scope stays SAQ-A — but the founder never leaves the page. That matters
+ * PCI scope stays SAQ-A - but the founder never leaves the page. That matters
  * here specifically: they have just spent real effort on their questions, and
  * a hand-off to a different domain is exactly where people reconsider.
  */
@@ -56,6 +57,7 @@ export function CheckoutView({
   const [serverEstimate, setServerEstimate] = React.useState(initialEstimate);
   const [clientSecret, setClientSecret] = React.useState<string | null>(null);
   const [preparing, setPreparing] = React.useState(false);
+  const [location, setLocation] = React.useState("");
 
   // Priced locally so the total moves on the same frame as the input; the
   // server confirms in the background and its figure is what Stripe charges.
@@ -92,7 +94,7 @@ export function CheckoutView({
       const response = await fetch(`/api/ideas/${ideaId}/fast-track/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ n }),
+        body: JSON.stringify({ n, location_preference: location }),
       });
       const body = await response.json();
       if (!response.ok || !body.client_secret) {
@@ -169,6 +171,31 @@ export function CheckoutView({
             max={estimate.maxInterviews}
           />
 
+          {/* Optional, and deliberately free text: "US healthcare admins" and
+              "anywhere, English-speaking" are both useful and neither fits a
+              country dropdown. Asked before payment because it changes who we
+              go looking for. */}
+          <div className="mt-6 border-t border-line pt-5">
+            <label
+              htmlFor="location-preference"
+              className="type-body-m block font-medium text-primary"
+            >
+              Where should these people be?{" "}
+              <span className="text-tertiary">Optional</span>
+            </label>
+            <Input
+              id="location-preference"
+              className="mt-2"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. UK and Ireland, or US healthcare admins"
+              maxLength={200}
+            />
+            <p className="type-caption mt-1.5 text-tertiary">
+              Leave it blank and we will look anywhere your people are.
+            </p>
+          </div>
+
           <dl
             className="mt-6 space-y-2.5 border-t border-line pt-5"
             aria-live="polite"
@@ -205,12 +232,13 @@ export function CheckoutView({
         </Card>
       ) : (
         <div className="mt-8">
-          {/* Order summary stays visible above the form — the founder should
+          {/* Order summary stays visible above the form - the founder should
               never have to remember what they're paying for. */}
           <Card className="p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="type-body-m text-secondary">
                 {estimate.nRequested} interviews, analysed and scored
+                {location.trim() ? ` · ${location.trim()}` : ""}
               </span>
               <span className="type-data-l text-[20px] text-primary">
                 {money(estimate.totalCents)}

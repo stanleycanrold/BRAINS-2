@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { NarrativeProgress } from "@/components/ui/Progress";
 import { Skeleton } from "@/components/ui/EmptyState";
@@ -21,7 +22,7 @@ import { PipelineStepper } from "@/components/shell/PipelineStepper";
 import type { IdeaState, ProblemStrength } from "@/lib/domain/types";
 
 /**
- * B3 — Research Report (design system §4.3).
+ * B3 - Research Report (design system §4.3).
  *
  * Reading order follows the founder's actual questions, in order:
  *   1. Is this problem real?            → the verdict, leading the page
@@ -31,7 +32,7 @@ import type { IdeaState, ProblemStrength } from "@/lib/domain/types";
  *   5. So what should I change?         → proposals
  *
  * The verdict leads deliberately. An earlier pass put the restated idea first
- * — correctness before findings — but that buried the one thing the founder
+ * - correctness before findings - but that buried the one thing the founder
  * opened the page for. The restatement is still one click away, and still
  * editable, which is what it actually needs to be.
  *
@@ -171,7 +172,7 @@ export function ResearchView({
           What we found out about this
         </h1>
         <p className="type-body-l mt-1 text-secondary">
-          Before you spend a day — or a dollar — talking to anyone.
+          Before you spend a day - or a dollar - talking to anyone.
         </p>
       </header>
 
@@ -179,8 +180,7 @@ export function ResearchView({
         <Card elevation="raised" className="mt-8 p-6">
           <NarrativeProgress steps={RESEARCH_STEPS} activeIndex={stepIndex} />
           <p className="type-body-m mt-6 border-t border-line pt-4 text-tertiary">
-            This usually takes a minute or two. You can leave this page —
-            we&rsquo;ll keep going, and your idea is already saved.
+            This usually takes a minute or two. You can leave this page - we&rsquo;ll keep going, and your idea is already saved.
           </p>
           <div className="mt-6 space-y-3">
             <Skeleton className="h-4 w-2/3" />
@@ -213,7 +213,7 @@ export function ResearchView({
         </Card>
       ) : report ? (
         <div className="mt-8 space-y-12 pb-4">
-          {/* 1. Is this problem real? — the answer, before anything else.
+          {/* 1. Is this problem real? - the answer, before anything else.
                  The founder came here for this. Making them scroll past their
                  own restated idea to reach it buries the point of the page. */}
           <section aria-labelledby="verdict-heading">
@@ -271,7 +271,7 @@ export function ResearchView({
             </Card>
           </section>
 
-          {/* 2. Did you understand my idea? — available, not in the way. */}
+          {/* 2. Did you understand my idea? - available, not in the way. */}
           <UnderstandingCard
             ideaId={ideaId}
             structured={state.structured}
@@ -279,20 +279,15 @@ export function ResearchView({
           />
 
           {/* 3. What makes you say that? */}
-          <section aria-labelledby="evidence-heading">
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 id="evidence-heading" className="type-display-m text-primary">
-                What people are actually saying
-              </h2>
-              {report.evidence.length > 0 ? (
-                <span className="type-data-s shrink-0 text-tertiary">
-                  {report.evidence.length}{" "}
-                  {report.evidence.length === 1 ? "source" : "sources"}
-                </span>
-              ) : null}
-            </div>
-            <p className="type-body-m mt-1 text-secondary">
-              Every line here links to where we found it. Follow them — the
+          <Disclosure
+            title="What people are actually saying"
+            count={report.evidence.length}
+            summary="Quotes and sources from the research"
+            storageKey={`brains-research-evidence-${ideaId}`}
+            defaultOpen
+          >
+            <p className="type-body-m text-secondary">
+              Every line here links to where we found it. Follow them - the
               original threads are usually worth reading in full.
             </p>
 
@@ -331,29 +326,23 @@ export function ResearchView({
             ) : (
               <EmptyFinding>
                 We didn&rsquo;t turn up direct quotes this round. That&rsquo;s
-                not the same as nobody having the problem — it often means
+                not the same as nobody having the problem - it often means
                 it&rsquo;s discussed somewhere search doesn&rsquo;t reach, like
                 a private group or in person. Talking to people is the next step
                 anyway.
               </EmptyFinding>
             )}
-          </section>
+          </Disclosure>
 
           {/* 4. Am I too late? */}
-          <section aria-labelledby="existing-heading">
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 id="existing-heading" className="type-display-m text-primary">
-                What already exists
-              </h2>
-              {report.competitors.length > 0 ? (
-                <span className="type-data-s shrink-0 text-tertiary">
-                  {report.competitors.length}{" "}
-                  {report.competitors.length === 1 ? "product" : "products"}
-                </span>
-              ) : null}
-            </div>
-            <p className="type-body-m mt-1 text-secondary">
-              Other people solving this isn&rsquo;t bad news — it&rsquo;s proof
+          <Disclosure
+            title="What already exists"
+            count={report.competitors.length}
+            summary="Who else is solving this, and the gap they leave"
+            storageKey={`brains-research-competitors-${ideaId}`}
+          >
+            <p className="type-body-m text-secondary">
+              Other people solving this isn&rsquo;t bad news - it&rsquo;s proof
               someone will pay. What matters is the gap they leave.
             </p>
 
@@ -389,20 +378,18 @@ export function ResearchView({
                 interviews will tell you which.
               </EmptyFinding>
             )}
-          </section>
+          </Disclosure>
 
           {/* 5. So what should I change? */}
           {proposals.length > 0 ? (
-            <section aria-labelledby="sharpen-heading">
-              <div className="flex items-baseline justify-between gap-4">
-                <h2 id="sharpen-heading" className="type-display-m text-primary">
-                  Where we&rsquo;d sharpen it
-                </h2>
-                <span className="type-data-s shrink-0 text-tertiary">
-                  {reviewed} of {proposals.length} reviewed
-                </span>
-              </div>
-              <p className="type-body-m mt-1 text-secondary">
+            <Disclosure
+              title="Where we’d sharpen it"
+              count={proposals.length}
+              summary={`${reviewed} of ${proposals.length} reviewed`}
+              storageKey={`brains-research-proposals-${ideaId}`}
+              defaultOpen
+            >
+              <p className="type-body-m text-secondary">
                 Take what&rsquo;s right, edit what&rsquo;s close, ignore the
                 rest. Accepting one rewrites your idea above.
               </p>
@@ -417,10 +404,10 @@ export function ResearchView({
                   />
                 ))}
               </ul>
-            </section>
+            </Disclosure>
           ) : null}
 
-          {/* Next step — sticky so it stays reachable on a long page */}
+          {/* Next step - sticky so it stays reachable on a long page */}
           <div className="sticky bottom-0 -mx-4 border-t border-line bg-page/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Button
@@ -460,7 +447,7 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-/** An absent finding is still a finding — never render a section as blank. */
+/** An absent finding is still a finding - never render a section as blank. */
 function EmptyFinding({ children }: { children: React.ReactNode }) {
   return (
     <p className="type-body-l mt-4 rounded-[8px] border border-dashed border-line px-5 py-4 text-secondary">

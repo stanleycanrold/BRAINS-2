@@ -25,14 +25,14 @@ import { useTheme } from "@/components/ThemeProvider";
 import type { IdeaStatus } from "@/lib/domain/types";
 
 /**
- * Design system §2.1–2.2 — persistent left sidebar, not top navigation.
+ * Design system §2.1–2.2 - persistent left sidebar, not top navigation.
  *
  * Structure follows the pattern the founder already knows from tools of this
  * shape: primary nav at the top, the working record list beneath it, account
  * pinned to the bottom. Two details matter for it to feel right:
  *
  *  · The collapsed rail is NARROW (56px) and shows primary nav only. The ideas
- *    list is hidden entirely rather than squeezed into unlabelled dots — a
+ *    list is hidden entirely rather than squeezed into unlabelled dots - a
  *    truncated list is worse than no list.
  *
  *  · The toggle moves to the top of the rail when collapsed and carries an
@@ -46,7 +46,7 @@ const ICON = 18;
 /**
  * Shared row geometry.
  *
- * Every row — nav link, theme toggle, account — uses ROW for its padding and
+ * Every row - nav link, theme toggle, account - uses ROW for its padding and
  * SLOT for its leading glyph. The slot is exactly ICON wide and centres its
  * child, so a 24px avatar and an 18px icon share one optical axis instead of
  * sitting 3px apart. Aligning by left edge instead would misalign them by half
@@ -138,10 +138,10 @@ export function Sidebar({
           <Link
             href="/dashboard"
             onClick={onMobileClose}
-            aria-label="BRAINS AI — go to dashboard"
+            aria-label="BRAINS AI - go to dashboard"
             className={cn("items-center rounded px-1", wideOnly)}
           >
-            <Logo size={15} priority />
+            <Logo size={17} priority />
           </Link>
 
           <button
@@ -209,7 +209,7 @@ export function Sidebar({
           />
         </div>
 
-        {/* ── Ideas — hidden in the rail rather than truncated ───────── */}
+        {/* ── Ideas - hidden in the rail rather than truncated ───────── */}
         <nav
           className={cn(
             "min-h-0 flex-1 overflow-y-auto px-3 pb-2",
@@ -362,7 +362,7 @@ function NavItem({
         className={cn(
           ROW,
           "transition-colors duration-[120ms]",
-          // Selected state is a neutral seat plus weight — reserving colour
+          // Selected state is a neutral seat plus weight - reserving colour
           // for status keeps status meaningful (§1.2).
           active
             ? "bg-wash-active font-medium text-primary"
@@ -424,7 +424,7 @@ function IdeaLink({
  * The profile menu.
  *
  * Billing, appearance and sign-out live here rather than in the main nav.
- * Those are all properties of the PERSON, not places in the product — putting
+ * Those are all properties of the PERSON, not places in the product - putting
  * them alongside "Dashboard" made the nav look busier than the product is, and
  * pushed the thing founders actually navigate (their ideas) further down.
  */
@@ -445,7 +445,7 @@ function AccountBlock({
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
-  // Dismiss on outside click or Escape — a menu you can't close by looking
+  // Dismiss on outside click or Escape - a menu you can't close by looking
   // away is a menu that feels stuck.
   React.useEffect(() => {
     if (!open) return;
@@ -471,7 +471,7 @@ function AccountBlock({
 
   /**
    * The avatar is rendered here rather than via Clerk's <UserButton>, which
-   * ships its own wrapper, trigger padding and focus box — none of which can
+   * ships its own wrapper, trigger padding and focus box - none of which can
    * be pinned from outside. That is what kept knocking it off the icon axis.
    */
   const avatar = (

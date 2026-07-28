@@ -13,10 +13,10 @@ import { ideaStateSchema } from "@/lib/domain/types";
 export const metadata: Metadata = { title: "History" };
 
 /**
- * B10 — Idea Version History (design system §4.10).
+ * B10 - Idea Version History (design system §4.10).
  *
  * The rework loop made visible. Versions are append-only, so this timeline is
- * the complete record of how the idea changed and what each round concluded —
+ * the complete record of how the idea changed and what each round concluded -
  * including for ideas that were killed.
  */
 export default async function VersionsPage({
@@ -52,7 +52,7 @@ export default async function VersionsPage({
 
           return (
             <li key={version.id} className="relative pl-8">
-              {/* Connecting line — decorative, hidden from the timeline's
+              {/* Connecting line - decorative, hidden from the timeline's
                   semantics so screen readers just hear an ordered list. */}
               {index < ordered.length - 1 ? (
                 <span

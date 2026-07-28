@@ -11,7 +11,7 @@ export const runtime = "nodejs";
  *
  * Exists so the persistent Fast Track button can show a real price on every
  * screen without threading pricing props through every page that renders the
- * top bar. Nothing here is sensitive — these rates are on the pricing card —
+ * top bar. Nothing here is sensitive - these rates are on the pricing card -
  * but it still requires a session, because there's no reason to serve our
  * rate table to anonymous callers.
  */

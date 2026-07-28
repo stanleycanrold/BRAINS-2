@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { estimateFastTrack } from "@/lib/pricing";
 import { paymentsEnabled } from "@/lib/stripe";
+import { validationStage } from "@/lib/validation-stage";
 import { CheckoutView } from "./CheckoutView";
 
 export const metadata: Metadata = { title: "Fast Track checkout" };
@@ -23,6 +24,14 @@ export default async function CheckoutPage({
   // Interviews use the questions built from research, so there's nothing to
   // buy until research has run.
   if (!idea.state.research_report) redirect(`/ideas/${id}/research`);
+
+  // Already paid for this round - there is nothing to buy. The API refuses
+  // too (409), but a founder should never reach a payment form for something
+  // they already own.
+  const stage = validationStage(idea.state);
+  if (stage === "underway" || stage === "delivered") {
+    redirect(`/ideas/${id}/validation/fast-track/status`);
+  }
 
   const estimate = await estimateFastTrack({
     tier: idea.state.structured.niche_tier,

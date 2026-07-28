@@ -18,7 +18,7 @@ export default async function NormalTrackPage({
   const idea = await getIdea(id, user.id);
   if (!idea) notFound();
 
-  // Reached directly without picking a track — send them to choose first.
+  // Reached directly without picking a track - send them to choose first.
   if (!idea.state.validation.track) redirect(`/ideas/${id}/validation`);
 
   // Per-interview rate for the teaser. The full itemised total is shown at

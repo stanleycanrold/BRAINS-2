@@ -14,12 +14,12 @@ export const runtime = "nodejs";
 const bodySchema = z.object({
   decision: z.enum(["proceed", "rework", "kill"]),
   kill_reason: z.string().max(1000).optional(),
-  /** Where a rework resumes — new research, or straight to a fresh round. */
+  /** Where a rework resumes - new research, or straight to a fresh round. */
   resume_at: z.enum(["research", "validation"]).default("validation"),
 });
 
 /**
- * POST /ideas/:id/decision — the founder's proceed | rework | kill (PRD §8).
+ * POST /ideas/:id/decision - the founder's proceed | rework | kill (PRD §8).
  *
  * The rework loop is unbounded and always available, whatever the score. A
  * founder may rework after a `go_ahead` to sharpen before building, exactly as
@@ -47,7 +47,7 @@ export async function POST(
     const gate = idea.state.decision_gate;
 
     // Record the founder's call against the gate for the agreement-rate metric
-    // in PRD §11 — did they follow the agent's recommendation or overrule it?
+    // in PRD §11 - did they follow the agent's recommendation or overrule it?
     if (gate?.signal) {
       await db.insert(schema.decisionGates).values({
         ideaStateVersionId: idea.versionId,
@@ -108,8 +108,8 @@ export async function POST(
     }));
 
     const note = accepted.length
-      ? `Rework — applied ${accepted.length} ${accepted.length === 1 ? "change" : "changes"}`
-      : "Rework — no changes applied";
+      ? `Rework - applied ${accepted.length} ${accepted.length === 1 ? "change" : "changes"}`
+      : "Rework - no changes applied";
 
     const forked = await forkVersion({
       ideaId: id,

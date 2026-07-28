@@ -5,7 +5,7 @@ import { z } from "zod";
  * strict-decoding providers accept.
  *
  * `io: "output"` is deliberate: it marks defaulted fields as required, which is
- * what we want on the way *out* of a model — every field present, no partial
+ * what we want on the way *out* of a model - every field present, no partial
  * objects to defend against downstream.
  *
  * The sanitiser then removes keywords strict mode rejects (`default`,

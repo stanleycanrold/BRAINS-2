@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * The idea-state record — PRD §5.
+ * The idea-state record - PRD §5.
  *
  * This is the shared context object every agent in the pipeline reads from and
  * writes back to, rather than holding private state. It is stored versioned
@@ -131,7 +131,7 @@ export const existingProductContextSchema = z.object({
   rating: z.number().nullable().default(null),
   review_count: z.number().nullable().default(null),
   notable_review_themes: z.array(z.string()).default([]),
-  /** False when the link couldn't be fetched — UI falls back to manual entry. */
+  /** False when the link couldn't be fetched - UI falls back to manual entry. */
   fetch_succeeded: z.boolean().default(false),
   /** True once the founder has reviewed/edited the auto-fetched summary. */
   user_confirmed: z.boolean().default(false),
@@ -167,7 +167,7 @@ export type Competitor = z.infer<typeof competitorSchema>;
 /**
  * A proposed change to the idea. Used identically by the Research Agent's
  * "strengthening" proposals (§4.2) and the Decision Gate's improvement
- * proposals (§4.4) — same accept/reject/edit interaction, same component.
+ * proposals (§4.4) - same accept/reject/edit interaction, same component.
  */
 export const proposalSchema = z.object({
   id: z.string(),
@@ -249,20 +249,77 @@ export type SynthesisSummary = z.infer<typeof synthesisSummarySchema>;
  * have meant three parsers and three chances to drift.
  */
 export const questionKindSchema = z.enum([
-  /** Free text — where the real signal is. */
+  /** Free text - where the real signal is. */
   "open",
   /** The one question the confirmation rate is computed from. */
   "confirmation",
+  /** Pick exactly one of the founder's options. */
+  "single_choice",
+  /** Pick any number of the founder's options. */
+  "multi_choice",
+  /** Short free text, one line. */
+  "short_text",
   /** Yes/no or scale, for quick context. */
   "scale",
 ]);
 export type QuestionKind = z.infer<typeof questionKindSchema>;
 
+/** How each kind is described to the founder choosing one. */
+export const QUESTION_KIND_LABELS: Record<
+  QuestionKind,
+  { label: string; hint: string }
+> = {
+  open: {
+    label: "Paragraph",
+    hint: "Free text. Where most of the real signal comes from.",
+  },
+  short_text: {
+    label: "Short answer",
+    hint: "One line. Good for a role, a tool name or a number.",
+  },
+  single_choice: {
+    label: "Pick one",
+    hint: "A list of options, one answer.",
+  },
+  multi_choice: {
+    label: "Pick several",
+    hint: "A list of options, any number of answers.",
+  },
+  scale: {
+    label: "Scale of 1 to 5",
+    hint: "How strongly they feel about something.",
+  },
+  confirmation: {
+    label: "Scored question",
+    hint: "The one question your confirmation rate is computed from.",
+  },
+};
+
+/** Kinds a founder may pick when adding a question. */
+export const SELECTABLE_QUESTION_KINDS: QuestionKind[] = [
+  "open",
+  "short_text",
+  "single_choice",
+  "multi_choice",
+  "scale",
+];
+
+/** Whether this kind carries a list of choices. */
+export function kindHasOptions(kind: QuestionKind): boolean {
+  return kind === "single_choice" || kind === "multi_choice";
+}
+
 export const questionSchema = z.object({
   id: z.string(),
   text: z.string(),
   kind: questionKindSchema.default("open"),
-  /** Why this question earns its place — shown to the founder, not the respondent. */
+  /**
+   * Choices, for the choice kinds. Ignored by every other kind rather than
+   * modelled as a separate question type, so there is still one shape to
+   * parse and one to render.
+   */
+  options: z.array(z.string()).default([]),
+  /** Why this question earns its place - shown to the founder, not the respondent. */
   intent: z.string().default(""),
   required: z.boolean().default(false),
 });
@@ -272,6 +329,8 @@ export const questionnaireSchema = z.object({
   questions: z.array(questionSchema).default([]),
   /** Opaque token for the public link. Null until the founder shares it. */
   share_token: z.string().nullable().default(null),
+  /** The link the interviews we run come in on. Null until a round is paid. */
+  panel_share_token: z.string().nullable().default(null),
   /** Founder can close the questionnaire without deleting it. */
   accepting_responses: z.boolean().default(true),
   intro: z.string().default(""),
@@ -286,6 +345,7 @@ export const validationSchema = z.object({
   questionnaire: questionnaireSchema.default({
     questions: [],
     share_token: null,
+    panel_share_token: null,
     accepting_responses: true,
     intro: "",
     generated_at: "",
@@ -316,7 +376,7 @@ export const draftedPostSchema = z.object({
   /**
    * Tracking, set once the founder says they've published.
    *
-   * A posted comment is the start of a conversation, not the end of a task —
+   * A posted comment is the start of a conversation, not the end of a task -
    * the replies are the actual signal. Keeping the space and the timestamp is
    * what makes it possible to come back to it rather than losing the thread
    * in a browser history somewhere.
@@ -349,6 +409,8 @@ export const fastTrackOrderStateSchema = z.object({
   analysis_fee: z.number().default(0),
   total_cost: z.number().default(0),
   currency: z.string().default("usd"),
+  /** Where interviewees should come from, in the founder's own words. */
+  location_preference: z.string().default(""),
   status: fastTrackOrderStatusSchema.default("pending_sourcing"),
   scheduled_count: z.number().default(0),
   completed_count: z.number().default(0),
@@ -455,7 +517,7 @@ export function computeConfirmationRate(
 /** The PRD's primary threshold: >= 50% confirmed across all channels. */
 export const GO_AHEAD_THRESHOLD = 0.5;
 
-/** Soft gate — below this the Decision Gate flags low sample size as a risk. */
+/** Soft gate - below this the Decision Gate flags low sample size as a risk. */
 export const MIN_RESPONSES = 10;
 
 export const PIPELINE_STAGES = [

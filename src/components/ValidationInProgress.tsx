@@ -13,12 +13,12 @@ import { validationStage } from "@/lib/validation-stage";
  * States that this round is already running.
  *
  * This occupies the slot the Fast Track pitch used to sit in. A founder who
- * has already started gathering answers doesn't need to be sold validation —
+ * has already started gathering answers doesn't need to be sold validation -
  * they need to know where their round stands. Selling to them anyway suggests
  * the product hasn't noticed what they're doing.
  *
  * When they're doing it themselves it still carries the option to hand the
- * interviews over, because that remains genuinely useful mid-round — but as a
+ * interviews over, because that remains genuinely useful mid-round - but as a
  * plain line of text, not a pitch competing with their work.
  */
 export function ValidationInProgress({
@@ -85,8 +85,8 @@ export function ValidationInProgress({
         title="Validation in progress"
         body={
           done > 0
-            ? `We're running your interviews — ${done} of ${total} done. The report lands on your dashboard when they're all in.`
-            : `We're lining up your ${total} interviews. Nothing more for you to do — the report lands on your dashboard.`
+            ? `We're running your interviews - ${done} of ${total} done. The report lands on your dashboard when they're all in.`
+            : `We're lining up your ${total} interviews. Nothing more for you to do - the report lands on your dashboard.`
         }
         action={{
           href: `/ideas/${ideaId}/validation/fast-track/status`,
@@ -105,7 +105,7 @@ export function ValidationInProgress({
       title="Validation in progress"
       body={
         logged > 0
-          ? `You're gathering answers yourself — ${logged} logged so far.`
+          ? `You're gathering answers yourself - ${logged} logged so far.`
           : "You're gathering answers yourself. Share the link below, and log anything you're told in person."
       }
       // Kept available but not sold: mid-round is exactly when handing the

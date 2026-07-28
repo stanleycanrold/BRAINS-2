@@ -8,7 +8,7 @@ import { usePersistedFlag } from "@/lib/client-state";
 import { Sidebar, type SidebarIdea } from "./Sidebar";
 
 /**
- * Design system §2.2 — shell anatomy.
+ * Design system §2.2 - shell anatomy.
  *
  *   ┌──────────────┬──────────────────────────────────────┐
  *   │              │  Top bar: toggle / stepper / actions  │
@@ -102,7 +102,7 @@ export function AppShell({
  */
 export function TopBar({ children }: { children: React.ReactNode }) {
   // The slot is rendered by the shell above us, so it exists from the client's
-  // first commit — read it directly rather than round-tripping through state.
+  // first commit - read it directly rather than round-tripping through state.
   const target = React.useSyncExternalStore(
     () => () => {},
     () => document.getElementById("topbar-slot"),

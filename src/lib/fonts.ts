@@ -2,12 +2,12 @@ import { Public_Sans, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 
 /**
- * Three type roles, per design system §1.3 — deliberately not "one grotesk for
+ * Three type roles, per design system §1.3 - deliberately not "one grotesk for
  * everything". All three are self-hosted (no external font requests at
  * runtime, no layout shift).
  */
 
-/** Display — page titles, section headers, report headline. */
+/** Display - page titles, section headers, report headline. */
 export const generalSans = localFont({
   src: [
     { path: "../app/fonts/GeneralSans-400.woff2", weight: "400", style: "normal" },
@@ -20,7 +20,7 @@ export const generalSans = localFont({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
-/** Body — chosen over Inter specifically because Inter is the default-by-default
+/** Body - chosen over Inter specifically because Inter is the default-by-default
  *  across AI products right now (§1.3). */
 export const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -29,7 +29,7 @@ export const publicSans = Public_Sans({
   display: "swap",
 });
 
-/** Data/Mono — the Score, rates, counts, IDs. Anything measured, never
+/** Data/Mono - the Score, rates, counts, IDs. Anything measured, never
  *  anything written. */
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],

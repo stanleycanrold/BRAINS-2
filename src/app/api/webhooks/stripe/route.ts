@@ -8,7 +8,7 @@ import { getStripe, paymentsEnabled } from "@/lib/stripe";
 export const runtime = "nodejs";
 
 /**
- * Stripe webhook — the ONLY thing that may mark an order paid (PRD §10).
+ * Stripe webhook - the ONLY thing that may mark an order paid (PRD §10).
  *
  * Two rules this endpoint exists to enforce:
  *
@@ -20,7 +20,7 @@ export const runtime = "nodejs";
  *     event more than once, so an already-paid order is left alone rather than
  *     re-processed.
  *
- * This route is deliberately excluded from auth — Stripe cannot sign in, and
+ * This route is deliberately excluded from auth - Stripe cannot sign in, and
  * the signature IS the authentication.
  */
 export async function POST(request: Request) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing signature." }, { status: 400 });
   }
 
-  // The raw body is required — any parsing or re-serialising breaks the HMAC.
+  // The raw body is required - any parsing or re-serialising breaks the HMAC.
   const payload = await request.text();
 
   let event: Stripe.Event;
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     // A 500 tells Stripe to retry, which is what we want for a transient
-    // database failure — the event is not lost.
+    // database failure - the event is not lost.
     console.error(`[stripe webhook] handling ${event.type} failed`, err);
     return NextResponse.json({ error: "Handler failed." }, { status: 500 });
   }
@@ -96,7 +96,7 @@ async function handlePaidSession(session: Stripe.Checkout.Session) {
   }
 
   // Shared with the return-from-checkout reconcile path so the two can't
-  // disagree about what "paid" means — see fast-track-fulfil.
+  // disagree about what "paid" means - see fast-track-fulfil.
   const done = await markOrderPaid(session, orderId);
   if (!done) console.error("[stripe webhook] unknown order", orderId);
 }
@@ -111,7 +111,7 @@ async function markOrderFailed(session: Stripe.Checkout.Session) {
     .where(eq(schema.fastTrackOrders.id, orderId))
     .limit(1);
 
-  // Never downgrade an order that already paid — a later `expired` event for a
+  // Never downgrade an order that already paid - a later `expired` event for a
   // superseded session must not undo a successful payment.
   if (!rows[0] || rows[0].paymentStatus === "paid") return;
 

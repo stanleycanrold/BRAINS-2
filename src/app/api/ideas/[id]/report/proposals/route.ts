@@ -16,7 +16,7 @@ const bodySchema = z.object({
  *
  * Same interaction as the research-stage proposals, applied to the gate's
  * output. Unlike research, accepting here does NOT rewrite the current
- * version's fields — this version is a finished, decided record. The patch is
+ * version's fields - this version is a finished, decided record. The patch is
  * carried into the NEW version when the founder chooses Rework, so history
  * stays intact and the next round still starts sharpened.
  */

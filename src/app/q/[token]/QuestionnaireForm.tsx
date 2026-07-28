@@ -7,7 +7,7 @@ import { Textarea, Input } from "@/components/ui/Field";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { Logo } from "@/components/brand/Logo";
 import type { PublicQuestionnaire } from "@/lib/data/questionnaire";
-import type { Confirmed } from "@/lib/domain/types";
+import type { Confirmed, Question } from "@/lib/domain/types";
 
 /**
  * The public questionnaire.
@@ -62,7 +62,7 @@ export function QuestionnaireForm({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!confirmed) {
-      setError("Just the one required answer — is this a problem for you?");
+      setError("Just the one required answer - is this a problem for you?");
       return;
     }
 
@@ -118,7 +118,7 @@ export function QuestionnaireForm({
             This questionnaire is closed
           </h1>
           <p className="type-body-l mt-2 text-secondary">
-            Thanks for stopping by — they&rsquo;ve got what they needed.
+            Thanks for stopping by - they&rsquo;ve got what they needed.
           </p>
         </div>
       </Shell>
@@ -135,7 +135,7 @@ export function QuestionnaireForm({
           <p className="type-body-l mt-3 text-secondary">{data.intro}</p>
         ) : null}
         <p className="type-body-m mt-3 text-tertiary">
-          Only one answer is required and there are no wrong ones — a &ldquo;this
+          Only one answer is required and there are no wrong ones - a &ldquo;this
           isn&rsquo;t a problem for me&rdquo; is just as useful as a yes.
         </p>
       </header>
@@ -165,24 +165,14 @@ export function QuestionnaireForm({
         ) : null}
 
         {openQuestions.map((question) => (
-          <div key={question.id}>
-            <label
-              htmlFor={question.id}
-              className="type-body-l block font-medium text-primary"
-            >
-              {question.text}
-            </label>
-            <Textarea
-              id={question.id}
-              rows={3}
-              className="mt-2.5"
-              value={answers[question.id] ?? ""}
-              onChange={(e) =>
-                setAnswers((a) => ({ ...a, [question.id]: e.target.value }))
-              }
-              placeholder="However much or little you like…"
-            />
-          </div>
+          <QuestionField
+            key={question.id}
+            question={question}
+            value={answers[question.id] ?? ""}
+            onChange={(next) =>
+              setAnswers((a) => ({ ...a, [question.id]: next }))
+            }
+          />
         ))}
 
         <div>
@@ -198,7 +188,7 @@ export function QuestionnaireForm({
             className="mt-2.5"
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            placeholder="A first name or your role — or leave it blank"
+            placeholder="A first name or your role - or leave it blank"
           />
         </div>
 
@@ -228,12 +218,167 @@ export function QuestionnaireForm({
   );
 }
 
+
+/**
+ * Renders one question according to how the founder said it should be
+ * answered.
+ *
+ * Every kind writes back a plain string, because that is what the synthesis
+ * step reads. Multi-select joins with a comma rather than storing an array:
+ * one shape for every channel means one thing to reason about downstream,
+ * and "A, C" is what a person would have written anyway.
+ */
+function QuestionField({
+  question,
+  value,
+  onChange,
+}: {
+  question: Question;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const label = (
+    <span className="type-body-l block font-medium text-primary">
+      {question.text}
+    </span>
+  );
+
+  if (question.kind === "single_choice" && question.options.length > 0) {
+    return (
+      <fieldset>
+        <legend className="type-body-l font-medium text-primary">
+          {question.text}
+        </legend>
+        <div className="mt-2.5 space-y-2">
+          {question.options.filter(Boolean).map((option) => (
+            <label
+              key={option}
+              className="flex cursor-pointer items-center gap-2.5 rounded-[8px] border border-line bg-raised px-3.5 py-2.5 hover:border-line-strong"
+            >
+              <input
+                type="radio"
+                name={question.id}
+                value={option}
+                checked={value === option}
+                onChange={() => onChange(option)}
+                className="size-4 shrink-0 accent-[var(--accent-brand)]"
+              />
+              <span className="type-body-m text-primary">{option}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    );
+  }
+
+  if (question.kind === "multi_choice" && question.options.length > 0) {
+    const chosen = value ? value.split(", ").filter(Boolean) : [];
+    return (
+      <fieldset>
+        <legend className="type-body-l font-medium text-primary">
+          {question.text}{" "}
+          <span className="type-body-m text-tertiary">Pick any</span>
+        </legend>
+        <div className="mt-2.5 space-y-2">
+          {question.options.filter(Boolean).map((option) => (
+            <label
+              key={option}
+              className="flex cursor-pointer items-center gap-2.5 rounded-[8px] border border-line bg-raised px-3.5 py-2.5 hover:border-line-strong"
+            >
+              <input
+                type="checkbox"
+                value={option}
+                checked={chosen.includes(option)}
+                onChange={(e) =>
+                  onChange(
+                    (e.target.checked
+                      ? [...chosen, option]
+                      : chosen.filter((c) => c !== option)
+                    ).join(", "),
+                  )
+                }
+                className="size-4 shrink-0 accent-[var(--accent-brand)]"
+              />
+              <span className="type-body-m text-primary">{option}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    );
+  }
+
+  if (question.kind === "scale") {
+    return (
+      <fieldset>
+        <legend className="type-body-l font-medium text-primary">
+          {question.text}
+        </legend>
+        <div className="mt-2.5 flex flex-wrap gap-2">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <label
+              key={n}
+              className={
+                "type-body-m flex size-11 cursor-pointer items-center justify-center rounded-[8px] border " +
+                (value === String(n)
+                  ? "border-brand bg-brand-subtle text-brand"
+                  : "border-line bg-raised text-primary hover:border-line-strong")
+              }
+            >
+              <input
+                type="radio"
+                name={question.id}
+                value={n}
+                checked={value === String(n)}
+                onChange={() => onChange(String(n))}
+                className="sr-only"
+              />
+              {n}
+            </label>
+          ))}
+        </div>
+        <p className="type-caption mt-2 text-tertiary">
+          1 = not at all, 5 = very much
+        </p>
+      </fieldset>
+    );
+  }
+
+  if (question.kind === "short_text") {
+    return (
+      <div>
+        <label htmlFor={question.id}>{label}</label>
+        <Input
+          id={question.id}
+          className="mt-2.5"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="A short answer is fine"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <label htmlFor={question.id}>{label}</label>
+      <Textarea
+        id={question.id}
+        rows={3}
+        className="mt-2.5"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="However much or little you like"
+      />
+    </div>
+  );
+}
+
 /**
  * The public shell.
  *
  * A respondent arrives from a link with no idea who we are or why they're
  * being asked. The masthead answers that in one line before anything is asked
- * of them — people give better answers when they know what the answers are
+ * of them - people give better answers when they know what the answers are
  * for, and a bare form from an unknown sender reads as spam.
  */
 function Shell({ children }: { children: React.ReactNode }) {
@@ -241,7 +386,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <header className="border-b border-line bg-raised">
         <div className="mx-auto flex w-full max-w-[640px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Logo size={16} priority />
+          <Logo size={18} priority />
           <p className="type-body-m text-secondary">
             Helping founders find out if a problem is real
           </p>
@@ -259,7 +404,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             Someone is trying to work out whether a problem they&rsquo;ve
             noticed is real before they spend months building something for it.
             BRAINS AI reads answers like yours across everyone who replies and
-            looks for what people genuinely have in common — so ideas that
+            looks for what people genuinely have in common - so ideas that
             nobody needed get caught early.
           </p>
           <p className="type-caption mt-3 text-tertiary">

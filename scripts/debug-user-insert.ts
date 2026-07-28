@@ -50,7 +50,7 @@ async function main() {
   console.log("  cleanup OK");
 
   const passed = failed.length === 0 && rows.length === 1;
-  console.log(passed ? "\nPASS — race handled" : "\nFAIL");
+  console.log(passed ? "\nPASS - race handled" : "\nFAIL");
   if (!passed) process.exit(1);
 }
 

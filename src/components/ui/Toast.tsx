@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
  * Reversible, low-consequence confirmations only ("Draft saved", "Response
  * logged"). Bottom-right, 4s auto-dismiss, manually dismissible.
  *
- * Explicitly NEVER used for the decision-gate outcome — that gets a full page,
+ * Explicitly NEVER used for the decision-gate outcome - that gets a full page,
  * not something that can be missed.
  */
 

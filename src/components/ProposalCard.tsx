@@ -21,7 +21,7 @@ import type { Proposal } from "@/lib/domain/types";
  * proposals are the same interaction, so they are the same component. Accepting
  * one patches the idea's structured fields directly for the next loop.
  *
- * The founder's accept/reject/edit decisions are stored — they're a strong
+ * The founder's accept/reject/edit decisions are stored - they're a strong
  * signal for later SLM training on "what changes founders actually take"
  * (PRD §4.2 acceptance criteria).
  */

@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 /**
  * Design system §3.2 (inputs) and §1.7 (voice).
  *
- * Errors appear on blur, not on every keystroke — don't punish someone
+ * Errors appear on blur, not on every keystroke - don't punish someone
  * mid-typing. Messages state the fix, not just the problem, and are announced
  * to assistive tech via aria-live (§Part 5), not just flagged visually.
  */

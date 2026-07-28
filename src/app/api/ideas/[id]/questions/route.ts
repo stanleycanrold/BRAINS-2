@@ -11,7 +11,7 @@ import { questionKindSchema } from "@/lib/domain/types";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-/** POST — (re)generate the question set from this idea's research. */
+/** POST - (re)generate the question set from this idea's research. */
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -49,6 +49,9 @@ const patchSchema = z.object({
         id: z.string(),
         text: z.string().min(1).max(1000),
         kind: questionKindSchema,
+        // Only meaningful for the choice kinds; capped so a founder can't
+        // post an unbounded list into the public questionnaire.
+        options: z.array(z.string().max(200)).max(12).default([]),
         intent: z.string().default(""),
         required: z.boolean().default(false),
       }),
@@ -62,7 +65,7 @@ const patchSchema = z.object({
 });
 
 /**
- * PATCH — edit the questions, the intro, or the share link.
+ * PATCH - edit the questions, the intro, or the share link.
  *
  * The founder has the final say on wording. The agent's version is a starting
  * point: they know their audience's language better than a model does, and a
@@ -84,7 +87,7 @@ export async function PATCH(
     const parsed = patchSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Those questions don't look right — check and try again." },
+        { error: "Those questions don't look right - check and try again." },
         { status: 400 },
       );
     }
@@ -109,7 +112,11 @@ export async function PATCH(
         questionnaire: {
           ...s.validation.questionnaire,
           questions: body.questions
-            ? body.questions.map((q) => ({ ...q, id: q.id || randomUUID() }))
+            ? body.questions.map((q) => ({
+                ...q,
+                id: q.id || randomUUID(),
+                options: q.options ?? [],
+              }))
             : s.validation.questionnaire.questions,
           intro: body.intro ?? s.validation.questionnaire.intro,
           accepting_responses:

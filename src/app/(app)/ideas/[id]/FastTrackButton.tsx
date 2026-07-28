@@ -17,17 +17,17 @@ import { validationStage } from "@/lib/validation-stage";
  * The always-there Fast Track action, top right of every idea screen.
  *
  * Paid interviews are the product's revenue, and previously they were only
- * reachable from the track-choice screen — once a founder moved past it there
+ * reachable from the track-choice screen - once a founder moved past it there
  * was no way back without navigating backwards. A fixed position in the top
  * bar means it's in the same place on every screen, findable without being
  * sold: one line, no card, no pitch competing with their work.
  *
  * It changes what it says with the round rather than disappearing, so the
  * same spot answers "can I buy this?" and "what's happening with what I
- * bought?" — which is what people look for in the same place anyway.
+ * bought?" - which is what people look for in the same place anyway.
  */
 
-/** Cached across mounts — the rate doesn't change within a session. */
+/** Cached across mounts - the rate doesn't change within a session. */
 let ratePromise: Promise<number | null> | null = null;
 
 function fetchRate(tier: string): Promise<number | null> {

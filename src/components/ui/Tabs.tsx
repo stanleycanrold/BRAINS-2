@@ -5,7 +5,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 
 /**
- * Design system §3.9 — underline style, not pill/boxed.
+ * Design system §3.9 - underline style, not pill/boxed.
  *
  * Deliberately distinct from the segmented control and status badges, which
  * are the only two places filled pills appear in the product.

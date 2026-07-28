@@ -5,7 +5,7 @@ import { QuestionnaireForm } from "./QuestionnaireForm";
 
 export const metadata: Metadata = {
   title: "A few questions",
-  // A share link shouldn't end up indexed — it's for the people the founder
+  // A share link shouldn't end up indexed - it's for the people the founder
   // sends it to, not for search.
   robots: { index: false, follow: false },
 };

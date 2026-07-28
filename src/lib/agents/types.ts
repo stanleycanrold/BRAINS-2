@@ -11,7 +11,7 @@ import type { LLMMessage } from "@/lib/llm/types";
 export interface AgentDefinition<TInput, TOutput> {
   /** Stable identifier, used as the log key and SLM training partition. */
   name: string;
-  /** Bump whenever the prompt changes — training data must be attributable. */
+  /** Bump whenever the prompt changes - training data must be attributable. */
   promptVersion: string;
   outputSchema: z.ZodType<TOutput>;
   system: string;

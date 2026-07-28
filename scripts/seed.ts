@@ -2,7 +2,7 @@
  * Seeds Ops-configurable reference data.
  *   npm run db:seed
  *
- * Idempotent — safe to re-run. Prices are placeholders for Stanley/Ops to
+ * Idempotent - safe to re-run. Prices are placeholders for Stanley/Ops to
  * replace (PRD §12 open question 1); they live in the database precisely so
  * changing them never needs a deploy.
  */
@@ -55,7 +55,7 @@ async function main() {
         })
         .where(eq(schema.pricingConfig.id, existing[0].id));
       console.log(
-        `  ~ ${tier.nicheTier} exists — bounds synced to ${tier.minInterviews}-${tier.maxInterviews}`,
+        `  ~ ${tier.nicheTier} exists - bounds synced to ${tier.minInterviews}-${tier.maxInterviews}`,
       );
       continue;
     }

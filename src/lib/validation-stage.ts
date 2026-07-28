@@ -9,7 +9,7 @@ import type { IdeaState } from "@/lib/domain/types";
  * mid-round reads as though the product isn't paying attention to what they've
  * already done.
  *
- * The offer belongs at the decision point — before a founder has committed to
+ * The offer belongs at the decision point - before a founder has committed to
  * how they'll gather answers, which is also the moment before they'd pay. Once
  * a track is chosen the round is underway and the honest thing to show is its
  * state, not a pitch.
@@ -19,7 +19,7 @@ import type { IdeaState } from "@/lib/domain/types";
  * next round starts at `not_started` again.
  */
 export type ValidationStage =
-  /** No track chosen. The decision point — the only place we market. */
+  /** No track chosen. The decision point - the only place we market. */
   | "not_started"
   /** Founder is gathering answers themselves. */
   | "self_serve"
@@ -35,7 +35,7 @@ export function validationStage(state: IdeaState): ValidationStage {
 
   if (order) {
     // `pending_sourcing` is the status an order carries between opening
-    // checkout and payment clearing — it is NOT work in progress.
+    // checkout and payment clearing - it is NOT work in progress.
     switch (order.status) {
       case "pending_sourcing":
         return "awaiting_payment";
@@ -60,7 +60,7 @@ export function canMarketFastTrack(state: IdeaState): boolean {
   return validationStage(state) === "not_started";
 }
 
-/** Whether a round is running — paid or self-serve. */
+/** Whether a round is running - paid or self-serve. */
 export function isValidationRunning(state: IdeaState): boolean {
   const stage = validationStage(state);
   return stage === "self_serve" || stage === "underway";

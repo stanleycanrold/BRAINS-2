@@ -35,7 +35,7 @@ export async function requireUser() {
    * On first sign-in Next renders this layout for several concurrent requests
    * (the navigation plus RSC prefetches). A check-then-insert lets every one of
    * them read "no user", and all but the first then violate the clerk_id unique
-   * constraint — which surfaced as a hard 500 on the very first login. Making
+   * constraint - which surfaced as a hard 500 on the very first login. Making
    * creation idempotent removes the race entirely instead of narrowing it, and
    * keeps the profile fresh if the founder later changes their name or email in
    * Clerk.

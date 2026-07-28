@@ -4,14 +4,14 @@ import * as React from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Design system §3.2 — the Fast Track N selector.
+ * Design system §3.2 - the Fast Track N selector.
  *
  * Track in the default border colour, filled portion in the brand, white
  * handle. The live estimate updates next to it in real time; there is
  * deliberately no separate "calculate" step.
  *
  * Built on a native range input so keyboard, touch and screen-reader support
- * come for free — the visuals are layered underneath it.
+ * come for free - the visuals are layered underneath it.
  */
 export function Slider({
   min,

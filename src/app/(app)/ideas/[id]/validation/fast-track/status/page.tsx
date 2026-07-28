@@ -45,6 +45,7 @@ export default async function FastTrackStatusPage({
         paymentStatus: order.paymentStatus,
         status: order.status,
         createdAt: order.createdAt.toISOString(),
+        locationPreference: order.locationPreference,
         paidAt: order.paidAt?.toISOString() ?? null,
       }}
       scheduled={interviews.filter((i) => i.scheduledAt !== null).length}

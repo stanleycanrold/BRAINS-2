@@ -29,12 +29,12 @@ import {
 } from "@/lib/domain/types";
 
 /**
- * B9 — Validation Report / Decision Gate (design system §4.9).
+ * B9 - Validation Report / Decision Gate (design system §4.9).
  *
  * The single most important screen in the product. Two rules shape it:
  *
  *  · A bare number is never acceptable output. The score is always
- *    accompanied by the reasoning, the risk factors, and — below threshold —
+ *    accompanied by the reasoning, the risk factors, and - below threshold -
  *    a diagnostic saying WHY, so the founder can interrogate it.
  *
  *  · The raw responses are always reachable. The synthesis summarises; it
@@ -49,7 +49,7 @@ const SEVERITY: Record<RiskFactor["severity"], { tone: BadgeTone; label: string 
 
 const DIAGNOSTIC_LABEL: Record<string, string> = {
   wrong_problem_statement: "The problem is real, but not as you've framed it",
-  wrong_audience: "The problem is real — for someone other than this audience",
+  wrong_audience: "The problem is real - for someone other than this audience",
   genuinely_weak_problem: "People cope with this fine today",
   not_applicable: "",
 };
@@ -173,7 +173,7 @@ export function ReportView({
 
             <h1 className="type-display-l mt-3 text-primary">
               {isRethink
-                ? "Not yet — this needs another pass"
+                ? "Not yet - this needs another pass"
                 : "The signal is there. Go build it."}
             </h1>
 
@@ -228,7 +228,7 @@ export function ReportView({
           <ListCard
             title="Push-back we heard"
             items={summary.objections}
-            emptyNote="Nobody pushed back — which, with a small sample, can also mean nobody was being candid."
+            emptyNote="Nobody pushed back - which, with a small sample, can also mean nobody was being candid."
           />
         </div>
 
@@ -292,7 +292,7 @@ export function ReportView({
         </section>
       ) : null}
 
-      {/* ── Raw responses — never hidden behind the summary ──────────── */}
+      {/* ── Raw responses - never hidden behind the summary ──────────── */}
       <section className="mt-10" aria-labelledby="raw-heading">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 id="raw-heading" className="type-display-m text-primary">
@@ -359,8 +359,8 @@ export function ReportView({
                   <Td className="whitespace-nowrap text-secondary">
                     {CHANNEL_LABELS[r.channel]}
                   </Td>
-                  <Td className="text-secondary">{r.source || "—"}</Td>
-                  <Td className="min-w-[240px]">{r.notes || "—"}</Td>
+                  <Td className="text-secondary">{r.source || "-"}</Td>
+                  <Td className="min-w-[240px]">{r.notes || "-"}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -398,7 +398,7 @@ export function ReportView({
         </h2>
         <p className="type-body-m mt-1 max-w-prose text-secondary">
           The score is our read, not your decision. Reworking isn&rsquo;t a
-          setback — it&rsquo;s the loop working. There&rsquo;s no limit on
+          setback - it&rsquo;s the loop working. There&rsquo;s no limit on
           rounds, every past version stays readable, and you can narrow the next
           round to a single feature instead of the whole product.
         </p>
@@ -446,13 +446,13 @@ export function ReportView({
         ) : null}
       </section>
 
-      {/* Irreversible action — the one place a modal is warranted (§3.7) */}
+      {/* Irreversible action - the one place a modal is warranted (§3.7) */}
       <Modal
         open={killOpen}
         onClose={() => setKillOpen(false)}
         danger
         title="Kill this idea?"
-        description="It gets archived, not deleted — the full report stays readable forever, and you can always look back at what you learned."
+        description="It gets archived, not deleted - the full report stays readable forever, and you can always look back at what you learned."
         footer={
           <ModalActions onCancel={() => setKillOpen(false)}>
             <Button
@@ -479,7 +479,7 @@ export function ReportView({
           placeholder="Nobody I spoke to actually cared…"
         />
         <p className="type-body-m mt-2 text-tertiary">
-          Worth a line — patterns in why ideas die are useful later.
+          Worth a line - patterns in why ideas die are useful later.
         </p>
       </Modal>
     </>

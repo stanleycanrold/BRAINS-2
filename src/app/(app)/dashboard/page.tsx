@@ -20,10 +20,10 @@ import { FastTrackInline, LoopReminder } from "@/components/FastTrackTeaser";
 export const metadata: Metadata = { title: "Your Ideas" };
 
 /**
- * B1 — Dashboard (design system §4.1).
+ * B1 - Dashboard (design system §4.1).
  *
  * A portfolio view of every idea at every stage. Its empty state is not a "no
- * ideas" message — it IS the entry field (§3.12), so a new account's first
+ * ideas" message - it IS the entry field (§3.12), so a new account's first
  * screen is an invitation to start rather than a dead end.
  */
 
@@ -35,7 +35,7 @@ const NEXT_STEP: Record<IdeaStatus, string> = {
   validating_fast: "See how the interviews are going",
   gate_review: "Read your score",
   needs_rework: "Start the next round",
-  passed: "Validated — ready to build",
+  passed: "Validated - ready to build",
   killed: "Archived",
 };
 
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
   );
 
   /**
-   * An idea gathering responses but still short of a usable sample — the
+   * An idea gathering responses but still short of a usable sample - the
    * founder has met the hard part. That's the only place the Fast Track offer
    * is worth making; anywhere else it's an ad.
    *
@@ -87,13 +87,13 @@ export default async function DashboardPage() {
    *
    * Previously this targeted founders already mid-round, which meant selling
    * validation to people who had visibly already started it. A redo lands
-   * back here on its own — forkVersion resets the track.
+   * back here on its own - forkVersion resets the track.
    */
   const readyToChoose = live.find(
     (idea) => idea.state.research_report != null && canMarketFastTrack(idea.state),
   );
 
-  // The per-interview rate, not a total — a total is a door people close.
+  // The per-interview rate, not a total - a total is a door people close.
   const teaserPrice = readyToChoose
     ? formatMoney(
         (
@@ -183,7 +183,7 @@ function IdeaCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h3 className="type-display-m truncate text-primary">
-            {/* Stretched link — the whole card is the target (§3.3) */}
+            {/* Stretched link - the whole card is the target (§3.3) */}
             <Link
               href={`/ideas/${idea.id}`}
               className="after:absolute after:inset-0 after:content-['']"
@@ -229,7 +229,7 @@ function IdeaCard({
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={idea.status} />
           {/* Say a paid round is running so the founder doesn't have to open
-              the idea to remember it's in hand — but only once payment has
+              the idea to remember it's in hand - but only once payment has
               actually cleared. The idea flips to validating_fast when checkout
               OPENS, so keying off status alone would promise work on an
               abandoned checkout. `pending_sourcing` means unpaid. */}

@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "BRAINS AI — Validation Engine",
+    default: "BRAINS AI - Validation Engine",
     template: "%s · BRAINS AI",
   },
   description:

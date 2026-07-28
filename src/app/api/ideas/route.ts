@@ -14,7 +14,7 @@ const bodySchema = z.object({
 });
 
 /**
- * POST /ideas — create an idea from the entry-point submission (PRD §8).
+ * POST /ideas - create an idea from the entry-point submission (PRD §8).
  *
  * The record is written and returned immediately; research runs afterwards on
  * its own endpoint. That ordering is the acceptance criterion from §4.1: no
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Check the form — some details are missing or too short." },
+        { error: "Check the form - some details are missing or too short." },
         { status: 400 },
       );
     }

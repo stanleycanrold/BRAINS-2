@@ -22,8 +22,8 @@ import type { Confirmed, IdeaState } from "@/lib/domain/types";
  * Spaces the founder has posted in.
  *
  * Posting is the start of a conversation, not the end of a task. Once
- * something goes live it's kept here so it can be revisited, checked, and —
- * crucially — so any reply that comes back gets captured into the same
+ * something goes live it's kept here so it can be revisited, checked, and -
+ * crucially - so any reply that comes back gets captured into the same
  * response pool as interviews, where it counts toward the score.
  */
 
@@ -131,7 +131,7 @@ export function TrackedSpaces({
     return (
       <EmptyState title="Nothing posted yet">
         Once you publish a draft and mark it as posted, the space is kept here
-        so you can come back to it — and so any reply you get counts toward
+        so you can come back to it - and so any reply you get counts toward
         your score.
       </EmptyState>
     );
@@ -140,7 +140,7 @@ export function TrackedSpaces({
   return (
     <>
       <p className="type-body-m max-w-prose text-secondary">
-        Every space you&rsquo;ve posted in. When someone replies, log it — a
+        Every space you&rsquo;ve posted in. When someone replies, log it - a
         reply from a real person counts exactly the same as an interview.
       </p>
 
@@ -218,7 +218,7 @@ export function TrackedSpaces({
                       </ul>
                     ) : null}
                     <p className="type-caption mt-3 text-tertiary">
-                      Based on a web search, not a live read of the thread — so
+                      Based on a web search, not a live read of the thread - so
                       treat it as a nudge to go look, not a full picture.
                     </p>
                   </div>
@@ -391,7 +391,7 @@ function LogReplyModal({
         <FormField
           label="What did they say?"
           htmlFor="reply-notes"
-          hint="Their words, not your summary — the synthesis reads these."
+          hint="Their words, not your summary - the synthesis reads these."
         >
           <Textarea
             id="reply-notes"

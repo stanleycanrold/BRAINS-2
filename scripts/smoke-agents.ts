@@ -46,7 +46,7 @@ async function main() {
   console.log(`\nproblem_strength: ${r.problem_strength}`);
   console.log(`  ${r.problem_strength_reasoning}\n`);
   console.log(`competitors (${r.competitors.length}):`);
-  r.competitors.forEach((c) => console.log(`  • ${c.name} — ${c.summary.slice(0, 90)}`));
+  r.competitors.forEach((c) => console.log(`  • ${c.name} - ${c.summary.slice(0, 90)}`));
   console.log(`\nevidence (${r.evidence.length}):`);
   r.evidence.forEach((e) => console.log(`  • ${e.claim.slice(0, 80)}\n    ${e.source_url}`));
   console.log(`\nproposed_changes (${r.proposed_changes.length}):`);

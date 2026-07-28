@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
   computeConfirmationRate,
@@ -14,7 +14,7 @@ import {
  * Everything here is reachable WITHOUT authentication, so the exposed surface
  * is deliberately tiny: a respondent can read the questions and post one set
  * of answers. Nothing returns the idea, the founder, the research, the score,
- * or any other response — a share link is not a window into the account.
+ * or any other response - a share link is not a window into the account.
  */
 
 export type PublicQuestionnaire = {
@@ -24,19 +24,46 @@ export type PublicQuestionnaire = {
   acceptingResponses: boolean;
 };
 
-export async function getPublicQuestionnaire(
-  token: string,
-): Promise<PublicQuestionnaire | null> {
+/**
+ * Resolves a public token to its version AND to which link it was.
+ *
+ * The token decides the track. Previously every public response inherited
+ * `state.validation.track`, so once a round went paid the founder's own
+ * outreach was indistinguishable from the interviews they'd bought - and the
+ * attribution changed retroactively for answers already collected. The link
+ * someone answered on is a fact about that response, so it's what we record.
+ */
+async function resolveToken(token: string) {
   if (!token || token.length < 16) return null;
 
   const rows = await db
     .select()
     .from(schema.ideaStateVersions)
-    .where(eq(schema.ideaStateVersions.shareToken, token))
+    .where(
+      or(
+        eq(schema.ideaStateVersions.shareToken, token),
+        eq(schema.ideaStateVersions.panelToken, token),
+      ),
+    )
     .limit(1);
 
   const version = rows[0];
   if (!version) return null;
+
+  return {
+    version,
+    track: (version.panelToken === token ? "fast" : "normal") as
+      | "fast"
+      | "normal",
+  };
+}
+
+export async function getPublicQuestionnaire(
+  token: string,
+): Promise<PublicQuestionnaire | null> {
+  const resolved = await resolveToken(token);
+  if (!resolved) return null;
+  const { version } = resolved;
 
   const state = ideaStateSchema.parse(version.stateJson);
   const questionnaire = state.validation.questionnaire;
@@ -44,7 +71,7 @@ export async function getPublicQuestionnaire(
 
   return {
     // The idea's own title, so a respondent knows what they're answering
-    // about — never the problem statement, competitors or score.
+    // about - never the problem statement, competitors or score.
     ideaTitle: state.title || "a product idea",
     intro: questionnaire.intro,
     questions: questionnaire.questions,
@@ -66,14 +93,9 @@ export async function submitPublicResponse(params: {
   confirmed: "yes" | "no" | "unsure";
   source: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const rows = await db
-    .select()
-    .from(schema.ideaStateVersions)
-    .where(eq(schema.ideaStateVersions.shareToken, params.token))
-    .limit(1);
-
-  const version = rows[0];
-  if (!version) return { ok: false, error: "This link isn't valid." };
+  const resolved = await resolveToken(params.token);
+  if (!resolved) return { ok: false, error: "This link isn't valid." };
+  const { version, track } = resolved;
 
   const state = ideaStateSchema.parse(version.stateJson);
   const questionnaire = state.validation.questionnaire;
@@ -83,7 +105,7 @@ export async function submitPublicResponse(params: {
   }
 
   // Answers are folded into readable notes rather than a parallel structure,
-  // because the Synthesis Agent reads notes — one shape for every channel
+  // because the Synthesis Agent reads notes - one shape for every channel
   // means one thing to reason about downstream.
   const byId = new Map(questionnaire.questions.map((q) => [q.id, q]));
   const notes = params.answers
@@ -99,11 +121,14 @@ export async function submitPublicResponse(params: {
 
   await db.insert(schema.validationResponses).values({
     ideaStateVersionId: version.id,
-    track: state.validation.track ?? "normal",
+    // From the link, not the idea's current track - see resolveToken.
+    track,
     channel: "survey",
     confirmed: params.confirmed,
     notes,
-    source: params.source || "Questionnaire link",
+    source:
+      params.source ||
+      (track === "fast" ? "Fast Track interview" : "Questionnaire link"),
   });
 
   const next = {
@@ -116,9 +141,11 @@ export async function submitPublicResponse(params: {
           id: randomUUID(),
           confirmed: params.confirmed,
           notes,
-          source: params.source || "Questionnaire link",
+          source:
+            params.source ||
+            (track === "fast" ? "Fast Track interview" : "Questionnaire link"),
           channel: "survey" as const,
-          track: state.validation.track ?? ("normal" as const),
+          track,
           expert_id: null,
           expert_name: null,
           confidence: null,

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   BRAINS AI — Design tokens
+   BRAINS AI - Design tokens
    Design system §1.2 (palette), §1.8 (theming architecture).
 
    The ONLY place raw hex values are allowed to exist. Every component
@@ -42,7 +42,7 @@
   /* The logo mark's own blue. Used ONLY for the mark itself, never for UI. */
   --brand-mark: #2563eb;
 
-  /* Status — never used decoratively, never outside status contexts (§1.2) */
+  /* Status - never used decoratively, never outside status contexts (§1.2) */
   --status-success: #2f8f5b;
   --status-success-subtle: rgb(47 143 91 / 0.1);
   --status-caution: #c67c1e;
@@ -52,12 +52,12 @@
   --status-danger-border: rgb(179 67 61 / 0.3);
   --status-neutral-subtle: rgb(222 225 229 / 0.85);
 
-  /* Elevation — two levels only (§1.4) */
+  /* Elevation - two levels only (§1.4) */
   --shadow-raised: 0 1px 3px rgb(20 24 31 / 0.08);
   --shadow-raised-hover: 0 4px 12px rgb(20 24 31 / 0.1);
   --shadow-overlay: 0 12px 32px rgb(20 24 31 / 0.16);
 
-  /* Interaction wash — the "6% / 12%" hover & active shift (§3.1) */
+  /* Interaction wash - the "6% / 12%" hover & active shift (§3.1) */
   --wash-hover: rgb(20 24 31 / 0.04);
   --wash-active: rgb(20 24 31 / 0.08);
   --wash-row-hover: rgb(20 24 31 / 0.03);
@@ -104,7 +104,7 @@
   --status-danger-border: rgb(224 155 150 / 0.35);
   --status-neutral-subtle: rgb(58 57 54 / 0.9);
 
-  /* §1.4 — in dark mode elevation is carried by surface tone, not shadow.
+  /* §1.4 - in dark mode elevation is carried by surface tone, not shadow.
      Shadows are kept but deliberately weakened to a bonus cue. */
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35);
   --shadow-raised-hover: 0 4px 14px rgb(0 0 0 / 0.45);
@@ -159,12 +159,12 @@
   --color-wash-row: var(--wash-row-hover);
   --color-scrim: var(--scrim);
 
-  /* Typefaces (§1.3) — three roles, deliberately not one grotesk for all */
+  /* Typefaces (§1.3) - three roles, deliberately not one grotesk for all */
   --font-display: var(--font-general-sans), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
-  /* Radii (§1.4) — 999px reserved exclusively for badges & segmented control */
+  /* Radii (§1.4) - 999px reserved exclusively for badges & segmented control */
   --radius-button: 6px;
   --radius-card: 8px;
   --radius-input: 8px;
@@ -240,7 +240,7 @@ body {
   letter-spacing: 0.02em;
 }
 
-/* Data/Mono — anything measured, never anything written (§1.3).
+/* Data/Mono - anything measured, never anything written (§1.3).
    tabular-nums is non-negotiable: the Score must not reflow as it animates. */
 .type-data-l {
   font-family: var(--font-mono), ui-monospace, monospace;
@@ -283,7 +283,7 @@ body {
   outline: none;
 }
 
-/* ── Motion (§1.6) — spent in exactly three places, nowhere else ─────────── */
+/* ── Motion (§1.6) - spent in exactly three places, nowhere else ─────────── */
 
 @keyframes brains-fade-in {
   from {
@@ -331,7 +331,7 @@ body {
 }
 
 /* Skeletons carry a single travelling highlight rather than a blunt opacity
-   pulse — reads as "loading the real shape", per §3.13. */
+   pulse - reads as "loading the real shape", per §3.13. */
 .skeleton {
   position: relative;
   overflow: hidden;
@@ -367,7 +367,7 @@ body {
   }
 }
 
-/* ── Scrollbars — quiet, matching the instrument-panel thesis ────────────── */
+/* ── Scrollbars - quiet, matching the instrument-panel thesis ────────────── */
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -398,7 +398,7 @@ body {
 
 /* ── Utilities ────────────────────────────────────────────────────────────── */
 
-/* Hidden until focused — the skip-to-content link (§Part 5) */
+/* Hidden until focused - the skip-to-content link (§Part 5) */
 .skip-link {
   position: absolute;
   left: 16px;

@@ -1,7 +1,7 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
 /**
- * Clerk only attaches the auth context here — it deliberately does NOT gate
+ * Clerk only attaches the auth context here - it deliberately does NOT gate
  * routes by path.
  *
  * Protection is enforced at the resource instead: every server component and
@@ -14,7 +14,7 @@ export default clerkMiddleware();
 
 /**
  * Note: `/q/:token` and `/api/q/:token` are intentionally public. Respondents
- * are strangers to the product and must never be asked to sign in — the share
+ * are strangers to the product and must never be asked to sign in - the share
  * token is their only credential, and the data those routes expose is limited
  * to the questions themselves (see lib/data/questionnaire.ts).
  */

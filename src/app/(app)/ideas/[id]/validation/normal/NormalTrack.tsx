@@ -29,7 +29,7 @@ import {
 } from "@/lib/domain/types";
 
 /**
- * B5 — Normal Track Workspace (design system §4.5).
+ * B5 - Normal Track Workspace (design system §4.5).
  *
  * Three tabs: where to find people, what to ask them, and what they said.
  * The running confirmation rate is always visible in Data M mono, because it
@@ -45,7 +45,7 @@ const CONFIRMED_OPTIONS: {
 }[] = [
   {
     value: "yes",
-    label: "Yes — they have this problem",
+    label: "Yes - they have this problem",
     description: "They described it themselves, unprompted.",
   },
   {
@@ -55,7 +55,7 @@ const CONFIRMED_OPTIONS: {
   },
   {
     value: "no",
-    label: "No — not a problem for them",
+    label: "No - not a problem for them",
     description: "They cope fine, or it isn't relevant.",
   },
 ];
@@ -125,7 +125,7 @@ export function NormalTrack({
           </p>
         </div>
 
-        {/* The number the track exists to produce — always in view */}
+        {/* The number the track exists to produce - always in view */}
         <Card className="shrink-0 px-5 py-3">
           <div className="flex items-baseline gap-2">
             <span className="type-data-l text-[28px] text-primary">{rate}</span>
@@ -189,7 +189,7 @@ export function NormalTrack({
                 onLogged={setState}
               />
 
-              {/* This round is already running by definition — reaching this
+              {/* This round is already running by definition - reaching this
                   tab required choosing a track. So: state where it stands,
                   and keep the hand-it-over option available as plain text
                   rather than selling a round they've already begun. */}
@@ -220,7 +220,7 @@ export function NormalTrack({
             {total === 0
               ? "Log your first response to get started."
               : remaining > 0
-                ? `${remaining} more would make this a lot more reliable — but it's your call.`
+                ? `${remaining} more would make this a lot more reliable - but it's your call.`
                 : "You've got enough for a solid read."}
           </p>
         </div>
@@ -235,7 +235,7 @@ export function NormalTrack({
             You&rsquo;ve logged <strong>{total}</strong>{" "}
             {total === 1 ? "response" : "responses"}. Below {MIN_RESPONSES}, a
             few strong opinions can swing the result either way. We&rsquo;ll run
-            it and flag the small sample prominently on your report — the score
+            it and flag the small sample prominently on your report - the score
             just deserves less trust than it looks like it does.
           </>
         }
@@ -267,8 +267,7 @@ function CommunitiesTab({ state }: { state: IdeaState }) {
     return (
       <EmptyState title="No communities found yet">
         Live search didn&rsquo;t surface named communities for this problem.
-        That usually means your people gather somewhere search can&rsquo;t see —
-        a private Slack, a professional body, or simply in person. Start with
+        That usually means your people gather somewhere search can&rsquo;t see - a private Slack, a professional body, or simply in person. Start with
         anyone you already know who fits the description.
       </EmptyState>
     );
@@ -278,7 +277,7 @@ function CommunitiesTab({ state }: { state: IdeaState }) {
     <>
       <p className="type-body-m max-w-prose text-secondary">
         These are places your target user already gathers. Read the example
-        thread first — it tells you how people there actually talk about this.
+        thread first - it tells you how people there actually talk about this.
       </p>
 
       <ul className="mt-4 space-y-3">
@@ -394,7 +393,7 @@ function ResponsesTab({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="type-body-m max-w-prose text-secondary">
           Log every conversation, including the ones that went badly. A
-          &ldquo;no&rdquo; is data — filtering them out just moves the problem
+          &ldquo;no&rdquo; is data - filtering them out just moves the problem
           to after you&rsquo;ve built.
         </p>
         <Button
@@ -454,8 +453,8 @@ function ResponsesTab({
                   <Td className="whitespace-nowrap text-secondary">
                     {CHANNEL_LABELS[r.channel]}
                   </Td>
-                  <Td className="text-secondary">{r.source || "—"}</Td>
-                  <Td className="min-w-[240px]">{r.notes || "—"}</Td>
+                  <Td className="text-secondary">{r.source || "-"}</Td>
+                  <Td className="min-w-[240px]">{r.notes || "-"}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -470,7 +469,7 @@ function ResponsesTab({
           setOpen(false);
         }}
         title="Log a response"
-        description="One conversation, one entry. Notes matter more than you'd think — the synthesis reads them."
+        description="One conversation, one entry. Notes matter more than you'd think - the synthesis reads them."
         footer={
           <ModalActions
             onCancel={() => {
@@ -536,13 +535,13 @@ function ResponsesTab({
           <FormField
             label="Who was it?"
             htmlFor="response-source"
-            hint="A name, a role, or the community — whatever helps you remember."
+            hint="A name, a role, or the community - whatever helps you remember."
           >
             <Input
               id="response-source"
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              placeholder="e.g. Maya, freelance designer — r/freelance"
+              placeholder="e.g. Maya, freelance designer - r/freelance"
             />
           </FormField>
 

@@ -15,7 +15,7 @@ const bodySchema = z.object({
  * POST /ideas/:id/research/accept-change (PRD §8).
  *
  * Accepting a proposal patches the idea's structured fields directly, so the
- * next stage works from the sharpened idea. Every decision is stored — it's
+ * next stage works from the sharpened idea. Every decision is stored - it's
  * training signal for "what changes founders actually take" (§4.2).
  */
 export async function POST(
@@ -49,7 +49,7 @@ export async function POST(
       const isAccept = status === "accepted" || status === "edited";
 
       // Only an accept writes through to the structured fields. Undo (which
-      // arrives as "rejected") deliberately does not revert the field — the
+      // arrives as "rejected") deliberately does not revert the field - the
       // founder may have edited it since, and silently overwriting their work
       // would be worse than leaving the patch applied.
       if (isAccept && proposal.patches !== "none" && proposal.patch_value) {

@@ -15,7 +15,7 @@ import { OpsTopBar } from "./OpsTopBar";
 export const metadata: Metadata = { title: "Ops" };
 
 /**
- * B13 — Admin / Ops console (design system §4.13).
+ * B13 - Admin / Ops console (design system §4.13).
  *
  * Deliberately NOT held to the same polish bar as the customer product:
  * clarity and density over delight, because Ops moves through many records
@@ -76,7 +76,7 @@ export default async function OpsPage() {
         <h2 className="type-display-m text-primary">Fast Track queue</h2>
         <p className="type-body-m mt-1 text-secondary">
           Only paid orders are actionable. Nothing here gets sourced until
-          payment reads <strong className="font-medium">paid</strong> — that is
+          payment reads <strong className="font-medium">paid</strong> - that is
           a hard rule, not a convention.
         </p>
 
@@ -93,6 +93,7 @@ export default async function OpsPage() {
                   <Th>Created</Th>
                   <Th>Tier</Th>
                   <Th align="right">N</Th>
+                  <Th>Location</Th>
                   <Th align="right">Total</Th>
                   <Th>Payment</Th>
                   <Th>Stage</Th>
@@ -109,6 +110,11 @@ export default async function OpsPage() {
                     </Td>
                     <Td align="right" className="font-mono tabular-nums">
                       {order.nRequested}
+                    </Td>
+                    {/* Whoever sources the interviews needs this before they
+                        start, not after. */}
+                    <Td className="max-w-[220px] truncate text-secondary">
+                      {order.locationPreference || "Anywhere"}
                     </Td>
                     <Td align="right" className="font-mono tabular-nums">
                       {formatMoney(order.totalCostCents, order.currency)}
@@ -181,7 +187,7 @@ export default async function OpsPage() {
       <section className="mt-10 mb-4">
         <h2 className="type-display-m text-primary">Recent agent runs</h2>
         <p className="type-body-m mt-1 text-secondary">
-          Every call logged with its prompt version — the audit trail, and the
+          Every call logged with its prompt version - the audit trail, and the
           corpus the specialist SLMs will eventually train on.
         </p>
 

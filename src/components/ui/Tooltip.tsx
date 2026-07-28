@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 /**
  * Design system §3.10.
  *
- * The one element that deliberately does NOT invert with the theme — a tooltip
+ * The one element that deliberately does NOT invert with the theme - a tooltip
  * should always read as an overlay sitting above the interface, so it keeps a
  * dark background in both themes. 400ms hover delay so it never fires while
  * someone is simply moving the pointer across the screen.
@@ -35,7 +35,7 @@ export function Tooltip({
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const id = React.useId();
 
-  // A rail icon with no label needs its tooltip almost immediately — waiting
+  // A rail icon with no label needs its tooltip almost immediately - waiting
   // 400ms there reads as the UI being unresponsive rather than considerate.
   const openDelay = delay ?? (side === "right" ? 120 : 400);
 

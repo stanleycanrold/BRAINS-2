@@ -15,7 +15,7 @@ const bodySchema = z.object({ session_id: z.string().min(8) });
  * Confirms a return from embedded checkout by asking Stripe directly.
  *
  * The webhook remains the authority and the only thing that can mark an order
- * paid in the general case — but a webhook can take seconds to arrive, or be
+ * paid in the general case - but a webhook can take seconds to arrive, or be
  * missing entirely in local development where nobody is running `stripe
  * listen`. Without this the founder returns from a successful payment and
  * stares at "awaiting confirmation".
@@ -74,7 +74,7 @@ export async function POST(
       return NextResponse.json({ paid: false });
     }
 
-    // Same transition the webhook performs — see fast-track-fulfil.
+    // Same transition the webhook performs - see fast-track-fulfil.
     await markOrderPaid(session, orderId);
 
     return NextResponse.json({ paid: true });

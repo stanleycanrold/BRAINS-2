@@ -3,12 +3,12 @@ import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 
 /**
- * B11 — Idea Detail.
+ * B11 - Idea Detail.
  *
  * Rather than a separate read-only record view, this resumes the founder
  * exactly where the idea actually is. Every past stage stays reachable from
  * the pipeline stepper, which is what makes "nothing becomes unreachable"
- * true in practice — so a duplicate summary screen would add a click without
+ * true in practice - so a duplicate summary screen would add a click without
  * adding information.
  */
 export default async function IdeaPage({

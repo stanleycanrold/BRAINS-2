@@ -22,7 +22,7 @@ async function main() {
   const llm = getLLM();
   console.log(`provider=${llm.name} model=${llm.model}\n`);
 
-  console.log("— structured output —");
+  console.log("- structured output -");
   const result = await llm.structured({
     name: "smoke_extraction",
     system:
@@ -40,7 +40,7 @@ async function main() {
   });
   console.log(JSON.stringify(result.data, null, 2));
 
-  console.log("\n— web search —");
+  console.log("\n- web search -");
   const search = getSearch();
   console.log(`search provider=${search.name} available=${search.available}`);
   const hits = await search.search(

@@ -100,7 +100,7 @@ export async function runResearchPipeline(params: {
         console.error("[orchestrator] product context failed", err);
       }
     }
-    // A failed fetch is not an error state — the UI falls back to manual
+    // A failed fetch is not an error state - the UI falls back to manual
     // entry, framed as normal (PRD §4.1, design system §4.2).
   }
 
@@ -142,7 +142,7 @@ export async function runResearchPipeline(params: {
   // ── 6.2 Research & Strengthening Agent ───────────────────────────────────
   const search = getSearch();
   const queries = [
-    `${extraction.problem_statement} — people describing this problem`,
+    `${extraction.problem_statement} - people describing this problem`,
     `${extraction.niche} tools competitors ${extraction.value_prop}`,
   ];
 
@@ -374,7 +374,7 @@ export async function runDecisionGate(params: {
 /**
  * Builds the question set from the researched idea.
  *
- * Requires a completed research pass — the questions are derived from the
+ * Requires a completed research pass - the questions are derived from the
  * problem statement and what research actually surfaced, so generating them
  * earlier would produce a generic template, which is exactly what makes
  * customer interviews worthless.
@@ -387,7 +387,7 @@ export async function runQuestionnaire(params: {
 
   if (!state.research_report) {
     throw new Error(
-      "Research needs to finish first — the questions are built from it.",
+      "Research needs to finish first - the questions are built from it.",
     );
   }
 
@@ -412,14 +412,21 @@ export async function runQuestionnaire(params: {
       questionnaire: {
         ...s.validation.questionnaire,
         intro: result.intro,
-        questions: result.questions.map((q) => ({ id: randomUUID(), ...q })),
+        // The generator writes open, confirmation and scale questions only -
+        // the choice kinds are for the founder to add, since good options
+        // come from knowing your own audience.
+        questions: result.questions.map((q) => ({
+          id: randomUUID(),
+          options: [],
+          ...q,
+        })),
         generated_at: new Date().toISOString(),
       },
     },
   }));
 }
 
-/** §4.3.3 — Post drafts. Drafts only; BRAINS never posts, in any tier, ever. */
+/** §4.3.3 - Post drafts. Drafts only; BRAINS never posts, in any tier, ever. */
 export async function runPostDrafting(params: {
   versionId: string;
   state: IdeaState;
@@ -428,7 +435,7 @@ export async function runPostDrafting(params: {
   const communities = state.validation.communities.slice(0, 4);
   if (communities.length === 0) {
     throw new Error(
-      "We need to find your communities first — start a validation track.",
+      "We need to find your communities first - start a validation track.",
     );
   }
 
@@ -473,7 +480,7 @@ export async function runPostDrafting(params: {
   }));
 }
 
-/** §4.3.3 — Comment drafts, tailored to specific existing threads. */
+/** §4.3.3 - Comment drafts, tailored to specific existing threads. */
 export async function runCommentDrafting(params: {
   versionId: string;
   state: IdeaState;
@@ -485,7 +492,7 @@ export async function runCommentDrafting(params: {
 
   if (threads.length === 0) {
     throw new Error(
-      "We haven't found specific threads to reply to yet — start a validation track.",
+      "We haven't found specific threads to reply to yet - start a validation track.",
     );
   }
 
@@ -546,7 +553,7 @@ function dedupeByUrl<T extends { url: string }>(items: T[]): T[] {
  * Honest about its own limits: this reads SEARCH results about the thread, not
  * the thread itself. Without platform API access we cannot see replies
  * directly, and the agent is instructed never to invent them. The reliable
- * path for capturing a reply remains the founder logging it — this exists to
+ * path for capturing a reply remains the founder logging it - this exists to
  * tell them whether going back is worth the trip.
  */
 export async function checkTrackedSpace(params: {

@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 /**
  * Design system §3.3 / §1.4.
  *
- * Two elevation levels only — flat (page surface + hairline border) and raised
+ * Two elevation levels only - flat (page surface + hairline border) and raised
  * (raised surface + soft shadow). There is deliberately no third "floating"
  * level. In dark mode the raised surface is distinguished by background tone
  * rather than shadow, which is handled entirely by the tokens.

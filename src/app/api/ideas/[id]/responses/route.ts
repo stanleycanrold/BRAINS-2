@@ -20,9 +20,9 @@ const bodySchema = z.object({
 });
 
 /**
- * POST /ideas/:id/responses — log a response into the UNIFIED pool (PRD §7).
+ * POST /ideas/:id/responses - log a response into the UNIFIED pool (PRD §7).
  *
- * Every response lands here regardless of origin — self-run interview, survey,
+ * Every response lands here regardless of origin - self-run interview, survey,
  * or a reply logged from social. The Decision Gate always synthesises across
  * channels together rather than per-channel, so there is deliberately one
  * table and one array, not three.

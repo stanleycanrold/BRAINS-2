@@ -4,7 +4,7 @@ import { getIdea } from "@/lib/data/ideas";
 
 export const runtime = "nodejs";
 
-/** GET /ideas/:id — current idea_state, used by the research poller. */
+/** GET /ideas/:id - current idea_state, used by the research poller. */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },

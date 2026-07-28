@@ -17,7 +17,7 @@ import { cn } from "@/lib/cn";
 import type { IdeaState } from "@/lib/domain/types";
 
 /**
- * B7 — Fast Track: Order Status (design system §4.7).
+ * B7 - Fast Track: Order Status (design system §4.7).
  *
  * The linear progress bar here is the one legitimate literal progress bar in
  * the product (§3.11): it tracks a real count toward a known total, and the
@@ -33,6 +33,7 @@ type Order = {
   status: string;
   createdAt: string;
   paidAt: string | null;
+  locationPreference: string;
 };
 
 const STAGES = [
@@ -85,7 +86,7 @@ export function StatusView({
   /**
    * Confirm the payment on return.
    *
-   * The webhook is the authority, but it can lag by seconds — or never arrive
+   * The webhook is the authority, but it can lag by seconds - or never arrive
    * at all in local development where nobody is running `stripe listen`. So on
    * return from checkout we ask our server to verify the session against
    * Stripe directly, then fall back to polling in case the webhook is what
@@ -161,7 +162,7 @@ export function StatusView({
         </div>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {paid
-            ? "Nothing more for you to do. Interviews run against your questions, our AI analyses every one of them, and the finished report appears on your dashboard — usually within one to two weeks."
+            ? "Nothing more for you to do. Interviews run against your questions, our AI analyses every one of them, and the finished report appears on your dashboard - usually within one to two weeks."
             : "This normally takes a few seconds. You can safely leave this page."}
         </p>
       </header>
@@ -175,8 +176,7 @@ export function StatusView({
               aria-hidden="true"
             />
             <span>
-              Waiting for Stripe to confirm. No work starts until it clears —
-              if the payment failed, you won&rsquo;t be charged and nothing will
+              Waiting for Stripe to confirm. No work starts until it clears - if the payment failed, you won&rsquo;t be charged and nothing will
               have happened.
             </span>
           </p>
@@ -193,6 +193,7 @@ export function StatusView({
             </p>
             <p className="type-body-m mt-0.5 text-secondary">
               Ordered {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
+              {order.locationPreference ? ` · ${order.locationPreference}` : ""}
             </p>
           </div>
           <div className="text-right">

@@ -4,7 +4,7 @@ import type { z } from "zod";
  * The provider-agnostic LLM interface (PRD §10, extensibility).
  *
  * Every agent talks to this shape and nothing else. Swapping Groq for
- * Anthropic — or for a fine-tuned specialist SLM later — is a change to
+ * Anthropic - or for a fine-tuned specialist SLM later - is a change to
  * `LLM_PROVIDER` plus one adapter file, with no caller touched.
  */
 

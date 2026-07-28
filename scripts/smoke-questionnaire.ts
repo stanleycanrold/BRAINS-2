@@ -1,6 +1,6 @@
 /**
  * Verifies the questionnaire loop and, importantly, that a public share link
- * exposes only the questions — not the idea, the research, or the score.
+ * exposes only the questions - not the idea, the research, or the score.
  *
  *   npm run smoke:questions
  */
@@ -15,7 +15,7 @@ import {
 
 let failures = 0;
 function check(label: string, ok: boolean, detail = "") {
-  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` — ${detail}` : ""}`);
+  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` - ${detail}` : ""}`);
   if (!ok) failures++;
 }
 
@@ -66,6 +66,7 @@ async function main() {
               id: "q1",
               text: "How do you currently chase a late invoice?",
               kind: "open" as const,
+              options: [],
               intent: "current behaviour",
               required: false,
             },
@@ -73,11 +74,13 @@ async function main() {
               id: "q2",
               text: "Do you lose meaningful time to chasing payments?",
               kind: "confirmation" as const,
+              options: [],
               intent: "the scored question",
               required: true,
             },
           ],
           share_token: token,
+      panel_share_token: null,
           accepting_responses: true,
           intro: "A few quick questions.",
           generated_at: new Date().toISOString(),

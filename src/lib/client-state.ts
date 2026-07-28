@@ -6,8 +6,8 @@ import * as React from "react";
  * Hooks for reading browser-only state (localStorage, media queries) during
  * render.
  *
- * The naive version — `useState(false)` plus an effect that reads the real
- * value and calls `setState` — renders twice on every mount and makes the
+ * The naive version - `useState(false)` plus an effect that reads the real
+ * value and calls `setState` - renders twice on every mount and makes the
  * wrong value briefly visible. `useSyncExternalStore` reads the true value on
  * the client while returning an explicit server snapshot, so there is one
  * render and no hydration mismatch.
@@ -101,7 +101,7 @@ export function usePersistedValue<T extends string>(
 }
 
 /**
- * A boolean held in sessionStorage — resets when the tab closes.
+ * A boolean held in sessionStorage - resets when the tab closes.
  *
  * Used for "dismiss this for now" affordances: a founder who waves an offer
  * away today may well want it next week, so persisting it forever is the

@@ -17,7 +17,7 @@ export type { AgentDefinition } from "./types";
  * Two things this buys us:
  *
  *  1. Any agent can be swapped for a fine-tuned specialist SLM later without
- *     changing a single caller — the "agents now, SLMs later" strategy.
+ *     changing a single caller - the "agents now, SLMs later" strategy.
  *
  *  2. Every run is logged with its prompt version, full input, full output,
  *     model and latency. That is a hard requirement, not nice-to-have
@@ -53,13 +53,16 @@ export async function runAgent<TInput, TOutput>(
       temperature: agent.temperature,
       maxTokens: agent.maxTokens,
     });
-    output = result.data;
-    return result.data;
+    // The house rules tell the model not to use em dashes, but a prompt is a
+    // request, not a guarantee. Everything an agent produces is shown to the
+    // founder or to the people they survey, so the rule is enforced here too.
+    output = stripEmDashes(result.data);
+    return output;
   } catch (err) {
     error = err instanceof Error ? err.message : String(err);
     throw err;
   } finally {
-    // Logging never blocks or breaks the pipeline — a logging outage must not
+    // Logging never blocks or breaks the pipeline - a logging outage must not
     // take down a founder's validation run.
     void logAgentRun({
       ideaStateVersionId: context.ideaStateVersionId ?? null,
@@ -75,6 +78,29 @@ export async function runAgent<TInput, TOutput>(
       console.error(`[agent-log] failed to record ${agent.name} run:`, logErr);
     });
   }
+}
+
+/**
+ * Replaces em dashes anywhere in an agent's output, at any depth.
+ *
+ * Structural rather than field-by-field, so a field added to any agent later
+ * is covered without anyone remembering to handle it.
+ */
+function stripEmDashes<T>(value: T): T {
+  if (typeof value === "string") {
+    // \u2014 is the em dash, written escaped so no literal one exists
+    // anywhere in the codebase, including the code that removes them.
+    return value.replace(/\s*\u2014\s*/g, " - ") as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map(stripEmDashes) as T;
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, stripEmDashes(v)]),
+    ) as T;
+  }
+  return value;
 }
 
 async function logAgentRun(entry: {

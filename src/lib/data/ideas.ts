@@ -12,12 +12,12 @@ import {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * Idea repository — the append-only versioning system (PRD §7, §10).
+ * Idea repository - the append-only versioning system (PRD §7, §10).
  *
  * The single rule this module enforces: a version's `state_json` is never
  * rewritten in a way that loses history. Edits within a stage patch the
  * current version; a rework forks a NEW version with `parent_version_id` set,
- * so every past report stays readable forever — including for killed ideas.
+ * so every past report stays readable forever - including for killed ideas.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -208,7 +208,7 @@ export async function listIdeas(userId: string): Promise<IdeaWithState[]> {
 
 /**
  * Patches the CURRENT version in place. Used for progress within a stage
- * (research results landing, a response being logged, a proposal accepted) —
+ * (research results landing, a response being logged, a proposal accepted) -
  * never for a rework, which must fork instead.
  */
 export async function updateCurrentState(
@@ -253,7 +253,7 @@ export async function updateCurrentState(
 /**
  * Forks a new version for a rework (PRD §4.5).
  *
- * The loop is unbounded by design and available regardless of score — a
+ * The loop is unbounded by design and available regardless of score - a
  * founder may rework after a `go_ahead` just as freely as after a `rethink`.
  * Accepted improvement proposals are patched into the new version's structured
  * fields before it is written, so the next round starts from the sharpened
@@ -291,7 +291,7 @@ export async function forkVersion(params: {
       icp: params.patches.icp ?? previous.structured.icp,
       value_prop: params.patches.value_prop ?? previous.structured.value_prop,
     },
-    // A new round gathers its own evidence — carrying responses forward would
+    // A new round gathers its own evidence - carrying responses forward would
     // silently inflate the next confirmation rate with stale data.
     research_report: params.resumeAt === "research" ? null : previous.research_report,
     validation: {
@@ -305,6 +305,7 @@ export async function forkVersion(params: {
           ? {
               questions: [],
               share_token: null,
+              panel_share_token: null,
               accepting_responses: true,
               intro: "",
               generated_at: "",

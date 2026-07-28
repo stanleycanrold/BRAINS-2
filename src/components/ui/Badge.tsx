@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 import type { IdeaStatus } from "@/lib/domain/types";
 
 /**
- * Design system §3.4 — status badges.
+ * Design system §3.4 - status badges.
  *
  * Pill (999px radius, one of only two places a filled/full pill is allowed).
  * Always word + color together, never color alone (§Part 5 accessibility).
@@ -63,7 +63,7 @@ export const STATUS_META: Record<
   draft: { label: "Draft", tone: "neutral" },
   researching: { label: "Researching", tone: "neutral" },
   validating_normal: { label: "Validating", tone: "brand" },
-  validating_fast: { label: "Validating — Fast Track", tone: "brand" },
+  validating_fast: { label: "Validating - Fast Track", tone: "brand" },
   gate_review: { label: "Gate Review", tone: "caution" },
   passed: { label: "Passed", tone: "success" },
   needs_rework: { label: "Needs Rework", tone: "caution" },

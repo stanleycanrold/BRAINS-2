@@ -10,7 +10,7 @@ export const maxDuration = 300;
 const bodySchema = z.object({ force: z.boolean().default(false) });
 
 /**
- * POST /ideas/:id/finalize-validation — synthesis, then the gate (PRD §8).
+ * POST /ideas/:id/finalize-validation - synthesis, then the gate (PRD §8).
  *
  * `force` records that the founder ran analysis below the 10-response soft
  * gate. It is not a bypass flag that hides anything: it is passed through to

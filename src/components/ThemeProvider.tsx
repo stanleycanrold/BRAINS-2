@@ -4,7 +4,7 @@ import * as React from "react";
 import { usePersistedValue } from "@/lib/client-state";
 
 /**
- * Design system §1.8 — the inversion mechanism.
+ * Design system §1.8 - the inversion mechanism.
  *
  * Toggling `data-theme` on the root element swaps every semantic token at
  * once. No page reload, no component changes: this is exactly what wiring
@@ -62,7 +62,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function ThemeScript() {
   // Runs before first paint so a dark-mode user never sees a flash of light.
   // Because it mutates <html> ahead of hydration, the root element carries
-  // suppressHydrationWarning — React would otherwise flag the attribute it
+  // suppressHydrationWarning - React would otherwise flag the attribute it
   // finds as a server/client mismatch.
   const script = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}");document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}})();`;
   return (

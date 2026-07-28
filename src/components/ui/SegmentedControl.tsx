@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
  * Design system §3.2.
  *
  * Pill container with the selected segment filled in the brand colour. This is
- * the only non-status, non-badge use of a filled pill in the entire product —
+ * the only non-status, non-badge use of a filled pill in the entire product -
  * reserved deliberately, so a full-radius pill always means "status or
  * selector" and never decoration.
  *

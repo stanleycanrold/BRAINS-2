@@ -32,7 +32,7 @@ const bodySchema = z.discriminatedUnion("action", [
 /**
  * Tracking for spaces the founder has posted in.
  *
- * A posted comment is the start of a conversation, not the end of a task — the
+ * A posted comment is the start of a conversation, not the end of a task - the
  * replies are the actual signal. These actions keep the space, let the founder
  * come back to it, and feed anything that comes of it into the same response
  * pool everything else lands in.
@@ -95,7 +95,7 @@ export async function POST(
       return NextResponse.json({ state });
     }
 
-    // log_reply — a real response from a real person, so it counts.
+    // log_reply - a real response from a real person, so it counts.
     await db.insert(schema.validationResponses).values({
       ideaStateVersionId: idea.versionId,
       track: idea.state.validation.track ?? "normal",

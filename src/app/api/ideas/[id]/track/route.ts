@@ -11,11 +11,11 @@ export const maxDuration = 300;
 const bodySchema = z.object({ track: trackSchema });
 
 /**
- * POST /ideas/:id/track — select normal|fast (PRD §8).
+ * POST /ideas/:id/track - select normal|fast (PRD §8).
  *
  * Choosing Normal Track also runs the Signal Scanning Agent, which produces
  * the community list and interview script. That output is shared across both
- * tracks and both drafting agents — generated once per idea, never regenerated
+ * tracks and both drafting agents - generated once per idea, never regenerated
  * per feature (PRD §4.3.3).
  */
 export async function POST(

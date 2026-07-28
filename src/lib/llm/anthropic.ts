@@ -6,7 +6,7 @@ import type {
 } from "./types";
 
 /**
- * Anthropic adapter — the phase-2 provider.
+ * Anthropic adapter - the phase-2 provider.
  *
  * Wired and ready: set ANTHROPIC_API_KEY and flip LLM_PROVIDER to "anthropic".
  * No agent, route, or component changes are required, which is the whole point
@@ -14,7 +14,7 @@ import type {
  *
  * Two API details worth knowing before editing this file:
  *  • `temperature` / `top_p` / `top_k` were removed on Claude Opus 5 and the
- *    4.7+ family — sending any of them returns a 400. Response shape is steered
+ *    4.7+ family - sending any of them returns a 400. Response shape is steered
  *    with structured outputs instead, so this adapter never sends them.
  *  • Structured JSON comes from `output_config.format`, not from assistant
  *    prefills (prefills also 400 on these models).

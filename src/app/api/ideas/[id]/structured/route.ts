@@ -15,8 +15,8 @@ const bodySchema = z.object({
  * PATCH the structured fields the Extraction Agent inferred.
  *
  * The founder gets the final say on how their idea is framed. Everything
- * downstream — signal scanning, the interview script, the confirmation rate,
- * the score — is computed from these three fields, so letting them correct a
+ * downstream - signal scanning, the interview script, the confirmation rate,
+ * the score - is computed from these three fields, so letting them correct a
  * misread here is far cheaper than discovering it after a validation round.
  */
 export async function PATCH(
@@ -35,7 +35,7 @@ export async function PATCH(
     const parsed = bodySchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "That doesn't look right — check the text and try again." },
+        { error: "That doesn't look right - check the text and try again." },
         { status: 400 },
       );
     }

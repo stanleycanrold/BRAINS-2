@@ -10,10 +10,14 @@ import { originFor } from "@/lib/app-url";
 
 export const runtime = "nodejs";
 
-const bodySchema = z.object({ n: z.number().int().min(1).max(100) });
+const bodySchema = z.object({
+  n: z.number().int().min(1).max(100),
+  /** Optional: where interviewees should come from. Blank means anywhere. */
+  location_preference: z.string().max(200).default(""),
+});
 
 /**
- * POST /ideas/:id/fast-track/order — create the order, then a Checkout Session.
+ * POST /ideas/:id/fast-track/order - create the order, then a Checkout Session.
  *
  * Ordering matters here and is a PRD requirement (§10 payment safety):
  * the order row is written FIRST with payment_status `pending` and status
@@ -51,7 +55,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "Finish the research step first — the interview questions are built from it.",
+            "Finish the research step first - the interview questions are built from it.",
         },
         { status: 409 },
       );
@@ -60,7 +64,7 @@ export async function POST(
     /**
      * One paid round per version.
      *
-     * Every order is tied to `idea.versionId`, not just the idea — the
+     * Every order is tied to `idea.versionId`, not just the idea - the
      * interviews run against the questions belonging to THIS round. Without
      * this check a founder could open checkout twice and be charged twice for
      * the same set of questions. Redoing validation forks a new version, which
@@ -96,7 +100,7 @@ export async function POST(
     }
 
     const tier = idea.state.structured.niche_tier;
-    // Priced server-side from pricing_config — never from a client-supplied
+    // Priced server-side from pricing_config - never from a client-supplied
     // amount, which would let anyone name their own price.
     const estimate = await estimateFastTrack({ tier, n: parsed.data.n });
 
@@ -111,13 +115,14 @@ export async function POST(
         totalCostCents: estimate.totalCents,
         currency: estimate.currency,
         nicheTier: tier,
+        locationPreference: parsed.data.location_preference.trim(),
         paymentStatus: "pending",
         status: "pending_sourcing",
       })
       .returning();
 
     // Resolved from the request so it can't drift from where the app is
-    // actually served — see app-url.ts.
+    // actually served - see app-url.ts.
     const appUrl = originFor(request);
     const stripe = getStripe();
 
@@ -127,7 +132,7 @@ export async function POST(
        * Embedded, not redirect.
        *
        * The founder stays inside the product through payment, which matters
-       * at this point in the flow — they've just spent time on questions and
+       * at this point in the flow - they've just spent time on questions and
        * a hand-off to a different domain is where people reconsider. Stripe
        * still renders and owns the card fields inside the iframe, so no card
        * data touches our servers and PCI scope stays SAQ-A. Building our own
@@ -152,7 +157,7 @@ export async function POST(
             unit_amount: estimate.costPerInterviewCents,
             product_data: {
               name: "Fast Track interview",
-              description: `Sourced and run by BRAINS AI — ${idea.title}`,
+              description: `Sourced and run by BRAINS AI - ${idea.title}`,
             },
           },
         },
@@ -184,7 +189,7 @@ export async function POST(
      *
      * Opening checkout is not a decision to buy. Flipping `status` and
      * `validation.track` here stranded anyone who abandoned payment on a track
-     * they hadn't paid for and couldn't leave — their own in-progress round
+     * they hadn't paid for and couldn't leave - their own in-progress round
      * effectively disappeared. The order alone is enough for the UI to offer
      * them a way to finish paying; the track moves when the money does, in
      * markOrderPaid().
@@ -198,6 +203,7 @@ export async function POST(
         analysis_fee: estimate.analysisFeeCents,
         total_cost: estimate.totalCents,
         currency: estimate.currency,
+        location_preference: parsed.data.location_preference.trim(),
         status: "pending_sourcing",
         scheduled_count: 0,
         completed_count: 0,

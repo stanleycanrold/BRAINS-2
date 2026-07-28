@@ -10,7 +10,7 @@ import { estimateFastTrack, formatMoney } from "../src/lib/pricing";
 
 let failures = 0;
 function check(label: string, ok: boolean, detail = "") {
-  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` — ${detail}` : ""}`);
+  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` - ${detail}` : ""}`);
   if (!ok) failures++;
 }
 
@@ -69,7 +69,7 @@ async function main() {
       },
     ],
     // Must match the app: payment happens in-app via embedded checkout, so
-    // there is no hosted URL — a client_secret mounts the form instead. If
+    // there is no hosted URL - a client_secret mounts the form instead. If
     // this drifts from the route, the smoke test stops testing the real thing.
     ui_mode: "embedded_page",
     return_url:
@@ -78,7 +78,7 @@ async function main() {
 
   check("session created", Boolean(session.id), session.id);
   check("embedded client_secret returned", Boolean(session.client_secret));
-  check("no hosted redirect — payment stays in-app", !session.url);
+  check("no hosted redirect - payment stays in-app", !session.url);
   check(
     "Stripe total matches our estimate",
     session.amount_total === estimate.totalCents,
@@ -93,9 +93,9 @@ async function main() {
   const hook = process.env.STRIPE_WEBHOOK_SECRET;
   console.log(
     hook
-      ? "\n  webhook secret present — payment confirmation will work"
+      ? "\n  webhook secret present - payment confirmation will work"
       : "\n  NOTE: STRIPE_WEBHOOK_SECRET not set. Payment still confirms on\n" +
-        "        return from checkout — the reconcile route verifies the\n" +
+        "        return from checkout - the reconcile route verifies the\n" +
         "        session against Stripe directly. For confirmation that\n" +
         "        survives a closed tab, run:\n" +
         "          stripe listen --forward-to localhost:3001/api/webhooks/stripe",

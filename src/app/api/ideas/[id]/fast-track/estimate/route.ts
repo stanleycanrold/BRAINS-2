@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({ n: z.number().int().min(1).max(100) });
 
-/** POST /ideas/:id/fast-track/estimate — { n } → itemised cost (PRD §8). */
+/** POST /ideas/:id/fast-track/estimate - { n } → itemised cost (PRD §8). */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },

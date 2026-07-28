@@ -15,13 +15,13 @@ import type { IdeaState } from "@/lib/domain/types";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * BRAINS AI — data model (PRD §7)
+ * BRAINS AI - data model (PRD §7)
  *
  * Everything lives in a dedicated `brains` Postgres schema rather than
  * `public`. The connected database already hosts an earlier application whose
  * tables (`users`, `ideas`, `fast_track_orders`) and enums (`idea_status`,
  * `order_status`, `interview_status`) would collide by name. Namespacing keeps
- * the two entirely independent — this build can be created, migrated or
+ * the two entirely independent - this build can be created, migrated or
  * dropped without ever touching the existing data.
  *
  * Two rules govern this schema:
@@ -32,7 +32,7 @@ import type { IdeaState } from "@/lib/domain/types";
  *
  *  2. `agent_run_logs` is not optional instrumentation. Every agent call
  *     records its prompt version, full input, full output and model, because
- *     that corpus is what trains BRAINS' specialist SLMs later — the
+ *     that corpus is what trains BRAINS' specialist SLMs later - the
  *     "agents now, SLMs later" strategy (PRD §6, §10 auditability).
  * ═══════════════════════════════════════════════════════════════════════════
  */
@@ -113,7 +113,7 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** Clerk user id — the external identity. */
+    /** Clerk user id - the external identity. */
     clerkId: text("clerk_id").notNull().unique(),
     email: text("email").notNull(),
     name: text("name"),
@@ -155,7 +155,7 @@ export const ideas = pgTable(
   (t) => [index("ideas_user_id_idx").on(t.userId)],
 );
 
-// ── idea_state_versions — append-only ──────────────────────────────────────
+// ── idea_state_versions - append-only ──────────────────────────────────────
 
 export const ideaStateVersions = pgTable(
   "idea_state_versions",
@@ -173,10 +173,19 @@ export const ideaStateVersions = pgTable(
     stateJson: jsonb("state_json").$type<IdeaState>().notNull(),
     /**
      * Opaque token for the public questionnaire link. Indexed because the
-     * public route looks a version up by this alone — it is the only thing an
+     * public route looks a version up by this alone - it is the only thing an
      * unauthenticated respondent presents.
      */
     shareToken: text("share_token").unique(),
+    /**
+     * A SEPARATE token for the interviews we run on a paid round.
+     *
+     * Two links rather than one so the founder can tell their own outreach
+     * apart from what they paid for: the token a response arrives on decides
+     * whether it counts as `normal` or `fast`, rather than every response
+     * inheriting the idea's current track. Issued only once a round is paid.
+     */
+    panelToken: text("panel_token").unique(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -188,6 +197,7 @@ export const ideaStateVersions = pgTable(
     index("isv_idea_id_idx").on(t.ideaId),
     index("isv_idea_version_idx").on(t.ideaId, t.versionNumber),
     index("isv_share_token_idx").on(t.shareToken),
+    index("isv_panel_token_idx").on(t.panelToken),
   ],
 );
 
@@ -213,7 +223,7 @@ export const researchReports = pgTable(
   (t) => [index("rr_version_idx").on(t.ideaStateVersionId)],
 );
 
-// ── validation_responses — the unified pool ────────────────────────────────
+// ── validation_responses - the unified pool ────────────────────────────────
 
 /**
  * Every response lands here regardless of origin: a self-run interview, a Fast
@@ -309,12 +319,19 @@ export const fastTrackOrders = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     nRequested: integer("n_requested").notNull(),
-    /** Money is stored in minor units (cents) — never floats. */
+    /** Money is stored in minor units (cents) - never floats. */
     costPerInterviewCents: integer("cost_per_interview_cents").notNull(),
     analysisFeeCents: integer("analysis_fee_cents").notNull(),
     totalCostCents: integer("total_cost_cents").notNull(),
     currency: text("currency").notNull().default("usd"),
     nicheTier: nicheTierEnum("niche_tier").notNull().default("general_consumer"),
+    /**
+     * Where the founder wants interviewees drawn from, in their own words.
+     * Free text rather than a country list: "US healthcare admins" and
+     * "anywhere, English-speaking" are both useful answers and neither fits
+     * a dropdown. Blank means no preference.
+     */
+    locationPreference: text("location_preference").notNull().default(""),
     paymentStatus: paymentStatusEnum("payment_status")
       .notNull()
       .default("pending"),
@@ -365,7 +382,7 @@ export const fastTrackInterviews = pgTable(
 // ── pricing_config ─────────────────────────────────────────────────────────
 
 /**
- * Ops-configurable, never hardcoded — rates change without a deploy (PRD
+ * Ops-configurable, never hardcoded - rates change without a deploy (PRD
  * §4.3.2.1). Read by the Estimation Agent at request time.
  */
 export const pricingConfig = pgTable("pricing_config", {

@@ -4,7 +4,7 @@ import { createAnthropicProvider } from "./anthropic";
 
 /**
  * Provider selection. This function is the single switch between LLM backends
- * for the whole application — swapping Groq for Anthropic (or, later, a
+ * for the whole application - swapping Groq for Anthropic (or, later, a
  * fine-tuned specialist SLM) touches nothing else.
  */
 

@@ -4,7 +4,7 @@ import * as React from "react";
 import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
 
-/** Design system §3.2 — 18px, brand fill + white check when selected. */
+/** Design system §3.2 - 18px, brand fill + white check when selected. */
 export function Checkbox({
   checked,
   onChange,
@@ -59,7 +59,7 @@ export function Checkbox({
   );
 }
 
-/** Design system §3.2 — brand fill on, border colour off. */
+/** Design system §3.2 - brand fill on, border colour off. */
 export function Toggle({
   checked,
   onChange,
@@ -110,7 +110,7 @@ export function Toggle({
   );
 }
 
-/** Radio group rendered as stacked cards — used where options need explanation. */
+/** Radio group rendered as stacked cards - used where options need explanation. */
 export function RadioCardGroup<T extends string>({
   options,
   value,

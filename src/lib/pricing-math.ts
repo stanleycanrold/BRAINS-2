@@ -1,7 +1,7 @@
 import type { NicheTier } from "@/lib/domain/types";
 
 /**
- * Pricing arithmetic and types — deliberately free of any database import so
+ * Pricing arithmetic and types - deliberately free of any database import so
  * client components can use it.
  *
  * The formula lives here ONCE. The server reads rates from `pricing_config`
@@ -67,7 +67,7 @@ export function priceFor(
 /**
  * Re-price an existing estimate for a new count, in the browser, on the same
  * frame the founder makes the change. The server figure is still the only one
- * that reaches Stripe — this is for responsiveness, not authority.
+ * that reaches Stripe - this is for responsiveness, not authority.
  */
 export function recalculate(base: Estimate, n: number): Estimate {
   return priceFor(

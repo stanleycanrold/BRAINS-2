@@ -13,12 +13,12 @@ import { cn } from "@/lib/cn";
 import type { Structured } from "@/lib/domain/types";
 
 /**
- * "Here's what we understood" — shown before any research findings.
+ * "Here's what we understood" - shown before any research findings.
  *
  * The founder wrote free text; an agent turned it into these three fields, and
  * every downstream step (community search, interview script, confirmation
- * rate, score) is computed from them. Showing the interpretation back — and
- * letting them correct it in place — is the cheapest possible moment to catch
+ * rate, score) is computed from them. Showing the interpretation back - and
+ * letting them correct it in place - is the cheapest possible moment to catch
  * a misread. Without this, a wrong ICP only surfaces after a validation round.
  */
 
@@ -28,7 +28,7 @@ const FIELDS: { key: EditableField; label: string; hint: string }[] = [
   {
     key: "problem_statement",
     label: "The problem",
-    hint: "Stated as the person with it would describe it — not as your solution.",
+    hint: "Stated as the person with it would describe it - not as your solution.",
   },
   {
     key: "icp",
@@ -105,10 +105,10 @@ export function UnderstandingCard({
             id="understanding-heading"
             className="type-body-m block font-medium text-primary"
           >
-            We read this as: {structured.problem_statement || "—"}
+            We read this as: {structured.problem_statement || "-"}
           </span>
           <span className="type-body-m mt-0.5 block text-secondary">
-            For {structured.icp || "—"}.{" "}
+            For {structured.icp || "-"}.{" "}
             <span className="text-brand">
               {open ? "Hide" : "Not right? Fix it"}
             </span>
@@ -204,7 +204,7 @@ export function UnderstandingCard({
 
       {open ? (
         <p className="type-body-m border-t border-line px-5 py-3 text-tertiary">
-          Everything else on this page — and every step after it — is built on
+          Everything else on this page - and every step after it - is built on
           these three lines.
         </p>
       ) : null}
