@@ -1,0 +1,418 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BRAINS AI — Design tokens
+   Design system §1.2 (palette), §1.8 (theming architecture).
+
+   The ONLY place raw hex values are allowed to exist. Every component
+   references semantic tokens, never a literal color. This is the entire
+   mechanism that makes dark mode (and any future rebrand) a config change
+   rather than a rewrite.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="light"] {
+  /* Surfaces */
+  --surface-page: #f7f8fa;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f2;
+  --surface-inset: #eef0f2;
+  /* The rail shares the canvas tone: one continuous plane, with cards lifted
+     off it. Giving the rail its own shade drew a hard vertical seam down the
+     app and made the sidebar feel bolted on rather than part of the page. */
+  --surface-sidebar: #f7f8fa;
+
+  /* Borders */
+  --border-default: #dee1e5;
+  --border-strong: #c4c9cf;
+
+  /* Text */
+  --text-primary: #14181f;
+  --text-secondary: #6b7480;
+  --text-tertiary: #9aa2ab;
+  --text-on-accent: #ffffff;
+
+  /* Brand */
+  --accent-brand: #14267a;
+  --accent-brand-hover: #101f66;
+  --accent-brand-active: #0c1852;
+  --accent-brand-subtle: rgb(20 38 122 / 0.08);
+  --accent-brand-subtle-strong: rgb(20 38 122 / 0.14);
+
+  /* The logo mark's own blue. Used ONLY for the mark itself, never for UI. */
+  --brand-mark: #2563eb;
+
+  /* Status — never used decoratively, never outside status contexts (§1.2) */
+  --status-success: #2f8f5b;
+  --status-success-subtle: rgb(47 143 91 / 0.1);
+  --status-caution: #c67c1e;
+  --status-caution-subtle: rgb(198 124 30 / 0.1);
+  --status-danger: #b3433d;
+  --status-danger-subtle: rgb(179 67 61 / 0.1);
+  --status-danger-border: rgb(179 67 61 / 0.3);
+  --status-neutral-subtle: rgb(222 225 229 / 0.85);
+
+  /* Elevation — two levels only (§1.4) */
+  --shadow-raised: 0 1px 3px rgb(20 24 31 / 0.08);
+  --shadow-raised-hover: 0 4px 12px rgb(20 24 31 / 0.1);
+  --shadow-overlay: 0 12px 32px rgb(20 24 31 / 0.16);
+
+  /* Interaction wash — the "6% / 12%" hover & active shift (§3.1) */
+  --wash-hover: rgb(20 24 31 / 0.04);
+  --wash-active: rgb(20 24 31 / 0.08);
+  --wash-row-hover: rgb(20 24 31 / 0.03);
+
+  /* Scrim */
+  --scrim: rgb(20 24 31 / 0.4);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  /* A WARM neutral dark, not a cool blue-black. Cool darks read as cold and
+     clinical at full-screen scale; the warm cast is what makes a dark UI
+     comfortable to sit in for an hour. Hues here are near-neutral with a
+     faint yellow-red bias, matching the rest of the product's restraint. */
+  --surface-page: #1f1e1d;
+  --surface-raised: #292827;
+  --surface-sunken: #171716;
+  --surface-inset: #302f2d;
+  --surface-sidebar: #1f1e1d;
+
+  --border-default: #3a3936;
+  --border-strong: #4e4c48;
+
+  --text-primary: #f0efec;
+  --text-secondary: #a8a59e;
+  --text-tertiary: #7d7a74;
+  --text-on-accent: #ffffff;
+
+  --accent-brand: #7b93f0;
+  --accent-brand-hover: #92a6f4;
+  --accent-brand-active: #a5b5f7;
+  --accent-brand-subtle: rgb(123 147 240 / 0.14);
+  --accent-brand-subtle-strong: rgb(123 147 240 / 0.22);
+
+  --brand-mark: #6f8ef5;
+
+  --status-success: #7ecfa3;
+  --status-success-subtle: rgb(126 207 163 / 0.14);
+  --status-caution: #e5b475;
+  --status-caution-subtle: rgb(229 180 117 / 0.14);
+  --status-danger: #e09b96;
+  --status-danger-subtle: rgb(224 155 150 / 0.14);
+  --status-danger-border: rgb(224 155 150 / 0.35);
+  --status-neutral-subtle: rgb(58 57 54 / 0.9);
+
+  /* §1.4 — in dark mode elevation is carried by surface tone, not shadow.
+     Shadows are kept but deliberately weakened to a bonus cue. */
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-raised-hover: 0 4px 14px rgb(0 0 0 / 0.45);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.55);
+
+  --wash-hover: rgb(240 239 236 / 0.055);
+  --wash-active: rgb(240 239 236 / 0.09);
+  --wash-row-hover: rgb(240 239 236 / 0.035);
+
+  --scrim: rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+/* ── Tailwind v4 theme bridge ─────────────────────────────────────────────
+   Exposes the semantic tokens above as Tailwind utilities so components can
+   write `bg-raised` / `text-secondary` instead of arbitrary values.         */
+
+@theme inline {
+  --color-page: var(--surface-page);
+  --color-raised: var(--surface-raised);
+  --color-sunken: var(--surface-sunken);
+  --color-sidebar: var(--surface-sidebar);
+  --color-inset: var(--surface-inset);
+
+  --color-line: var(--border-default);
+  --color-line-strong: var(--border-strong);
+
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-tertiary: var(--text-tertiary);
+  --color-on-accent: var(--text-on-accent);
+
+  --color-brand: var(--accent-brand);
+  --color-brand-hover: var(--accent-brand-hover);
+  --color-brand-active: var(--accent-brand-active);
+  --color-brand-subtle: var(--accent-brand-subtle);
+  --color-brand-subtle-strong: var(--accent-brand-subtle-strong);
+  --color-mark: var(--brand-mark);
+
+  --color-success: var(--status-success);
+  --color-success-subtle: var(--status-success-subtle);
+  --color-caution: var(--status-caution);
+  --color-caution-subtle: var(--status-caution-subtle);
+  --color-danger: var(--status-danger);
+  --color-danger-subtle: var(--status-danger-subtle);
+  --color-danger-border: var(--status-danger-border);
+  --color-neutral-subtle: var(--status-neutral-subtle);
+
+  --color-wash-hover: var(--wash-hover);
+  --color-wash-active: var(--wash-active);
+  --color-wash-row: var(--wash-row-hover);
+  --color-scrim: var(--scrim);
+
+  /* Typefaces (§1.3) — three roles, deliberately not one grotesk for all */
+  --font-display: var(--font-general-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Radii (§1.4) — 999px reserved exclusively for badges & segmented control */
+  --radius-button: 6px;
+  --radius-card: 8px;
+  --radius-input: 8px;
+  --radius-modal: 12px;
+
+  --shadow-raised: var(--shadow-raised);
+  --shadow-raised-hover: var(--shadow-raised-hover);
+  --shadow-overlay: var(--shadow-overlay);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 26px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Type scale (§1.3), base 16px / 1.25 ratio. Applied via utility classes so
+   the scale lives in one place rather than being re-derived per component. */
+
+.type-display-xl {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: -0.02em;
+}
+
+.type-display-l {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.015em;
+}
+
+.type-display-m {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+}
+
+.type-body-l {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.type-body-m {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.type-caption {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+/* Data/Mono — anything measured, never anything written (§1.3).
+   tabular-nums is non-negotiable: the Score must not reflow as it animates. */
+.type-data-l {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.type-data-m {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.type-data-s {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Focus (§Part 5) ──────────────────────────────────────────────────────
+   Visible keyboard focus on every interactive element. Never a browser
+   default, never removed without a replacement.                            */
+
+:focus-visible {
+  outline: 2px solid var(--accent-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Motion (§1.6) — spent in exactly three places, nowhere else ─────────── */
+
+@keyframes brains-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes brains-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(1.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes brains-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-fade-in {
+  animation: brains-fade-in 200ms ease-out both;
+}
+
+.animate-rise {
+  animation: brains-rise 240ms ease-out both;
+}
+
+/* Skeletons carry a single travelling highlight rather than a blunt opacity
+   pulse — reads as "loading the real shape", per §3.13. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-inset);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--wash-hover),
+    transparent
+  );
+  animation: brains-shimmer 1.6s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton::after {
+    display: none;
+  }
+}
+
+/* ── Scrollbars — quiet, matching the instrument-panel thesis ────────────── */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+/* ── Utilities ────────────────────────────────────────────────────────────── */
+
+/* Hidden until focused — the skip-to-content link (§Part 5) */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform 120ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+::selection {
+  background: var(--accent-brand-subtle-strong);
+  color: var(--text-primary);
+}
