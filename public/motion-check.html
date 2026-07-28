@@ -1,0 +1,43 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion check</title>
+<style>
+  body { background:#1f1e1d; color:#f0efec; font-family:system-ui,sans-serif;
+         display:flex; flex-direction:column; align-items:center; gap:28px;
+         padding:48px 20px; text-align:center; }
+  @keyframes orbit { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+  .mark { width:80px; height:80px; animation: orbit 8s linear infinite; }
+  .verdict { font-size:18px; font-weight:600; padding:12px 18px; border-radius:10px; }
+  .on  { background:#7b93f022; color:#7b93f0; }
+  .off { background:#e0666622; color:#e06666; }
+  .note { max-width:44ch; color:#a8a59e; line-height:1.5; }
+</style>
+
+<h1 style="font-size:20px;margin:0">Is animation reaching your browser?</h1>
+
+<img class="mark" src="/brains-mark.png" alt="">
+
+<div id="verdict" class="verdict">checking…</div>
+<p class="note" id="note"></p>
+
+<script>
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const v = document.getElementById("verdict");
+  const n = document.getElementById("note");
+  if (reduced) {
+    v.className = "verdict off";
+    v.textContent = "Reduced motion is ON for this device";
+    n.textContent =
+      "Your system is asking sites not to animate, and the app honours that, " +
+      "which is why the mark sits still. Windows: Settings > Accessibility > " +
+      "Visual effects > Animation effects.";
+  } else {
+    v.className = "verdict on";
+    v.textContent = "Reduced motion is OFF";
+    n.textContent =
+      "Animation is allowed here. If the mark above is spinning but the one " +
+      "in the app is not, the app is serving you a cached bundle: reload with " +
+      "Ctrl+Shift+R.";
+  }
+</script>
