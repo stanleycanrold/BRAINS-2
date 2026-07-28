@@ -7,7 +7,7 @@ import { listIdeas } from "@/lib/data/ideas";
 import { StatusBadge } from "@/components/ui/Badge";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { DashboardTopBar } from "./DashboardTopBar";
-import { EntryForm } from "../ideas/new/EntryForm";
+import { EntryScreen } from "../ideas/new/EntryForm";
 import { stageForStatus, type IdeaStatus } from "@/lib/domain/types";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
 import {
@@ -47,19 +47,7 @@ export default async function DashboardPage() {
     return (
       <>
         <DashboardTopBar />
-        <div className="mx-auto max-w-[640px] pt-4">
-          <h1 className="type-display-xl text-primary">
-            What are you building?
-          </h1>
-          <p className="type-body-l mt-3 max-w-prose text-secondary">
-            Describe it in a paragraph. We&rsquo;ll research whether the problem
-            is real, help you get answers from people who have it, and give you
-            a score with the reasoning behind it.
-          </p>
-          <div className="mt-10">
-            <EntryForm />
-          </div>
-        </div>
+        <EntryScreen heading="What are you building?" />
       </>
     );
   }

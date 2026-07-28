@@ -17,7 +17,8 @@
     "smoke:stripe": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-stripe.ts",
     "smoke:questions": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-questionnaire.ts",
     "smoke:offer": "tsx scripts/smoke-offer.ts",
-    "smoke:links": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-links.ts"
+    "smoke:links": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-links.ts",
+    "smoke:limits": "tsx scripts/smoke-limits.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

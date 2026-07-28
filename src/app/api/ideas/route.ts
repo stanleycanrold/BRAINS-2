@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { createIdea } from "@/lib/data/ideas";
+import { describeIdeaProblem } from "@/lib/domain/limits";
 import { stageAtEntrySchema } from "@/lib/domain/types";
 
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
-  description: z.string().min(40),
+  description: z.string(),
   target_audience: z.string().min(1),
   stage_at_entry: stageAtEntrySchema,
   product_link: z.string().nullable().default(null),
@@ -40,6 +41,12 @@ export async function POST(request: Request) {
         { error: "Check the form - some details are missing or too short." },
         { status: 400 },
       );
+    }
+
+    // The same rule the composer applies, applied where it counts.
+    const problem = describeIdeaProblem(parsed.data.description);
+    if (problem) {
+      return NextResponse.json({ error: problem }, { status: 400 });
     }
 
     const idea = await createIdea({

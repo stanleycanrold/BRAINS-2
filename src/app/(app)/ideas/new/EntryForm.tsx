@@ -3,37 +3,37 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  PaperclipIcon,
-  XIcon,
-  ArrowRightIcon,
-  FileTextIcon,
+  MagnifyingGlassIcon,
+  UsersThreeIcon,
+  GaugeIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
-import { Textarea, Input } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Field";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { useToast } from "@/components/ui/Toast";
+import { LogoMark } from "@/components/brand/Logo";
+import { IdeaComposer, type Attachment } from "@/components/IdeaComposer";
+import { describeIdeaProblem } from "@/lib/domain/limits";
 import type { StageAtEntry } from "@/lib/domain/types";
 
 /**
  * B2 - Entry Point.
  *
- * One box and nothing else.
+ * One composer, centred, and nothing else above the fold.
  *
- * This screen used to ask for stage, audience and a product link alongside
- * the idea, which meant meeting a form before saying the one thing the person
- * came to say. Everything we still need is asked afterwards, in a short
- * modal, once they have already committed something. Answering three quick
- * questions about an idea you have just written is a different experience
- * from filling in a form before you have written anything.
+ * The screen used to ask for stage, audience and a product link alongside the
+ * idea, which meant meeting a form before saying the one thing the person came
+ * to say. Everything we still need is asked afterwards, in a short modal, once
+ * they have already committed something. Answering three questions about an
+ * idea you have just written is a different experience from filling in a form
+ * before you have written anything.
  *
  * Those questions are not optional extras. The research agent searches
  * globally and returns evidence from markets the founder does not sell into
  * unless it is told where to look, and interviewees cannot be sourced without
  * knowing where they should be.
  */
-
-const MIN_DESCRIPTION = 40;
 
 const STAGE_OPTIONS: {
   value: StageAtEntry;
@@ -57,9 +57,34 @@ const STAGE_OPTIONS: {
   },
 ];
 
-type Attachment = { name: string; excerpt: string };
+/**
+ * Starters, not categories.
+ *
+ * Each one seeds the shape of a usable answer rather than a label, because
+ * the thing that makes research good is naming who has the problem and what
+ * they do about it today. A blank box gets "an app for fitness"; this gets
+ * something the agent can actually search for.
+ */
+const STARTERS = [
+  {
+    label: "A tool for a job people already do",
+    seed: "We're building a tool for [who]. Today they [how they handle it now], which means [what goes wrong]. ",
+  },
+  {
+    label: "A marketplace",
+    seed: "We're building a marketplace connecting [one side] with [other side]. Right now they find each other by [current method], and the problem with that is ",
+  },
+  {
+    label: "Replacing a spreadsheet",
+    seed: "We're replacing the spreadsheet that [who] uses to [task]. It breaks down when ",
+  },
+  {
+    label: "One feature I'm unsure about",
+    seed: "Our product already does [what]. The part I'm unsure about is [feature], which is meant to solve ",
+  },
+];
 
-export function EntryForm() {
+export function EntryForm({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -73,9 +98,6 @@ export function EntryForm() {
   const [location, setLocation] = React.useState("");
   const [productLink, setProductLink] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
-
-  const fileInput = React.useRef<HTMLInputElement>(null);
-  const ready = description.trim().length >= MIN_DESCRIPTION;
 
   // A link is only worth asking for when there is something to look at.
   const wantsLink = stage !== "idea_only";
@@ -96,15 +118,6 @@ export function EntryForm() {
       if (!response.ok) throw new Error(body.error ?? "We couldn't read that.");
 
       setAttachments((a) => [...a, ...body.attachments].slice(0, 10));
-
-      const unreadable = body.attachments.filter(
-        (x: Attachment) => !x.excerpt,
-      ).length;
-      if (unreadable) {
-        toast(
-          `Attached, but we couldn't pull text out of ${unreadable} of them.`,
-        );
-      }
     } catch (err) {
       toast(
         err instanceof Error ? err.message : "We couldn't read that.",
@@ -112,8 +125,12 @@ export function EntryForm() {
       );
     } finally {
       setReading(false);
-      if (fileInput.current) fileInput.current.value = "";
     }
+  }
+
+  function begin() {
+    if (describeIdeaProblem(description)) return;
+    setAsking(true);
   }
 
   async function create() {
@@ -156,81 +173,37 @@ export function EntryForm() {
 
   return (
     <>
-      <div>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="We're building a tool that…"
-          rows={9}
-          aria-label="Describe your idea"
-        />
+      <IdeaComposer
+        value={description}
+        onChange={setDescription}
+        onSubmit={begin}
+        attachments={attachments}
+        onAttach={(files) => void addFiles(files)}
+        onRemoveAttachment={(i) =>
+          setAttachments((a) => a.filter((_, j) => j !== i))
+        }
+        reading={reading}
+        submitting={submitting}
+        autoFocus={!compact}
+      />
 
-        {attachments.length > 0 ? (
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {attachments.map((file, i) => (
-              <li
-                key={`${file.name}-${i}`}
-                className="type-body-m inline-flex items-center gap-2 rounded-full border border-line bg-raised py-1 pr-1 pl-3 text-secondary"
-              >
-                <FileTextIcon size={14} aria-hidden="true" />
-                <span className="max-w-[220px] truncate">{file.name}</span>
-                <button
-                  type="button"
-                  aria-label={`Remove ${file.name}`}
-                  onClick={() =>
-                    setAttachments((a) => a.filter((_, j) => j !== i))
-                  }
-                  className="rounded-full p-1 text-tertiary transition-colors hover:bg-wash-hover hover:text-primary"
-                >
-                  <XIcon size={12} aria-hidden="true" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <input
-              ref={fileInput}
-              type="file"
-              multiple
-              accept=".pdf,.txt,.md,.csv,.json"
-              className="sr-only"
-              onChange={(e) => void addFiles(e.target.files)}
-            />
-            <Button
-              variant="ghost"
-              size="compact"
-              loading={reading}
-              onClick={() => fileInput.current?.click()}
-              iconLeft={<PaperclipIcon size={15} aria-hidden="true" />}
+      {/* Starters disappear the moment there is anything to say - they exist
+          to get someone unstuck, not to sit under a paragraph they have
+          already written. */}
+      {description.length === 0 ? (
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {STARTERS.map((starter) => (
+            <button
+              key={starter.label}
+              type="button"
+              onClick={() => setDescription(starter.seed)}
+              className="type-body-m rounded-full border border-line bg-raised px-3 py-1.5 text-secondary transition-colors duration-[120ms] hover:border-line-strong hover:text-primary"
             >
-              Attach documents
-            </Button>
-            <span className="type-caption text-tertiary">
-              PDFs, decks, notes. Optional.
-            </span>
-          </div>
-
-          <Button
-            variant="primary"
-            size="large"
-            disabled={!ready}
-            onClick={() => setAsking(true)}
-            iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
-          >
-            Continue
-          </Button>
+              {starter.label}
+            </button>
+          ))}
         </div>
-
-        {description.trim().length > 0 && !ready ? (
-          <p className="type-caption mt-2 text-tertiary">
-            A little more detail, so there is something to research.
-          </p>
-        ) : null}
-      </div>
+      ) : null}
 
       <Modal
         open={asking}
@@ -238,10 +211,7 @@ export function EntryForm() {
         title="Three quick things"
         description="These decide where we look for evidence, and who we would talk to."
         footer={
-          <ModalActions
-            onCancel={() => setAsking(false)}
-            cancelLabel="Back"
-          >
+          <ModalActions onCancel={() => setAsking(false)} cancelLabel="Back">
             <Button
               variant="primary"
               loading={submitting}
@@ -327,5 +297,69 @@ export function EntryForm() {
         </div>
       </Modal>
     </>
+  );
+}
+
+/**
+ * The full entry screen: mark, one line, the composer, then what happens next.
+ *
+ * The greeting is deliberately fixed rather than time-aware. Reading the clock
+ * during render is what produces hydration mismatches, and the novelty wears
+ * off long before the thousandth visit anyway.
+ */
+export function EntryScreen({ heading }: { heading: string }) {
+  return (
+    <div className="mx-auto flex w-full max-w-[720px] flex-col justify-center px-1 pt-[6vh] pb-16 sm:pt-[10vh]">
+      <div className="flex items-center justify-center gap-3">
+        <LogoMark size={26} priority />
+        <h1 className="type-display-xl text-center text-primary">{heading}</h1>
+      </div>
+
+      <p className="type-body-l mx-auto mt-3 max-w-[46ch] text-center text-secondary">
+        Describe it in a paragraph. Attach anything you have. We will find out
+        whether the problem is real before you build for it.
+      </p>
+
+      <div className="mt-8">
+        <EntryForm />
+      </div>
+
+      <Highlights />
+    </div>
+  );
+}
+
+/** What they get, in three lines, below the fold-ish. */
+function Highlights() {
+  const items = [
+    {
+      icon: <MagnifyingGlassIcon size={17} aria-hidden="true" />,
+      title: "Researched, with sources",
+      body: "Every claim links to where we found it, including the evidence against you.",
+    },
+    {
+      icon: <UsersThreeIcon size={17} aria-hidden="true" />,
+      title: "Answers from real people",
+      body: "Share a link, or have the interviews run and analysed for you.",
+    },
+    {
+      icon: <GaugeIcon size={17} aria-hidden="true" />,
+      title: "A score you can argue with",
+      body: "Never a bare number. You always get the reasoning behind it.",
+    },
+  ];
+
+  return (
+    <div className="mt-14 grid gap-6 border-t border-line pt-8 sm:grid-cols-3">
+      {items.map((item) => (
+        <div key={item.title}>
+          <span className="text-brand">{item.icon}</span>
+          <h2 className="type-body-l mt-2 font-medium text-primary">
+            {item.title}
+          </h2>
+          <p className="type-body-m mt-1 text-secondary">{item.body}</p>
+        </div>
+      ))}
+    </div>
   );
 }
