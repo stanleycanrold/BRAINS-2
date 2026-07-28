@@ -63,7 +63,11 @@ export function AppShell({
       {/* Padding tracks the rail: the 56px icon rail at tablet, and at desktop
           either that or the full 260px depending on the preference. */}
       <div className={cn("md:pl-14", !collapsed && "lg:pl-[260px]")}>
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-line bg-page/95 px-4 backdrop-blur-sm sm:px-6">
+        {/* No rule under the top bar. The bar and the page are the same
+            colour, so a line across the top of every screen was drawing a
+            border around nothing; the blur already handles content passing
+            underneath it when the page scrolls. */}
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 bg-page/95 px-4 backdrop-blur-sm sm:px-6">
           {/* Mobile: opens the drawer */}
           <button
             type="button"

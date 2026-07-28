@@ -347,7 +347,10 @@ body {
 }
 
 .animate-orbit {
-  animation: brains-orbit 18s linear infinite;
+  animation: brains-orbit 8s linear infinite;
+  /* Its own element, so nothing else on the mark can win the property. */
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 .animate-fade-in {

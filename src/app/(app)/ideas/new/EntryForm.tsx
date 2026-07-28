@@ -404,11 +404,12 @@ export function EntryScreen({ heading }: { heading: string }) {
       )}
     >
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center sm:block sm:flex-none">
-        <LogoMark
-          size={112}
-          priority
-          className="animate-orbit mx-auto size-[clamp(44px,12vw,60px)]"
-        />
+        {/* The animation lives on a wrapper rather than on the image, so it
+            cannot be dropped by class merging inside LogoMark and does not
+            share the transform property with anything else. */}
+        <span className="animate-orbit mx-auto block size-[clamp(44px,12vw,60px)]">
+          <LogoMark size={112} priority className="size-full" />
+        </span>
 
         {/* One sentence. Everything the paragraph here used to explain is
             now shown inside the box instead, by example. */}
