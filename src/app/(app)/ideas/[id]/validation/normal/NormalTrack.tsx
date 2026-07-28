@@ -175,6 +175,8 @@ export function NormalTrack({
                 ideaId={ideaId}
                 state={state}
                 onUpdated={setState}
+                fastTrackFromPrice={fastTrackFromPrice}
+                paymentsEnabled={paymentsEnabled}
               />
             </TabPanel>
           ) : null}

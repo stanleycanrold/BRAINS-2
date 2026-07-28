@@ -12,6 +12,7 @@ import {
   postDraftingAgent,
   commentDraftingAgent,
   questionnaireAgent,
+  monitorAgent,
 } from "./definitions";
 import { updateCurrentState } from "@/lib/data/ideas";
 import {
@@ -462,6 +463,10 @@ export async function runPostDrafting(params: {
           status: "drafted" as const,
           edited_text: null,
           created_at: new Date().toISOString(),
+          posted_at: null,
+          posted_url: "",
+          last_checked_at: null,
+          replies_logged: 0,
         })),
       ],
     },
@@ -516,6 +521,10 @@ export async function runCommentDrafting(params: {
           status: "drafted" as const,
           edited_text: null,
           created_at: new Date().toISOString(),
+          posted_at: null,
+          posted_url: d.thread_url,
+          last_checked_at: null,
+          replies_logged: 0,
         })),
       ],
     },
@@ -529,4 +538,89 @@ function dedupeByUrl<T extends { url: string }>(items: T[]): T[] {
     seen.add(item.url);
     return true;
   });
+}
+
+/**
+ * Checks back on a space the founder already posted in.
+ *
+ * Honest about its own limits: this reads SEARCH results about the thread, not
+ * the thread itself. Without platform API access we cannot see replies
+ * directly, and the agent is instructed never to invent them. The reliable
+ * path for capturing a reply remains the founder logging it — this exists to
+ * tell them whether going back is worth the trip.
+ */
+export async function checkTrackedSpace(params: {
+  versionId: string;
+  state: IdeaState;
+  draftId: string;
+}): Promise<{ state: IdeaState; report: Awaited<ReturnType<typeof runMonitor>> }> {
+  const { versionId, state, draftId } = params;
+
+  // Looked up per-list so each keeps its own type; `in`-narrowing across the
+  // union widens `thread_url` to something unusable.
+  const post = state.social_engagement.drafted_posts.find(
+    (d) => d.id === draftId,
+  );
+  const comment = state.social_engagement.drafted_comments.find(
+    (d) => d.id === draftId,
+  );
+
+  const draft = post ?? comment;
+  if (!draft) throw new Error("That post isn't in this idea.");
+
+  const search = getSearch();
+  const target: string =
+    draft.posted_url || comment?.thread_url || draft.community;
+
+  const results = dedupeByUrl(
+    await search.search(
+      `${target} ${state.structured.problem_statement} recent discussion replies`,
+    ),
+  );
+
+  const report = await runMonitor({
+    versionId,
+    problemStatement: state.structured.problem_statement,
+    community: draft.community,
+    threadUrl: target,
+    searchResults: results,
+  });
+
+  // Stamped per-list rather than through a shared helper: posts and comments
+  // are different shapes, and a generic map collapses them into a union that
+  // no longer satisfies either.
+  const checkedAt = new Date().toISOString();
+
+  const next = await updateCurrentState(versionId, (s) => ({
+    ...s,
+    social_engagement: {
+      drafted_posts: s.social_engagement.drafted_posts.map((d) =>
+        d.id === draftId ? { ...d, last_checked_at: checkedAt } : d,
+      ),
+      drafted_comments: s.social_engagement.drafted_comments.map((d) =>
+        d.id === draftId ? { ...d, last_checked_at: checkedAt } : d,
+      ),
+    },
+  }));
+
+  return { state: next, report };
+}
+
+async function runMonitor(params: {
+  versionId: string;
+  problemStatement: string;
+  community: string;
+  threadUrl: string;
+  searchResults: { title: string; url: string; snippet: string }[];
+}) {
+  return runAgent(
+    monitorAgent,
+    {
+      problemStatement: params.problemStatement,
+      community: params.community,
+      threadUrl: params.threadUrl,
+      searchResults: params.searchResults,
+    },
+    { ideaStateVersionId: params.versionId },
+  );
 }

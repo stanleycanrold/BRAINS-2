@@ -313,6 +313,20 @@ export const draftedPostSchema = z.object({
   status: draftStatusSchema.default("drafted"),
   edited_text: z.string().nullable().default(null),
   created_at: z.string().default(""),
+  /**
+   * Tracking, set once the founder says they've published.
+   *
+   * A posted comment is the start of a conversation, not the end of a task —
+   * the replies are the actual signal. Keeping the space and the timestamp is
+   * what makes it possible to come back to it rather than losing the thread
+   * in a browser history somewhere.
+   */
+  posted_at: z.string().nullable().default(null),
+  /** Where it went live. Often only known after posting. */
+  posted_url: z.string().default(""),
+  last_checked_at: z.string().nullable().default(null),
+  /** Replies logged from this thread, each also in the unified pool. */
+  replies_logged: z.number().default(0),
 });
 export type DraftedPost = z.infer<typeof draftedPostSchema>;
 

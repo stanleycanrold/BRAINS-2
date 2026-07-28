@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Tab, TabList, TabPanel } from "@/components/ui/Tabs";
-import { Textarea } from "@/components/ui/Field";
+import { Textarea, Input } from "@/components/ui/Field";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
+import { TrackedSpaces } from "@/components/TrackedSpaces";
 import type { DraftedComment, DraftedPost, IdeaState } from "@/lib/domain/types";
 
 /**
@@ -31,6 +32,7 @@ import type { DraftedComment, DraftedPost, IdeaState } from "@/lib/domain/types"
  */
 
 type Kind = "post" | "comment";
+type TabKey = Kind | "tracked";
 
 export function EngageWorkspace({
   ideaId,
@@ -44,12 +46,15 @@ export function EngageWorkspace({
 }) {
   const { toast } = useToast();
   const [state, setState] = React.useState(initialState);
-  const [tab, setTab] = React.useState<Kind>("post");
+  const [tab, setTab] = React.useState<TabKey>("post");
   const [generating, setGenerating] = React.useState<Kind | null>(null);
 
   const posts = state.social_engagement.drafted_posts;
   const comments = state.social_engagement.drafted_comments;
-  const drafts = tab === "post" ? posts : comments;
+  const drafts = tab === "comment" ? comments : posts;
+  const postedCount =
+    posts.filter((d) => d.posted_at).length +
+    comments.filter((d) => d.posted_at).length;
 
   async function generate(kind: Kind) {
     setGenerating(kind);
@@ -105,9 +110,20 @@ export function EngageWorkspace({
           >
             Replies to leave
           </Tab>
+          <Tab
+            active={tab === "tracked"}
+            onClick={() => setTab("tracked")}
+            count={postedCount}
+          >
+            Posted &amp; tracked
+          </Tab>
         </TabList>
 
         <TabPanel className="pt-6">
+          {tab === "tracked" ? (
+            <TrackedSpaces ideaId={ideaId} state={state} onUpdated={setState} />
+          ) : (
+          <>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <p className="type-body-m max-w-prose text-secondary">
               {tab === "post"
@@ -117,7 +133,7 @@ export function EngageWorkspace({
             <Button
               variant={drafts.length > 0 ? "secondary" : "primary"}
               loading={generating === tab}
-              onClick={() => void generate(tab)}
+              onClick={() => void generate(tab === "comment" ? "comment" : "post")}
               iconLeft={<SparkleIcon size={16} aria-hidden="true" />}
             >
               {drafts.length > 0 ? "Write more" : "Write drafts"}
@@ -136,12 +152,14 @@ export function EngageWorkspace({
                 <DraftCard
                   key={draft.id}
                   ideaId={ideaId}
-                  kind={tab}
+                  kind={tab === "comment" ? "comment" : "post"}
                   draft={draft}
                   onUpdated={setState}
                 />
               ))}
             </ul>
+          )}
+          </>
           )}
         </TabPanel>
       </div>
@@ -165,6 +183,7 @@ function DraftCard({
   const [acknowledged, setAcknowledged] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const [postedUrl, setPostedUrl] = React.useState("");
 
   const posted = draft.status === "posted" || draft.status === "reply_logged";
   const changed = text !== draft.draft_text;
@@ -173,20 +192,39 @@ function DraftCard({
   async function save(status: "edited" | "posted") {
     setBusy(true);
     try {
-      const response = await fetch(`/api/ideas/${ideaId}/social/drafts`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          draft_id: draft.id,
-          kind,
-          status,
-          edited_text: text,
-        }),
-      });
+      // Saving an edit and recording a publish are different things: the
+      // second keeps the space so it can be revisited and monitored.
+      const response =
+        status === "posted"
+          ? await fetch(`/api/ideas/${ideaId}/social/track`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "mark_posted",
+                draft_id: draft.id,
+                posted_url: postedUrl,
+              }),
+            })
+          : await fetch(`/api/ideas/${ideaId}/social/drafts`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                draft_id: draft.id,
+                kind,
+                status,
+                edited_text: text,
+              }),
+            });
+
       const body = await response.json();
       if (!response.ok) throw new Error(body.error);
       onUpdated(body.state);
-      toast(status === "posted" ? "Marked as posted" : "Draft saved", "success");
+      toast(
+        status === "posted"
+          ? "Saved — we'll keep this space so you can check back"
+          : "Draft saved",
+        "success",
+      );
     } catch {
       toast("We couldn't save that draft.", "danger");
     } finally {
@@ -261,6 +299,13 @@ function DraftCard({
               onChange={setAcknowledged}
               label="I've made this sound like me"
               description="Word-for-word drafts read as templated — and get treated that way."
+            />
+
+            <Input
+              value={postedUrl}
+              onChange={(e) => setPostedUrl(e.target.value)}
+              placeholder="Paste the link once it's live (optional)"
+              aria-label="Link to your published post"
             />
 
             <div className="flex flex-wrap items-center gap-2">

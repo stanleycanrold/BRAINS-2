@@ -18,6 +18,7 @@ import { Toggle } from "@/components/ui/Checkbox";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
+import { FastTrackTeaser } from "@/components/FastTrackTeaser";
 import type { IdeaState, Question } from "@/lib/domain/types";
 
 /**
@@ -32,10 +33,14 @@ export function QuestionsTab({
   ideaId,
   state,
   onUpdated,
+  fastTrackFromPrice,
+  paymentsEnabled,
 }: {
   ideaId: string;
   state: IdeaState;
   onUpdated: (next: IdeaState) => void;
+  fastTrackFromPrice?: string;
+  paymentsEnabled?: boolean;
 }) {
   const { toast } = useToast();
   const questionnaire = state.validation.questionnaire;
@@ -146,6 +151,18 @@ export function QuestionsTab({
           Rewrite
         </Button>
       </div>
+
+      {/* The offer sits here, between having the questions and having to go
+          use them — the moment the founder realises the questions are the easy
+          part. */}
+      {paymentsEnabled && fastTrackFromPrice ? (
+        <FastTrackTeaser
+          ideaId={ideaId}
+          fromPrice={fastTrackFromPrice}
+          responsesLogged={state.validation.responses.length}
+          className="mt-6"
+        />
+      ) : null}
 
       {/* ── Share link ─────────────────────────────────────────────────── */}
       <Card elevation="raised" className="mt-6 p-5">
