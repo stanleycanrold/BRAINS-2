@@ -59,6 +59,10 @@ export async function POST(
       confirmed: parsed.data.confirmed,
       notes: parsed.data.notes,
       source: parsed.data.source,
+      // The founder was in the conversation and is transcribing it. Screening
+      // exists for answers arriving from strangers through a public link, not
+      // for someone reporting what they were told to their face.
+      reviewStatus: "approved",
     });
 
     // …and into the idea-state object every agent reads from.
@@ -72,6 +76,8 @@ export async function POST(
           source: parsed.data.source,
           channel: parsed.data.channel,
           track,
+          review_status: "approved" as const,
+          quality_flags: [],
           expert_id: null,
           expert_name: null,
           confidence: null,

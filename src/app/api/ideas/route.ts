@@ -11,6 +11,16 @@ const bodySchema = z.object({
   target_audience: z.string().min(1),
   stage_at_entry: stageAtEntrySchema,
   product_link: z.string().nullable().default(null),
+  location_focus: z.string().max(200).default(""),
+  attachments: z
+    .array(
+      z.object({
+        name: z.string().max(300),
+        excerpt: z.string().max(20000).default(""),
+      }),
+    )
+    .max(10)
+    .default([]),
 });
 
 /**
@@ -39,7 +49,8 @@ export async function POST(request: Request) {
         description: parsed.data.description,
         target_audience: parsed.data.target_audience,
         product_link: parsed.data.product_link,
-        attachments: [],
+        location_focus: parsed.data.location_focus,
+        attachments: parsed.data.attachments,
       },
     });
 

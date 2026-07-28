@@ -137,6 +137,13 @@ export function NormalTrack({
         </Card>
       </header>
 
+      {/* Stated ONCE per idea, above the tabs.
+          It previously appeared on the questions tab, the responses tab and
+          the track screen, so the same fact was worded three different ways
+          depending on where you happened to be. One place, one wording, and
+          the top bar carries the compact version everywhere else. */}
+      <ValidationInProgress ideaId={ideaId} state={state} className="mt-6" />
+
       <div className="mt-8">
         <TabList ariaLabel="Validation workspace">
           <Tab
@@ -189,15 +196,6 @@ export function NormalTrack({
                 onLogged={setState}
               />
 
-              {/* This round is already running by definition - reaching this
-                  tab required choosing a track. So: state where it stands,
-                  and keep the hand-it-over option available as plain text
-                  rather than selling a round they've already begun. */}
-              <ValidationInProgress
-                ideaId={ideaId}
-                state={state}
-                className="mt-8"
-              />
             </TabPanel>
           ) : null}
         </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { desc } from "drizzle-orm";
 import { formatDistanceToNow } from "date-fns";
@@ -102,8 +103,15 @@ export default async function OpsPage() {
               <Tbody>
                 {orders.map((order) => (
                   <Tr key={order.id}>
-                    <Td className="whitespace-nowrap text-secondary">
-                      {formatDistanceToNow(order.createdAt, { addSuffix: true })}
+                    <Td className="whitespace-nowrap">
+                      <Link
+                        href={`/ops/orders/${order.id}`}
+                        className="text-brand hover:underline"
+                      >
+                        {formatDistanceToNow(order.createdAt, {
+                          addSuffix: true,
+                        })}
+                      </Link>
                     </Td>
                     <Td className="whitespace-nowrap">
                       {NICHE_TIER_LABELS[order.nicheTier]}

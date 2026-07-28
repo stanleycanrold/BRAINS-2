@@ -334,6 +334,108 @@ export function ResearchView({
             )}
           </Disclosure>
 
+          {/* What they do instead - usually the real competition */}
+          {report.current_workarounds.length > 0 ? (
+            <Disclosure
+              title="What people do instead today"
+              count={report.current_workarounds.length}
+              summary="The habits a new product has to beat"
+              storageKey={`brains-research-workarounds-${ideaId}`}
+            >
+              <p className="type-body-m text-secondary">
+                Ideas lose to a spreadsheet and a habit far more often than to a
+                rival product. Each of these persists despite being bad, which
+                tells you what you are really up against.
+              </p>
+              <ul className="mt-4 space-y-3">
+                {report.current_workarounds.map((w, i) => (
+                  <li
+                    key={i}
+                    className="rounded-[8px] border border-line bg-page p-4"
+                  >
+                    <p className="type-body-l text-primary">{w.description}</p>
+                    {w.why_it_persists ? (
+                      <p className="type-body-m mt-1.5 text-secondary">
+                        Why it sticks: {w.why_it_persists}
+                      </p>
+                    ) : null}
+                    {w.source_url ? (
+                      <a
+                        href={w.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="type-caption mt-2 inline-block text-brand hover:underline"
+                      >
+                        {hostOf(w.source_url)}
+                      </a>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </Disclosure>
+          ) : null}
+
+          {/* The case against. Deliberately its own section. */}
+          {report.contrary_evidence.length > 0 ? (
+            <Disclosure
+              title="The case against"
+              count={report.contrary_evidence.length}
+              summary="Evidence that cuts the other way"
+              storageKey={`brains-research-contrary-${ideaId}`}
+              defaultOpen
+            >
+              <p className="type-body-m text-secondary">
+                Kept separate on purpose. A report that only collects agreement
+                is flattery, and this is the part worth arguing with.
+              </p>
+              <ul className="mt-4 space-y-2.5">
+                {report.contrary_evidence.map((c, i) => (
+                  <li
+                    key={i}
+                    className="rounded-[8px] border border-caution/30 bg-page p-4"
+                  >
+                    <p className="type-body-m text-primary">{c.claim}</p>
+                    {c.source_url ? (
+                      <a
+                        href={c.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="type-caption mt-1.5 inline-block text-brand hover:underline"
+                      >
+                        {hostOf(c.source_url)}
+                      </a>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </Disclosure>
+          ) : null}
+
+          {/* What search could not settle */}
+          {report.open_questions.length > 0 ? (
+            <Disclosure
+              title="What we could not settle"
+              count={report.open_questions.length}
+              summary="Only people can answer these"
+              storageKey={`brains-research-open-${ideaId}`}
+            >
+              <p className="type-body-m text-secondary">
+                Searching cannot answer these. They are the reason the next step
+                is talking to someone, and they feed your interview questions.
+              </p>
+              <ul className="mt-4 space-y-2">
+                {report.open_questions.map((q, i) => (
+                  <li
+                    key={i}
+                    className="type-body-l rounded-[8px] border border-line bg-page px-4 py-3 text-primary"
+                  >
+                    {q}
+                  </li>
+                ))}
+              </ul>
+            </Disclosure>
+          ) : null}
+
           {/* 4. Am I too late? */}
           <Disclosure
             title="What already exists"

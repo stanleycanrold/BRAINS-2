@@ -141,9 +141,26 @@ export async function runResearchPipeline(params: {
 
   // ── 6.2 Research & Strengthening Agent ───────────────────────────────────
   const search = getSearch();
+
+  /**
+   * More angles, because the report is only as thorough as what it was given.
+   * Two queries found the problem and the competitors and stopped there,
+   * which is how a report ends up with no workarounds and no counter-evidence
+   * regardless of how the agent is prompted.
+   *
+   * The location suffix keeps a founder selling in one market from being
+   * shown evidence drawn from another.
+   */
+  const where = state.raw_submission.location_focus
+    ? ` ${state.raw_submission.location_focus}`
+    : "";
+
   const queries = [
-    `${extraction.problem_statement} - people describing this problem`,
+    `${extraction.problem_statement} - people describing this problem${where}`,
     `${extraction.niche} tools competitors ${extraction.value_prop}`,
+    `how people currently handle ${extraction.problem_statement} workaround spreadsheet manual${where}`,
+    `${extraction.niche} complaints frustrations "${extraction.icp}"${where}`,
+    `why ${extraction.niche} tools fail OR "not worth it" OR "gave up"`,
   ];
 
   const searchResults = (
@@ -159,6 +176,10 @@ export async function runResearchPipeline(params: {
       icp: extraction.icp,
       valueProp: extraction.value_prop,
       existingProductContext: productContextSummary,
+      locationFocus: state.raw_submission.location_focus,
+      documentExcerpts: state.raw_submission.attachments.filter(
+        (a) => a.excerpt,
+      ),
       searchResults: deduped,
     },
     ctx,
@@ -171,6 +192,9 @@ export async function runResearchPipeline(params: {
       problem_strength_reasoning: research.problem_strength_reasoning,
       competitors: research.competitors,
       evidence: research.evidence,
+      current_workarounds: research.current_workarounds,
+      contrary_evidence: research.contrary_evidence,
+      open_questions: research.open_questions,
       proposed_changes: research.proposed_changes.map((change) => ({
         id: randomUUID(),
         text: change.text,

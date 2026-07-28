@@ -20,7 +20,6 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 import { FastTrackTeaser } from "@/components/FastTrackTeaser";
 import { LightningIcon } from "@phosphor-icons/react/dist/ssr";
-import { ValidationInProgress } from "@/components/ValidationInProgress";
 import { canMarketFastTrack } from "@/lib/validation-stage";
 import {
   QUESTION_KIND_LABELS,
@@ -186,13 +185,7 @@ export function QuestionsTab({
             responsesLogged={state.validation.responses.length}
           />
         </div>
-      ) : (
-        <ValidationInProgress
-          ideaId={ideaId}
-          state={state}
-          className="mt-5"
-        />
-      )}
+      ) : null}
 
       {/* ── Share link ─────────────────────────────────────────────────── */}
       <Card elevation="raised" className="mt-6 p-5">

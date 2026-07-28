@@ -38,6 +38,7 @@ async function main() {
           "A tool that chases unpaid invoices for freelance designers automatically.",
         target_audience: "Freelance designers",
         product_link: null,
+      location_focus: "",
         attachments: [],
       },
     });

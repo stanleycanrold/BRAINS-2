@@ -40,6 +40,7 @@ async function main() {
       description: "x",
       target_audience: "y",
       product_link: null,
+      location_focus: "",
       attachments: [],
     },
   });

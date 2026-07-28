@@ -103,6 +103,8 @@ export async function POST(
       confirmed: body.confirmed,
       notes: body.notes,
       source: body.source,
+      // Logged by the founder from a reply they read themselves.
+      reviewStatus: "approved",
     });
 
     const state = await updateCurrentState(idea.versionId, (s) => {
@@ -115,6 +117,8 @@ export async function POST(
           source: body.source,
           channel: "social" as const,
           track: s.validation.track ?? ("normal" as const),
+          review_status: "approved" as const,
+          quality_flags: [],
           expert_id: null,
           expert_name: null,
           confidence: null,

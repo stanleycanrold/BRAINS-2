@@ -2,72 +2,125 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { LinkSimpleIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  PaperclipIcon,
+  XIcon,
+  ArrowRightIcon,
+  FileTextIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
-import { FormField, Input, Textarea } from "@/components/ui/Field";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { Textarea, Input } from "@/components/ui/Field";
+import { Modal, ModalActions } from "@/components/ui/Modal";
+import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { useToast } from "@/components/ui/Toast";
-import { STAGE_LABELS, type StageAtEntry } from "@/lib/domain/types";
+import type { StageAtEntry } from "@/lib/domain/types";
 
 /**
- * B2 - Entry Point (design system §4.2, PRD §4.1).
+ * B2 - Entry Point.
  *
- * The form is DYNAMIC by stage, not merely conditionally showing extra fields:
- * at "Idea only" the product-link field is absent from the layout entirely, so
- * there is nothing to skip past. At MVP/Live a single link field appears -
- * that is the only thing the founder types for that part; everything else is
- * fetched automatically rather than asked for.
+ * One box and nothing else.
+ *
+ * This screen used to ask for stage, audience and a product link alongside
+ * the idea, which meant meeting a form before saying the one thing the person
+ * came to say. Everything we still need is asked afterwards, in a short
+ * modal, once they have already committed something. Answering three quick
+ * questions about an idea you have just written is a different experience
+ * from filling in a form before you have written anything.
+ *
+ * Those questions are not optional extras. The research agent searches
+ * globally and returns evidence from markets the founder does not sell into
+ * unless it is told where to look, and interviewees cannot be sourced without
+ * knowing where they should be.
  */
 
 const MIN_DESCRIPTION = 40;
 
-const STAGE_OPTIONS = (
-  ["idea_only", "mvp_built", "live_with_users"] as const
-).map((value) => ({ value, label: STAGE_LABELS[value] }));
+const STAGE_OPTIONS: {
+  value: StageAtEntry;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "idea_only",
+    label: "Just an idea",
+    description: "Nothing built yet.",
+  },
+  {
+    value: "mvp_built",
+    label: "Something built, no users",
+    description: "It exists but nobody is using it.",
+  },
+  {
+    value: "live_with_users",
+    label: "Live with real users",
+    description: "People are using it today.",
+  },
+];
+
+type Attachment = { name: string; excerpt: string };
 
 export function EntryForm() {
   const router = useRouter();
   const { toast } = useToast();
 
   const [description, setDescription] = React.useState("");
+  const [attachments, setAttachments] = React.useState<Attachment[]>([]);
+  const [reading, setReading] = React.useState(false);
+
+  const [asking, setAsking] = React.useState(false);
   const [stage, setStage] = React.useState<StageAtEntry>("idea_only");
   const [audience, setAudience] = React.useState("");
+  const [location, setLocation] = React.useState("");
   const [productLink, setProductLink] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
 
-  // Errors appear on blur, never on every keystroke - don't punish someone
-  // mid-typing (§1.7).
-  const [touched, setTouched] = React.useState<Record<string, boolean>>({});
+  const fileInput = React.useRef<HTMLInputElement>(null);
+  const ready = description.trim().length >= MIN_DESCRIPTION;
 
-  const showsLinkField = stage !== "idea_only";
+  // A link is only worth asking for when there is something to look at.
+  const wantsLink = stage !== "idea_only";
 
-  const descriptionError =
-    touched.description && description.trim().length < MIN_DESCRIPTION
-      ? `Describe it in a bit more detail - at least ${MIN_DESCRIPTION} characters so we have something to research.`
-      : null;
+  async function addFiles(files: FileList | null) {
+    if (!files?.length) return;
+    setReading(true);
+    try {
+      const form = new FormData();
+      for (const file of Array.from(files).slice(0, 5)) {
+        form.append("files", file);
+      }
+      const response = await fetch("/api/attachments", {
+        method: "POST",
+        body: form,
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "We couldn't read that.");
 
-  const audienceError =
-    touched.audience && audience.trim().length === 0
-      ? "Tell us who this is for, even roughly."
-      : null;
+      setAttachments((a) => [...a, ...body.attachments].slice(0, 10));
 
-  const linkError =
-    touched.productLink && showsLinkField && productLink.trim().length > 0
-      ? isValidUrl(productLink)
-        ? null
-        : "Enter a valid URL (starting with https://)"
-      : null;
+      const unreadable = body.attachments.filter(
+        (x: Attachment) => !x.excerpt,
+      ).length;
+      if (unreadable) {
+        toast(
+          `Attached, but we couldn't pull text out of ${unreadable} of them.`,
+        );
+      }
+    } catch (err) {
+      toast(
+        err instanceof Error ? err.message : "We couldn't read that.",
+        "danger",
+      );
+    } finally {
+      setReading(false);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  }
 
-  const canSubmit =
-    description.trim().length >= MIN_DESCRIPTION &&
-    audience.trim().length > 0 &&
-    !linkError;
-
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setTouched({ description: true, audience: true, productLink: true });
-    if (!canSubmit || submitting) return;
-
+  async function create() {
+    if (!audience.trim()) {
+      toast("Tell us who this is for, even roughly.", "danger");
+      return;
+    }
     setSubmitting(true);
     try {
       const response = await fetch("/api/ideas", {
@@ -77,7 +130,9 @@ export function EntryForm() {
           description: description.trim(),
           target_audience: audience.trim(),
           stage_at_entry: stage,
-          product_link: showsLinkField ? productLink.trim() || null : null,
+          location_focus: location.trim(),
+          product_link: wantsLink ? productLink.trim() || null : null,
+          attachments,
         }),
       });
 
@@ -87,8 +142,8 @@ export function EntryForm() {
       }
 
       const { id } = await response.json();
-      // The record is written before any agent runs, so the founder's input is
-      // never lost even if research fails (PRD §4.1 acceptance criteria).
+      // Written before any agent runs, so the input survives a failed
+      // research call (PRD §4.1).
       router.push(`/ideas/${id}/research`);
     } catch (err) {
       setSubmitting(false);
@@ -100,102 +155,177 @@ export function EntryForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-8">
-      <FormField
-        label="What are you building?"
-        htmlFor="description"
-        error={descriptionError}
-        hint="A paragraph beats a tagline. What's the situation, and what goes wrong today? This doesn't have to be a whole product - if only one feature is uncertain, describe just that."
-      >
+    <>
+      <div>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, description: true }))}
-          invalid={Boolean(descriptionError)}
           placeholder="We're building a tool that…"
-          rows={6}
-          showCount
-          minChars={MIN_DESCRIPTION}
-          autoFocus
+          rows={9}
+          aria-label="Describe your idea"
         />
-      </FormField>
 
-      <div>
-        <p className="type-caption mb-2 text-secondary uppercase">
-          Where are you today?
-        </p>
-        <SegmentedControl
-          name="stage"
-          ariaLabel="Your current stage"
-          options={STAGE_OPTIONS}
-          value={stage}
-          onChange={setStage}
-        />
+        {attachments.length > 0 ? (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {attachments.map((file, i) => (
+              <li
+                key={`${file.name}-${i}`}
+                className="type-body-m inline-flex items-center gap-2 rounded-full border border-line bg-raised py-1 pr-1 pl-3 text-secondary"
+              >
+                <FileTextIcon size={14} aria-hidden="true" />
+                <span className="max-w-[220px] truncate">{file.name}</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${file.name}`}
+                  onClick={() =>
+                    setAttachments((a) => a.filter((_, j) => j !== i))
+                  }
+                  className="rounded-full p-1 text-tertiary transition-colors hover:bg-wash-hover hover:text-primary"
+                >
+                  <XIcon size={12} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInput}
+              type="file"
+              multiple
+              accept=".pdf,.txt,.md,.csv,.json"
+              className="sr-only"
+              onChange={(e) => void addFiles(e.target.files)}
+            />
+            <Button
+              variant="ghost"
+              size="compact"
+              loading={reading}
+              onClick={() => fileInput.current?.click()}
+              iconLeft={<PaperclipIcon size={15} aria-hidden="true" />}
+            >
+              Attach documents
+            </Button>
+            <span className="type-caption text-tertiary">
+              PDFs, decks, notes. Optional.
+            </span>
+          </div>
+
+          <Button
+            variant="primary"
+            size="large"
+            disabled={!ready}
+            onClick={() => setAsking(true)}
+            iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+          >
+            Continue
+          </Button>
+        </div>
+
+        {description.trim().length > 0 && !ready ? (
+          <p className="type-caption mt-2 text-tertiary">
+            A little more detail, so there is something to research.
+          </p>
+        ) : null}
       </div>
 
-      {/* Absent from the layout entirely at Idea-only - not hidden (§4.2) */}
-      {showsLinkField ? (
-        <FormField
-          label="Link to your product"
-          htmlFor="product-link"
-          error={linkError}
-          hint="Website or app store listing. We'll read it and pull in what we find - you won't need to type your metrics."
-        >
-          <Input
-            id="product-link"
-            type="url"
-            inputMode="url"
-            value={productLink}
-            onChange={(e) => setProductLink(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, productLink: true }))}
-            invalid={Boolean(linkError)}
-            placeholder="https://"
-            prefix={<LinkSimpleIcon size={16} aria-hidden="true" />}
-          />
-        </FormField>
-      ) : null}
-
-      <FormField
-        label="Who is this for?"
-        htmlFor="audience"
-        error={audienceError}
-        hint="The narrower the better. 'Freelance designers who invoice 5–20 clients a month' beats 'small businesses'."
+      <Modal
+        open={asking}
+        onClose={() => setAsking(false)}
+        title="Three quick things"
+        description="These decide where we look for evidence, and who we would talk to."
+        footer={
+          <ModalActions
+            onCancel={() => setAsking(false)}
+            cancelLabel="Back"
+          >
+            <Button
+              variant="primary"
+              loading={submitting}
+              onClick={() => void create()}
+            >
+              Start research
+            </Button>
+          </ModalActions>
+        }
       >
-        <Input
-          id="audience"
-          value={audience}
-          onChange={(e) => setAudience(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, audience: true }))}
-          invalid={Boolean(audienceError)}
-          placeholder="Freelance graphic designers…"
-        />
-      </FormField>
+        <div className="space-y-6">
+          <div>
+            <label className="type-body-m block font-medium text-primary">
+              Where is this today?
+            </label>
+            <div className="mt-2">
+              <RadioCardGroup
+                ariaLabel="Stage"
+                options={STAGE_OPTIONS}
+                value={stage}
+                onChange={setStage}
+              />
+            </div>
+          </div>
 
-      <div className="flex items-center gap-4 border-t border-line pt-6">
-        {/* The one place a 48px CTA is used (§3.1) */}
-        <Button
-          type="submit"
-          variant="primary"
-          size="large"
-          loading={submitting}
-          disabled={!canSubmit}
-        >
-          {submitting ? "Saving your idea…" : "Continue"}
-        </Button>
-        <p className="type-body-m text-secondary">
-          Takes about a minute to research.
-        </p>
-      </div>
-    </form>
+          {wantsLink ? (
+            <div>
+              <label
+                htmlFor="product-link"
+                className="type-body-m block font-medium text-primary"
+              >
+                Link to it{" "}
+                <span className="text-tertiary">
+                  Optional, but we will read it
+                </span>
+              </label>
+              <Input
+                id="product-link"
+                className="mt-2"
+                value={productLink}
+                onChange={(e) => setProductLink(e.target.value)}
+                placeholder="https://"
+              />
+            </div>
+          ) : null}
+
+          <div>
+            <label
+              htmlFor="audience"
+              className="type-body-m block font-medium text-primary"
+            >
+              Who is it for?
+            </label>
+            <Input
+              id="audience"
+              className="mt-2"
+              value={audience}
+              onChange={(e) => setAudience(e.target.value)}
+              placeholder="Freelance designers, clinic receptionists, anyone who…"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="location"
+              className="type-body-m block font-medium text-primary"
+            >
+              Anywhere in particular?{" "}
+              <span className="text-tertiary">Optional</span>
+            </label>
+            <Input
+              id="location"
+              className="mt-2"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Kenya, or the UK and Ireland"
+            />
+            <p className="type-caption mt-1.5 text-tertiary">
+              Leave it blank for worldwide. This decides which markets we search
+              and where we would find people to interview.
+            </p>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
-}
-
-function isValidUrl(value: string): boolean {
-  try {
-    const url = new URL(value.startsWith("http") ? value : `https://${value}`);
-    return Boolean(url.hostname) && url.hostname.includes(".");
-  } catch {
-    return false;
-  }
 }

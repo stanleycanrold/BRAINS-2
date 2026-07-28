@@ -108,6 +108,13 @@ export const rawSubmissionSchema = z.object({
   description: z.string(),
   target_audience: z.string(),
   product_link: z.string().nullable().default(null),
+  /**
+   * Where the founder wants this validated: a country, a region, or blank for
+   * worldwide. Feeds the research agent, which otherwise searches globally and
+   * returns evidence from markets the founder does not sell into, and decides
+   * where interviewees are hired from.
+   */
+  location_focus: z.string().default(""),
   /** Names of uploaded supporting docs, with extracted text kept server-side. */
   attachments: z
     .array(
@@ -198,6 +205,24 @@ export const researchReportSchema = z.object({
   problem_strength_reasoning: z.string().default(""),
   competitors: z.array(competitorSchema).default([]),
   evidence: z.array(evidenceSchema).default([]),
+  /** What people do instead today. Usually the real competition. */
+  current_workarounds: z
+    .array(
+      z.object({
+        description: z.string(),
+        why_it_persists: z.string().default(""),
+        source_url: z.string().default(""),
+      }),
+    )
+    .default([]),
+  /** Kept separate so it cannot be folded into a flattering narrative. */
+  contrary_evidence: z
+    .array(
+      z.object({ claim: z.string(), source_url: z.string().default("") }),
+    )
+    .default([]),
+  /** What search could not settle. Feeds the interview questions. */
+  open_questions: z.array(z.string()).default([]),
   proposed_changes: z.array(proposalSchema).default([]),
   /** True when the run had no live search available; surfaced in the UI. */
   unsourced: z.boolean().default(false),
@@ -227,6 +252,12 @@ export const responseSchema = z.object({
   expert_name: z.string().nullable().default(null),
   /** Fast Track expert interviews carry a confidence weight (PRD §4.3.2.7). */
   confidence: z.number().nullable().default(null),
+  /**
+   * Quality screening verdict. `rejected` responses never reach the score.
+   * See the response_quality agent.
+   */
+  review_status: z.enum(["pending", "approved", "rejected"]).default("pending"),
+  quality_flags: z.array(z.string()).default([]),
   created_at: z.string().default(""),
 });
 export type ValidationResponse = z.infer<typeof responseSchema>;
@@ -506,12 +537,22 @@ export function emptyIdeaState(params: {
 }
 
 /** Confirmation rate across every channel combined (PRD §4.4 threshold rule). */
+/**
+ * The confirmation rate, over responses that are allowed to count.
+ *
+ * Rejected responses are excluded entirely: a generated or generic answer in
+ * the pool corrupts the one number the founder is asked to make a decision
+ * on. Pending ones still count, deliberately - screening takes a few seconds
+ * and a rate that visibly dips and recovers while it runs would read as a
+ * bug. Only a definite reject removes an answer.
+ */
 export function computeConfirmationRate(
   responses: readonly ValidationResponse[],
 ): number {
-  if (responses.length === 0) return 0;
-  const confirmed = responses.filter((r) => r.confirmed === "yes").length;
-  return confirmed / responses.length;
+  const counted = responses.filter((r) => r.review_status !== "rejected");
+  if (counted.length === 0) return 0;
+  const confirmed = counted.filter((r) => r.confirmed === "yes").length;
+  return confirmed / counted.length;
 }
 
 /** The PRD's primary threshold: >= 50% confirmed across all channels. */

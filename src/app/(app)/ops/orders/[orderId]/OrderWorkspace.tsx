@@ -1,0 +1,305 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import {
+  CheckIcon,
+  XIcon,
+  WarningIcon,
+  PlusIcon,
+} from "@phosphor-icons/react/dist/ssr";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Textarea, Input } from "@/components/ui/Field";
+import { RadioCardGroup } from "@/components/ui/Checkbox";
+import { useToast } from "@/components/ui/Toast";
+import { cn } from "@/lib/cn";
+import type { Confirmed } from "@/lib/domain/types";
+
+/**
+ * Logging interviews and deciding which ones count.
+ *
+ * Interviewees are hired manually, so an interview arrives as something a
+ * person typed up rather than as a form submission. Each one is screened by
+ * the response_quality agent on the way in, but the machine's verdict is a
+ * recommendation: this is where a human agrees or overrules it, because an
+ * automated reject that silently bins a real person's answer is worse than a
+ * queue to work through.
+ *
+ * Nothing is ever deleted. A rejected response stays readable so the decision
+ * can be revisited, and so we can see later what the screen was getting wrong.
+ */
+
+type Response = {
+  id: string;
+  notes: string;
+  source: string;
+  confirmed: string;
+  reviewStatus: string;
+  qualityFlags: string[];
+  qualityReasoning: string;
+  qualityConfidence: number | null;
+  createdAt: string;
+};
+
+const CONFIRM_OPTIONS: { value: Confirmed; label: string; description: string }[] =
+  [
+    {
+      value: "yes",
+      label: "Yes, real problem",
+      description: "They have it and it costs them something.",
+    },
+    {
+      value: "unsure",
+      label: "Sort of, minor",
+      description: "Noticed, but they work around it.",
+    },
+    {
+      value: "no",
+      label: "No",
+      description: "Does not apply to them.",
+    },
+  ];
+
+export function OrderWorkspace({
+  orderId,
+  versionId,
+  nRequested,
+  responses,
+}: {
+  orderId: string;
+  versionId: string;
+  nRequested: number;
+  responses: Response[];
+}) {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const [notes, setNotes] = React.useState("");
+  const [source, setSource] = React.useState("");
+  const [confirmed, setConfirmed] = React.useState<Confirmed | null>(null);
+  const [saving, setSaving] = React.useState(false);
+  const [busyId, setBusyId] = React.useState<string | null>(null);
+
+  const approved = responses.filter((r) => r.reviewStatus === "approved");
+  const pending = responses.filter((r) => r.reviewStatus === "pending");
+
+  async function logInterview() {
+    if (!confirmed || notes.trim().length < 20) {
+      toast("Type up the interview and pick an outcome first.", "danger");
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/ops/orders/${orderId}/interviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes, source, confirmed, versionId }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "That did not save.");
+      setNotes("");
+      setSource("");
+      setConfirmed(null);
+      toast("Interview logged and sent for screening", "success");
+      router.refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "That did not save.", "danger");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function decide(id: string, status: "approved" | "rejected") {
+    setBusyId(id);
+    try {
+      const response = await fetch(`/api/ops/responses/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review_status: status, versionId }),
+      });
+      if (!response.ok) throw new Error("That did not save.");
+      router.refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "That did not save.", "danger");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <>
+      <Card elevation="raised" className="mt-4 p-5">
+        <h2 className="type-display-m text-primary">Log an interview</h2>
+        <p className="type-body-m mt-1 max-w-prose text-secondary">
+          Type up what they actually said, in their words where you can. It gets
+          screened for quality on the way in, and you decide below whether it
+          counts.
+        </p>
+
+        <div className="mt-4">
+          <label className="type-body-m block font-medium text-primary">
+            Did they confirm the problem?
+          </label>
+          <div className="mt-2">
+            <RadioCardGroup
+              ariaLabel="Outcome"
+              options={CONFIRM_OPTIONS}
+              value={confirmed}
+              onChange={setConfirmed}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label
+            htmlFor="interview-notes"
+            className="type-body-m block font-medium text-primary"
+          >
+            What they said
+          </label>
+          <Textarea
+            id="interview-notes"
+            rows={6}
+            className="mt-2"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Their own words wherever possible. Specifics matter more than tidy summaries."
+          />
+        </div>
+
+        <div className="mt-4">
+          <label
+            htmlFor="interview-source"
+            className="type-body-m block font-medium text-primary"
+          >
+            Who was it? <span className="text-tertiary">Optional</span>
+          </label>
+          <Input
+            id="interview-source"
+            className="mt-2"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            placeholder="A role and rough location is enough"
+          />
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4">
+          <Button
+            variant="primary"
+            loading={saving}
+            onClick={() => void logInterview()}
+            iconLeft={<PlusIcon size={15} aria-hidden="true" />}
+          >
+            Log interview
+          </Button>
+          <span className="type-body-m text-tertiary">
+            {approved.length} of {nRequested} approved
+            {pending.length ? ` · ${pending.length} waiting on you` : ""}
+          </span>
+        </div>
+      </Card>
+
+      <Card elevation="raised" className="mt-4 p-5">
+        <h2 className="type-display-m text-primary">
+          Interviews{" "}
+          <span className="type-body-m text-tertiary">{responses.length}</span>
+        </h2>
+
+        {responses.length === 0 ? (
+          <p className="type-body-m mt-3 text-tertiary">
+            Nothing logged yet.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {responses.map((r) => (
+              <li
+                key={r.id}
+                className={cn(
+                  "rounded-[8px] border p-4",
+                  r.reviewStatus === "approved" && "border-line bg-page",
+                  r.reviewStatus === "pending" && "border-caution/40 bg-page",
+                  r.reviewStatus === "rejected" &&
+                    "border-line bg-page opacity-60",
+                )}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge
+                    tone={
+                      r.reviewStatus === "approved"
+                        ? "success"
+                        : r.reviewStatus === "rejected"
+                          ? "danger"
+                          : "caution"
+                    }
+                    dot
+                  >
+                    {r.reviewStatus}
+                  </Badge>
+                  <Badge tone="neutral">{r.confirmed}</Badge>
+                  {r.qualityFlags.map((f) => (
+                    <span
+                      key={f}
+                      className="type-caption rounded-full bg-danger-subtle px-2 py-0.5 text-danger"
+                    >
+                      {f.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                  {r.source ? (
+                    <span className="type-body-m text-tertiary">{r.source}</span>
+                  ) : null}
+                </div>
+
+                <p className="type-body-m mt-2.5 whitespace-pre-wrap text-primary">
+                  {r.notes}
+                </p>
+
+                {r.qualityReasoning ? (
+                  <p className="type-body-m mt-2.5 flex items-start gap-2 border-t border-line pt-2.5 text-secondary">
+                    <WarningIcon
+                      size={15}
+                      className="mt-0.5 shrink-0 text-tertiary"
+                      aria-hidden="true"
+                    />
+                    <span>
+                      {r.qualityReasoning}
+                      {r.qualityConfidence != null
+                        ? ` (${Math.round(r.qualityConfidence)}% confident)`
+                        : ""}
+                    </span>
+                  </p>
+                ) : null}
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {r.reviewStatus !== "approved" ? (
+                    <Button
+                      variant="secondary"
+                      size="compact"
+                      loading={busyId === r.id}
+                      onClick={() => void decide(r.id, "approved")}
+                      iconLeft={<CheckIcon size={14} aria-hidden="true" />}
+                    >
+                      Approve
+                    </Button>
+                  ) : null}
+                  {r.reviewStatus !== "rejected" ? (
+                    <Button
+                      variant="ghost"
+                      size="compact"
+                      loading={busyId === r.id}
+                      onClick={() => void decide(r.id, "rejected")}
+                      iconLeft={<XIcon size={14} aria-hidden="true" />}
+                    >
+                      Reject
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </>
+  );
+}

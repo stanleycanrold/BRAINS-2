@@ -56,6 +56,12 @@ export const ideaStatusEnum = pgEnum("idea_status", [
   "killed",
 ]);
 
+export const reviewStatusEnum = brains.enum("review_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
 export const trackEnum = pgEnum("track", ["normal", "fast"]);
 export const channelEnum = pgEnum("channel", ["interview", "survey", "social"]);
 export const confirmedEnum = pgEnum("confirmed", ["yes", "no", "unsure"]);
@@ -248,6 +254,20 @@ export const validationResponses = pgTable(
     }),
     /** Expert interviews carry a confidence weight (PRD §4.3.2 step 7). */
     confidence: real("confidence"),
+    /**
+     * Quality screening (see the response_quality agent).
+     *
+     * `pending` responses do not count toward the score. Nothing is deleted:
+     * a rejected response stays readable so a human can disagree with the
+     * machine, and so we can see later what the screen was getting wrong.
+     */
+    reviewStatus: reviewStatusEnum("review_status").notNull().default("pending"),
+    qualityFlags: jsonb("quality_flags").$type<string[]>().notNull().default([]),
+    qualityReasoning: text("quality_reasoning").notNull().default(""),
+    qualityConfidence: real("quality_confidence"),
+    /** Set when a human accepts or overturns the machine's verdict. */
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    reviewedBy: text("reviewed_by").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

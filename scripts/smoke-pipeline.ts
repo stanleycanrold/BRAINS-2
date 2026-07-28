@@ -40,6 +40,7 @@ async function main() {
           "A tool that automatically chases unpaid invoices for freelance designers with escalating reminder emails, so they stop losing hours to awkward follow-ups.",
         target_audience: "Freelance graphic designers invoicing 5-20 clients a month",
         product_link: null,
+      location_focus: "",
         attachments: [],
       },
     });
@@ -111,7 +112,9 @@ async function main() {
           source: `Respondent ${i + 1}`,
           channel: "interview" as const,
           track: "normal" as const,
-          expert_id: null,
+          review_status: "approved" as const,
+      quality_flags: [],
+      expert_id: null,
           expert_name: null,
           confidence: null,
           created_at: new Date().toISOString(),

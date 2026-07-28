@@ -1,7 +1,7 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
 import { eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { screenResponse } from "@/lib/screening";
 import {
   computeConfirmationRate,
   ideaStateSchema,
@@ -119,7 +119,9 @@ export async function submitPublicResponse(params: {
 
   if (!notes) return { ok: false, error: "Answer at least one question." };
 
-  await db.insert(schema.validationResponses).values({
+  const [stored] = await db
+    .insert(schema.validationResponses)
+    .values({
     ideaStateVersionId: version.id,
     // From the link, not the idea's current track - see resolveToken.
     track,
@@ -129,7 +131,8 @@ export async function submitPublicResponse(params: {
     source:
       params.source ||
       (track === "fast" ? "Fast Track interview" : "Questionnaire link"),
-  });
+    })
+    .returning();
 
   const next = {
     ...state,
@@ -138,7 +141,8 @@ export async function submitPublicResponse(params: {
       responses: [
         ...state.validation.responses,
         {
-          id: randomUUID(),
+          // Same id as the stored row, so screening can update both.
+          id: stored.id,
           confirmed: params.confirmed,
           notes,
           source:
@@ -149,6 +153,8 @@ export async function submitPublicResponse(params: {
           expert_id: null,
           expert_name: null,
           confidence: null,
+          review_status: "pending" as const,
+          quality_flags: [],
           created_at: new Date().toISOString(),
         },
       ],
@@ -163,6 +169,10 @@ export async function submitPublicResponse(params: {
     .update(schema.ideaStateVersions)
     .set({ stateJson: next, updatedAt: new Date() })
     .where(eq(schema.ideaStateVersions.id, version.id));
+
+  // Screening runs after the response is safely stored, so a model outage
+  // can never cost us an answer somebody took the time to write.
+  void screenResponse({ responseId: stored.id, versionId: version.id });
 
   return { ok: true };
 }

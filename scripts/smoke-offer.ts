@@ -21,6 +21,7 @@ const base = (): IdeaState =>
       description: "x",
       target_audience: "y",
       product_link: null,
+      location_focus: "",
       attachments: [],
     },
   });
