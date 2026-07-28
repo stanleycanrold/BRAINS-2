@@ -25,7 +25,10 @@ export function TabList({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        "flex gap-6 overflow-x-auto border-b border-line",
+        // No rule under the strip. The active tab's own underline already
+        // says which one is selected, and a full-width line on top of that
+        // just draws a bar across the workspace.
+        "flex gap-6 overflow-x-auto",
         className,
       )}
     >

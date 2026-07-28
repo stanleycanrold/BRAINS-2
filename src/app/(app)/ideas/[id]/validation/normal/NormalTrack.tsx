@@ -13,6 +13,7 @@ import { Tab, TabList, TabPanel } from "@/components/ui/Tabs";
 import { Textarea, Input, FormField } from "@/components/ui/Field";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { IdeaTopBar } from "../../IdeaTopBar";
@@ -296,7 +297,13 @@ function CommunitiesTab({ state }: { state: IdeaState }) {
   }
 
   return (
-    <>
+    <Disclosure
+      title="Where your people gather"
+      count={communities.length}
+      summary="Communities and threads to start from"
+      storageKey={`brains-validation-communities-${state.idea_id}`}
+      defaultOpen
+    >
       <p className="type-body-m max-w-prose text-secondary">
         These are places your target user already gathers. Read the example
         thread first - it tells you how people there actually talk about this.
@@ -336,7 +343,7 @@ function CommunitiesTab({ state }: { state: IdeaState }) {
           </li>
         ))}
       </ul>
-    </>
+    </Disclosure>
   );
 }
 
@@ -410,6 +417,18 @@ function ResponsesTab({
     }
   }
 
+  /**
+   * Ours and theirs, kept apart.
+   *
+   * A founder needs to know which answers they gathered themselves and which
+   * ones they paid for, because the two carry different weight when a number
+   * looks surprising. The paid panel only appears once something has actually
+   * arrived - an empty box promising interviews is noise on a screen that is
+   * meant to be about the conversations already had.
+   */
+  const own = responses.filter((r) => r.track !== "fast");
+  const paid = responses.filter((r) => r.track === "fast");
+
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -441,76 +460,29 @@ function ResponsesTab({
           it&rsquo;s fresh.
         </EmptyState>
       ) : (
-        // A list, not a table. Notes are the point of this screen - the
-        // synthesis reads them and so does the founder - and a four-column
-        // table squeezed them into the narrowest cell while giving equal room
-        // to a one-word channel. On a phone it also meant scrolling sideways
-        // to reach the thing you came to read.
-        <ul className="mt-6 space-y-2.5">
-          {responses.map((r) => (
-            <li
-              key={r.id}
-              className={cn(
-                "rounded-[10px] border border-line bg-raised p-4",
-                r.review_status === "rejected" && "opacity-60",
-              )}
+        <div className="mt-6 space-y-3">
+          <Disclosure
+            title="What you gathered"
+            count={own.length}
+            summary="Conversations you had yourself"
+            storageKey={`brains-responses-own-${ideaId}`}
+            defaultOpen
+          >
+            <ResponseList responses={own} />
+          </Disclosure>
+
+          {paid.length > 0 ? (
+            <Disclosure
+              title="Interviews we ran"
+              count={paid.length}
+              summary="From your Fast Track round"
+              storageKey={`brains-responses-paid-${ideaId}`}
+              defaultOpen
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  tone={
-                    r.confirmed === "yes"
-                      ? "success"
-                      : r.confirmed === "no"
-                        ? "danger"
-                        : "caution"
-                  }
-                  dot
-                >
-                  {r.confirmed === "yes"
-                    ? "Yes"
-                    : r.confirmed === "no"
-                      ? "No"
-                      : "Unsure"}
-                </Badge>
-                <span className="type-body-m text-tertiary">
-                  {CHANNEL_LABELS[r.channel]}
-                </span>
-                {r.source ? (
-                  <>
-                    <span className="text-tertiary" aria-hidden="true">
-                      ·
-                    </span>
-                    <span className="type-body-m min-w-0 truncate text-secondary">
-                      {r.source}
-                    </span>
-                  </>
-                ) : null}
-
-                {/* Only ever shown when it changes what counts. */}
-                {r.review_status === "rejected" ? (
-                  <span className="type-caption rounded-full bg-danger-subtle px-2 py-0.5 text-danger">
-                    not counted
-                  </span>
-                ) : null}
-                {r.review_status === "pending" ? (
-                  <span className="type-caption rounded-full bg-wash-hover px-2 py-0.5 text-tertiary">
-                    checking
-                  </span>
-                ) : null}
-              </div>
-
-              {r.notes ? (
-                <p className="type-body-m mt-2 whitespace-pre-wrap text-primary">
-                  {r.notes}
-                </p>
-              ) : (
-                <p className="type-body-m mt-2 text-tertiary">
-                  No notes written down.
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
+              <ResponseList responses={paid} />
+            </Disclosure>
+          ) : null}
+        </div>
       )}
 
       <Modal
@@ -614,6 +586,87 @@ function ResponsesTab({
     </>
   );
 }
+
+/**
+ * One response, readable.
+ *
+ * Notes are the point - the synthesis reads them and so does the founder - so
+ * they get the full width rather than the narrowest cell of a table.
+ */
+function ResponseList({
+  responses,
+}: {
+  responses: IdeaState["validation"]["responses"];
+}) {
+  return (
+    <ul className="space-y-2.5">
+      {responses.map((r) => (
+        <li
+          key={r.id}
+          className={cn(
+            "rounded-[10px] border border-line bg-page p-4",
+            r.review_status === "rejected" && "opacity-60",
+          )}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              tone={
+                r.confirmed === "yes"
+                  ? "success"
+                  : r.confirmed === "no"
+                    ? "danger"
+                    : "caution"
+              }
+              dot
+            >
+              {r.confirmed === "yes"
+                ? "Yes"
+                : r.confirmed === "no"
+                  ? "No"
+                  : "Unsure"}
+            </Badge>
+            <span className="type-body-m text-tertiary">
+              {CHANNEL_LABELS[r.channel]}
+            </span>
+            {r.source ? (
+              <>
+                <span className="text-tertiary" aria-hidden="true">
+                  ·
+                </span>
+                <span className="type-body-m min-w-0 truncate text-secondary">
+                  {r.source}
+                </span>
+              </>
+            ) : null}
+
+            {/* Only ever shown when it changes what counts. */}
+            {r.review_status === "rejected" ? (
+              <span className="type-caption rounded-full bg-danger-subtle px-2 py-0.5 text-danger">
+                not counted
+              </span>
+            ) : null}
+            {r.review_status === "pending" ? (
+              <span className="type-caption rounded-full bg-wash-hover px-2 py-0.5 text-tertiary">
+                checking
+              </span>
+            ) : null}
+          </div>
+
+          {r.notes ? (
+            <p className="type-body-m mt-2 whitespace-pre-wrap text-primary">
+              {r.notes}
+            </p>
+          ) : (
+            <p className="type-body-m mt-2 text-tertiary">
+              No notes written down.
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 
 function ExternalLink({
   href,

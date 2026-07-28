@@ -407,7 +407,7 @@ export function EntryScreen({ heading }: { heading: string }) {
         <LogoMark
           size={112}
           priority
-          className="mx-auto size-[clamp(44px,12vw,60px)]"
+          className="animate-orbit mx-auto size-[clamp(44px,12vw,60px)]"
         />
 
         {/* One sentence. Everything the paragraph here used to explain is

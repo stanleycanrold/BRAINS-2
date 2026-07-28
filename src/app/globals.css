@@ -332,6 +332,24 @@ body {
   }
 }
 
+/*
+   The mark turning on the entry screen. Slow enough to read as alive rather
+   than as a loading spinner, which is the one thing it must not be mistaken
+   for: nothing is loading, the page is waiting for you.
+*/
+@keyframes brains-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-orbit {
+  animation: brains-orbit 18s linear infinite;
+}
+
 .animate-fade-in {
   animation: brains-fade-in 200ms ease-out both;
 }
