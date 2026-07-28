@@ -83,3 +83,37 @@ export async function estimateFastTrack(params: {
   const rates = await getPricingForTier(params.tier);
   return priceFor(rates, params.tier, params.n);
 }
+
+/**
+ * The number every marketing surface quotes.
+ *
+ * Interviews are priced per niche: a general-consumer round is cheaper than a
+ * highly specialised one. Quoting the reader's OWN tier meant the same offer
+ * appeared as $40 in one place and $90 or $180 in another, which reads as
+ * inconsistent pricing rather than as a tiered rate card.
+ *
+ * So every teaser, badge and button quotes the FLOOR across all tiers, always
+ * worded "from" or "starting at". The real rate for a specific idea appears
+ * once, itemised, at checkout - where a quantity has been chosen and the
+ * number actually means something.
+ */
+export async function marketingFloorPerInterview(): Promise<{
+  cents: number;
+  currency: string;
+}> {
+  const tiers: NicheTier[] = [
+    "general_consumer",
+    "vertical_b2b",
+    "highly_specialized",
+  ];
+
+  const rates = await Promise.all(tiers.map((tier) => getPricingForTier(tier)));
+
+  return rates.reduce(
+    (lowest, rate) =>
+      rate.costPerInterviewCents < lowest.cents
+        ? { cents: rate.costPerInterviewCents, currency: rate.currency }
+        : lowest,
+    { cents: Number.POSITIVE_INFINITY, currency: "usd" },
+  );
+}

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Field";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { useToast } from "@/components/ui/Toast";
+import { cn } from "@/lib/cn";
 import { LogoMark } from "@/components/brand/Logo";
 import { IdeaComposer, type Attachment } from "@/components/IdeaComposer";
 import { describeIdeaProblem } from "@/lib/domain/limits";
@@ -93,6 +94,7 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
   const [reading, setReading] = React.useState(false);
 
   const [asking, setAsking] = React.useState(false);
+  const [stepIndex, setStepIndex] = React.useState(0);
   const [stage, setStage] = React.useState<StageAtEntry>("idea_only");
   const [audience, setAudience] = React.useState("");
   const [location, setLocation] = React.useState("");
@@ -130,8 +132,112 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
 
   function begin() {
     if (describeIdeaProblem(description)) return;
+    setStepIndex(0);
     setAsking(true);
   }
+
+  function close() {
+    setAsking(false);
+  }
+
+  /** Back steps within the flow before it closes the dialog. */
+  function back() {
+    if (stepIndex > 0) setStepIndex((i) => i - 1);
+    else close();
+  }
+
+
+  /**
+   * One question per screen.
+   *
+   * Four fields at once reads as a form to be got through; asked one at a
+   * time they read as a short conversation, and each one gets an answer
+   * worth having rather than whatever clears the field fastest. The link
+   * step only exists when there is something to link to, so nobody is shown
+   * a question that does not apply to them.
+   */
+  const steps = [
+    {
+      title: "Where is this today?",
+      description: "It changes what we go looking for.",
+      canAdvance: true,
+      body: (
+        <RadioCardGroup
+          ariaLabel="Stage"
+          options={STAGE_OPTIONS}
+          value={stage}
+          onChange={setStage}
+        />
+      ),
+    },
+    ...(wantsLink
+      ? [
+          {
+            title: "Link to it",
+            description:
+              "We will read the page and pull in what we find, so you do not have to type it.",
+            canAdvance: true,
+            body: (
+              <div>
+                <Input
+                  id="product-link"
+                  value={productLink}
+                  onChange={(e) => setProductLink(e.target.value)}
+                  placeholder="https://"
+                  aria-label="Link to your product"
+                />
+                <p className="type-caption mt-2 text-tertiary">
+                  Optional. Skip it if you would rather not share the link.
+                </p>
+              </div>
+            ),
+          },
+        ]
+      : []),
+    {
+      title: "Who is it for?",
+      description: "Roughly is fine. It decides who we go and ask.",
+      canAdvance: audience.trim().length > 0,
+      body: (
+        <div>
+          <Input
+            id="audience"
+            value={audience}
+            onChange={(e) => setAudience(e.target.value)}
+            placeholder="Freelance designers, clinic receptionists, anyone who…"
+            aria-label="Who it is for"
+          />
+          <p className="type-caption mt-2 text-tertiary">
+            The one thing we cannot work out on our own.
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: "Anywhere in particular?",
+      description:
+        "Leave it blank for worldwide. This decides which markets we search, and where we would find people to interview.",
+      canAdvance: true,
+      body: (
+        <div>
+          <Input
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="e.g. Kenya, or the UK and Ireland"
+            aria-label="Location focus"
+          />
+          <p className="type-caption mt-2 text-tertiary">
+            Optional.
+          </p>
+        </div>
+      ),
+    },
+  ];
+
+  const stepIndexSafe = Math.min(stepIndex, steps.length - 1);
+  const step = steps[stepIndexSafe];
+  const isLastStep = stepIndexSafe === steps.length - 1;
 
   async function create() {
     if (!audience.trim()) {
@@ -207,94 +313,40 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
 
       <Modal
         open={asking}
-        onClose={() => setAsking(false)}
-        title="Three quick things"
-        description="These decide where we look for evidence, and who we would talk to."
+        onClose={close}
+        title={step.title}
+        description={step.description}
         footer={
-          <ModalActions onCancel={() => setAsking(false)} cancelLabel="Back">
+          <ModalActions
+            onCancel={back}
+            cancelLabel={stepIndexSafe === 0 ? "Back to your idea" : "Back"}
+          >
             <Button
               variant="primary"
               loading={submitting}
-              onClick={() => void create()}
+              disabled={!step.canAdvance}
+              onClick={() => (isLastStep ? void create() : setStepIndex((i) => i + 1))}
             >
-              Start research
+              {isLastStep ? "Start research" : "Next"}
             </Button>
           </ModalActions>
         }
       >
-        <div className="space-y-6">
-          <div>
-            <label className="type-body-m block font-medium text-primary">
-              Where is this today?
-            </label>
-            <div className="mt-2">
-              <RadioCardGroup
-                ariaLabel="Stage"
-                options={STAGE_OPTIONS}
-                value={stage}
-                onChange={setStage}
-              />
-            </div>
-          </div>
-
-          {wantsLink ? (
-            <div>
-              <label
-                htmlFor="product-link"
-                className="type-body-m block font-medium text-primary"
-              >
-                Link to it{" "}
-                <span className="text-tertiary">
-                  Optional, but we will read it
-                </span>
-              </label>
-              <Input
-                id="product-link"
-                className="mt-2"
-                value={productLink}
-                onChange={(e) => setProductLink(e.target.value)}
-                placeholder="https://"
-              />
-            </div>
-          ) : null}
-
-          <div>
-            <label
-              htmlFor="audience"
-              className="type-body-m block font-medium text-primary"
-            >
-              Who is it for?
-            </label>
-            <Input
-              id="audience"
-              className="mt-2"
-              value={audience}
-              onChange={(e) => setAudience(e.target.value)}
-              placeholder="Freelance designers, clinic receptionists, anyone who…"
+        {/* Position, not a progress bar: three dots is enough to say how much
+            is left without dressing four questions up as a process. */}
+        <div className="mb-5 flex items-center gap-1.5" aria-hidden="true">
+          {steps.map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "h-1 flex-1 rounded-full transition-colors duration-[150ms]",
+                i <= stepIndexSafe ? "bg-brand" : "bg-line",
+              )}
             />
-          </div>
-
-          <div>
-            <label
-              htmlFor="location"
-              className="type-body-m block font-medium text-primary"
-            >
-              Anywhere in particular?{" "}
-              <span className="text-tertiary">Optional</span>
-            </label>
-            <Input
-              id="location"
-              className="mt-2"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Kenya, or the UK and Ireland"
-            />
-            <p className="type-caption mt-1.5 text-tertiary">
-              Leave it blank for worldwide. This decides which markets we search
-              and where we would find people to interview.
-            </p>
-          </div>
+          ))}
         </div>
+
+        {step.body}
       </Modal>
     </>
   );

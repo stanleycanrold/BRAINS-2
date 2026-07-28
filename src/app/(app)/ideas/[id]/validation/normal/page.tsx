@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
-import { estimateFastTrack, formatMoney } from "@/lib/pricing";
+import { formatMoney, marketingFloorPerInterview } from "@/lib/pricing";
 import { paymentsEnabled } from "@/lib/stripe";
 import { NormalTrack } from "./NormalTrack";
 
@@ -21,18 +21,16 @@ export default async function NormalTrackPage({
   // Reached directly without picking a track - send them to choose first.
   if (!idea.state.validation.track) redirect(`/ideas/${id}/validation`);
 
-  // Per-interview rate for the teaser. The full itemised total is shown at
-  // checkout, where the founder has chosen a quantity and it means something.
-  const entry = await estimateFastTrack({
-    tier: idea.state.structured.niche_tier,
-    n: 5,
-  });
+  // The floor across tiers, which is what every marketing surface quotes so
+  // the offer never appears at two prices. The real rate for this idea is
+  // itemised at checkout.
+  const floor = await marketingFloorPerInterview();
 
   return (
     <NormalTrack
       ideaId={id}
       initialState={idea.state}
-      fastTrackPerInterview={formatMoney(entry.costPerInterviewCents, entry.currency)}
+      fastTrackPerInterview={formatMoney(floor.cents, floor.currency)}
       paymentsEnabled={paymentsEnabled()}
     />
   );

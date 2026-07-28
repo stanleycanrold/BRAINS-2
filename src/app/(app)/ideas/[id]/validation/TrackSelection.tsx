@@ -16,7 +16,6 @@ import { PipelineStepper } from "@/components/shell/PipelineStepper";
 import type { IdeaState } from "@/lib/domain/types";
 import { ValidationInProgress } from "@/components/ValidationInProgress";
 import { FastTrackButton } from "../FastTrackButton";
-import { type Estimate } from "@/lib/pricing-math";
 
 /**
  * B4 - Validation Track Selection (design system §4.4).
@@ -30,12 +29,13 @@ import { type Estimate } from "@/lib/pricing-math";
 export function TrackSelection({
   ideaId,
   initialState,
-  initialEstimate,
+  floorPerInterview,
   paymentsEnabled,
 }: {
   ideaId: string;
   initialState: IdeaState;
-  initialEstimate: Estimate;
+  /** Formatted floor across tiers, e.g. "$40". What marketing quotes. */
+  floorPerInterview: string;
   paymentsEnabled: boolean;
 }) {
   const router = useRouter();
@@ -43,10 +43,6 @@ export function TrackSelection({
 
   const [starting, setStarting] = React.useState(false);
 
-  // Only the per-interview rate is shown here, and it doesn't vary with
-  // quantity - so this screen no longer re-prices as anything changes.
-  // Quantity, totals and confirmation all live at checkout.
-  const estimate = initialEstimate;
 
   async function startNormal() {
     setStarting(true);
@@ -70,13 +66,6 @@ export function TrackSelection({
     }
   }
 
-  const money = (cents: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: estimate.currency.toUpperCase(),
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(cents / 100);
 
   return (
     <>
@@ -168,7 +157,7 @@ export function TrackSelection({
             <h2 className="type-display-m text-primary">We do it for you</h2>
             <Badge tone="brand">
               {paymentsEnabled
-                ? `From ${money(estimate.costPerInterviewCents)} an interview`
+                ? `From ${floorPerInterview} an interview`
                 : "Paid"}
             </Badge>
           </div>

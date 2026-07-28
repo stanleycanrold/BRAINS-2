@@ -27,12 +27,15 @@ import { validationStage } from "@/lib/validation-stage";
  * bought?" - which is what people look for in the same place anyway.
  */
 
-/** Cached across mounts - the rate doesn't change within a session. */
+/**
+ * Cached across mounts - the rate doesn't change within a session, and it is
+ * the same floor price for every idea, so one fetch serves the whole app.
+ */
 let ratePromise: Promise<number | null> | null = null;
 
-function fetchRate(tier: string): Promise<number | null> {
+function fetchRate(): Promise<number | null> {
   if (!ratePromise) {
-    ratePromise = fetch(`/api/pricing/rates?tier=${encodeURIComponent(tier)}`)
+    ratePromise = fetch("/api/pricing/rates")
       .then((r) => r.json())
       .then((body) => (body.enabled ? body.cost_per_interview : null))
       .catch(() => null);
@@ -51,17 +54,15 @@ export function FastTrackButton({
   const stage = validationStage(state);
   const [rate, setRate] = React.useState<number | null>(null);
 
-  const tier = state.structured.niche_tier;
-
   React.useEffect(() => {
     let live = true;
-    void fetchRate(tier).then((value) => {
+    void fetchRate().then((value) => {
       if (live) setRate(value);
     });
     return () => {
       live = false;
     };
-  }, [tier]);
+  }, []);
 
   // Nothing to buy or track until there's research to build questions from.
   if (!state.research_report) return null;

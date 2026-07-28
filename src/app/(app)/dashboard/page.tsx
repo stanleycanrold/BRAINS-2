@@ -9,7 +9,7 @@ import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { DashboardTopBar } from "./DashboardTopBar";
 import { EntryScreen } from "../ideas/new/EntryForm";
 import { stageForStatus, type IdeaStatus } from "@/lib/domain/types";
-import { estimateFastTrack, formatMoney } from "@/lib/pricing";
+import { formatMoney, marketingFloorPerInterview } from "@/lib/pricing";
 import {
   canMarketFastTrack,
   validationStage,
@@ -82,16 +82,10 @@ export default async function DashboardPage() {
   );
 
   // The per-interview rate, not a total - a total is a door people close.
-  const teaserPrice = readyToChoose
-    ? formatMoney(
-        (
-          await estimateFastTrack({
-            tier: readyToChoose.state.structured.niche_tier,
-            n: 5,
-          })
-        ).costPerInterviewCents,
-      )
-    : null;
+  // The FLOOR across tiers, so the same offer never appears at two prices in
+  // two places. See marketingFloorPerInterview.
+  const floor = readyToChoose ? await marketingFloorPerInterview() : null;
+  const teaserPrice = floor ? formatMoney(floor.cents, floor.currency) : null;
 
   return (
     <>

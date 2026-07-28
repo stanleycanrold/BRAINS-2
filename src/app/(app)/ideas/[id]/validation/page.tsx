@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
-import { estimateFastTrack } from "@/lib/pricing";
+import { formatMoney, marketingFloorPerInterview } from "@/lib/pricing";
 import { validationStage } from "@/lib/validation-stage";
 import { TrackSelection } from "./TrackSelection";
 
@@ -37,16 +37,13 @@ export default async function ValidationPage({
     redirect(`/ideas/${id}/validation/normal`);
   }
 
-  const estimate = await estimateFastTrack({
-    tier: idea.state.structured.niche_tier,
-    n: 8,
-  });
+  const floor = await marketingFloorPerInterview();
 
   return (
     <TrackSelection
       ideaId={id}
       initialState={idea.state}
-      initialEstimate={estimate}
+      floorPerInterview={formatMoney(floor.cents, floor.currency)}
       paymentsEnabled={Boolean(process.env.STRIPE_SECRET_KEY)}
     />
   );

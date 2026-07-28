@@ -36,6 +36,21 @@ export function Modal({
   const titleId = React.useId();
   const descId = React.useId();
 
+  /**
+   * Held in a ref so the effects below do not depend on it.
+   *
+   * Every call site passes an inline arrow for onClose, which is a new
+   * function on every render. With onClose in the dependency array, the
+   * focus effect re-ran on EVERY KEYSTROKE and pulled the caret back to the
+   * first control in the dialog, which is why typing into one of these forms
+   * kept jumping.
+   */
+  const onCloseRef = React.useRef(onClose);
+  React.useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Runs once per open, and nothing about typing can retrigger it.
   React.useEffect(() => {
     if (!open) return;
 
@@ -51,10 +66,21 @@ export function Modal({
       (focusable ?? panelRef.current)?.focus();
     });
 
+    return () => {
+      cancelAnimationFrame(raf);
+      document.body.style.overflow = overflow;
+      previouslyFocused.current?.focus();
+    };
+  }, [open]);
+
+  // Escape to close, Tab kept inside the dialog.
+  React.useEffect(() => {
+    if (!open) return;
+
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !panelRef.current) return;
@@ -78,13 +104,8 @@ export function Modal({
     }
 
     document.addEventListener("keydown", onKeyDown);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = overflow;
-      previouslyFocused.current?.focus();
-    };
-  }, [open, onClose]);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   if (!open) return null;
 
