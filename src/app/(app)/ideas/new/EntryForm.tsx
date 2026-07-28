@@ -68,7 +68,7 @@ const STAGE_OPTIONS: {
  */
 const STARTERS = [
   {
-    label: "A tool for a job people already do",
+    label: "A tool for a job people do already",
     seed: "We're building a tool for [who]. Today they [how they handle it now], which means [what goes wrong]. ",
   },
   {
@@ -80,7 +80,7 @@ const STARTERS = [
     seed: "We're replacing the spreadsheet that [who] uses to [task]. It breaks down when ",
   },
   {
-    label: "One feature I'm unsure about",
+    label: "One feature I am unsure about",
     seed: "Our product already does [what]. The part I'm unsure about is [feature], which is meant to solve ",
   },
 ];
@@ -297,17 +297,23 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
           to get someone unstuck, not to sit under a paragraph they have
           already written. */}
       {description.length === 0 ? (
-        <div className="mt-3 flex flex-wrap justify-center gap-2">
-          {STARTERS.map((starter) => (
-            <button
-              key={starter.label}
-              type="button"
-              onClick={() => setDescription(starter.seed)}
-              className="type-body-m rounded-full border border-line bg-raised px-3 py-1.5 text-secondary transition-colors duration-[120ms] hover:border-line-strong hover:text-primary"
-            >
-              {starter.label}
-            </button>
-          ))}
+        // One scrolling row on a phone, wrapped and centred once there is
+        // room. Four long labels wrapping into four stacked lines was most of
+        // what made this screen look broken on mobile. The row bleeds to the
+        // screen edge so it reads as scrollable rather than clipped.
+        <div className="-mx-4 mt-3 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
+          <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap sm:justify-center">
+            {STARTERS.map((starter) => (
+              <button
+                key={starter.label}
+                type="button"
+                onClick={() => setDescription(starter.seed)}
+                className="type-body-m shrink-0 rounded-full border border-line bg-raised px-3 py-1.5 whitespace-nowrap text-secondary transition-colors duration-[120ms] hover:border-line-strong hover:text-primary sm:whitespace-normal"
+              >
+                {starter.label}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -361,26 +367,27 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
  */
 export function EntryScreen({ heading }: { heading: string }) {
   return (
-    <div className="mx-auto flex w-full max-w-[720px] flex-col justify-center px-1 pt-[6vh] pb-16 sm:pt-[10vh]">
-      {/* The mark is sized in CSS rather than by its width attribute so it
-          tracks the heading, which now scales with the viewport. At 26px it
-          sat noticeably below the cap height of 40px text and read as an
-          afterthought next to it. */}
-      <div className="flex items-center justify-center gap-2.5 sm:gap-3">
-        <LogoMark
-          size={64}
-          priority
-          className="size-[clamp(26px,6.4vw,37px)]"
-        />
-        <h1 className="type-display-xl text-center text-primary">{heading}</h1>
-      </div>
+    <div className="mx-auto flex w-full max-w-[720px] flex-col px-1 pt-[5vh] pb-16 sm:pt-[9vh]">
+      {/* The mark gets its own line.
+          Beside the heading it had to shrink to fit, which on a phone left a
+          small icon crowding a wrapped title. On its own line it can be the
+          size it deserves and the heading gets the full width. */}
+      <LogoMark
+        size={112}
+        priority
+        className="mx-auto size-[clamp(44px,12vw,60px)]"
+      />
+
+      <h1 className="type-display-xl mt-4 text-center text-primary">
+        {heading}
+      </h1>
 
       <p className="type-body-l mx-auto mt-3 max-w-[46ch] text-center text-secondary">
         Describe it in a paragraph. Attach anything you have. We will find out
         whether the problem is real before you build for it.
       </p>
 
-      <div className="mt-8">
+      <div className="mt-7 sm:mt-8">
         <EntryForm />
       </div>
 
@@ -409,15 +416,27 @@ function Highlights() {
     },
   ];
 
+  /**
+   * Icon beside the text on a phone, above it once there are columns.
+   *
+   * As a three-column grid these stacked into three tall blocks with the icon
+   * marooned on its own line, which is a lot of screen to scroll past on the
+   * way to nothing. Inline they read as three short lines, and the whole
+   * section sits closer to the composer instead of floating in space.
+   */
   return (
-    <div className="mt-14 grid gap-6 border-t border-line pt-8 sm:grid-cols-3">
+    <div className="mt-10 grid gap-5 border-t border-line pt-7 sm:mt-14 sm:grid-cols-3 sm:gap-6 sm:pt-8">
       {items.map((item) => (
-        <div key={item.title}>
-          <span className="text-brand">{item.icon}</span>
-          <h2 className="type-body-l mt-2 font-medium text-primary">
-            {item.title}
-          </h2>
-          <p className="type-body-m mt-1 text-secondary">{item.body}</p>
+        <div key={item.title} className="flex gap-3 sm:block">
+          <span className="mt-0.5 shrink-0 text-brand sm:mt-0">
+            {item.icon}
+          </span>
+          <div className="min-w-0">
+            <h2 className="type-body-l font-medium text-primary sm:mt-2">
+              {item.title}
+            </h2>
+            <p className="type-body-m mt-1 text-secondary">{item.body}</p>
+          </div>
         </div>
       ))}
     </div>

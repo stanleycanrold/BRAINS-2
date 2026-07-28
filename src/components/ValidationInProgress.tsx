@@ -25,10 +25,13 @@ export function ValidationInProgress({
   ideaId,
   state,
   className,
+  bare,
 }: {
   ideaId: string;
   state: IdeaState;
   className?: string;
+  /** Drops the panel chrome, for when it sits inside a card already. */
+  bare?: boolean;
 }) {
   const stage = validationStage(state);
   const order = state.fast_track_order;
@@ -40,6 +43,7 @@ export function ValidationInProgress({
   if (stage === "awaiting_payment") {
     return (
       <Flag
+        bare={bare}
         className={className}
         icon={<ClockIcon size={16} className="text-caution" aria-hidden="true" />}
         title="Payment not finished"
@@ -55,6 +59,7 @@ export function ValidationInProgress({
   if (stage === "delivered") {
     return (
       <Flag
+        bare={bare}
         className={className}
         icon={
           <CheckCircleIcon
@@ -79,6 +84,7 @@ export function ValidationInProgress({
     const total = order?.n_requested ?? 0;
     return (
       <Flag
+        bare={bare}
         className={className}
         live
         icon={<SpinnerGapIcon size={16} className="text-brand" aria-hidden="true" />}
@@ -99,6 +105,7 @@ export function ValidationInProgress({
   // self_serve
   return (
     <Flag
+      bare={bare}
       className={className}
       live
       icon={<SpinnerGapIcon size={16} className="text-brand" aria-hidden="true" />}
@@ -125,6 +132,7 @@ function Flag({
   action,
   live,
   className,
+  bare,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -132,11 +140,14 @@ function Flag({
   action: { href: string; label: string };
   live?: boolean;
   className?: string;
+  bare?: boolean;
 }) {
   return (
     <aside
       className={cn(
-        "rounded-[10px] border border-line bg-raised px-4 py-3",
+        bare
+          ? "border-t border-line pt-4"
+          : "rounded-[10px] border border-line bg-raised px-4 py-3",
         className,
       )}
     >

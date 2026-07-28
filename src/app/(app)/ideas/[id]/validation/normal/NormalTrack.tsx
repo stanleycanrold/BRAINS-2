@@ -116,32 +116,54 @@ export function NormalTrack({
         state={state}
       />
 
-      <header className="flex flex-wrap items-start justify-between gap-6">
-        <div>
-          <h1 className="type-display-l text-primary">Gathering signal</h1>
-          <p className="type-body-l mt-1 text-secondary">
-            Go have the conversations. Log each one here as you go.
-          </p>
+      {/**
+        * Title, rate and round status in one block.
+        *
+        * These were three stacked panels saying related things about the same
+        * round, which pushed the actual workspace below the fold and made the
+        * screen feel like an announcement rather than a place to work. They
+        * belong together: what this is, how it is going, and what is running.
+        */}
+      <Card elevation="raised" className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+          <div className="min-w-0">
+            <h1 className="type-display-l text-primary">Gathering signal</h1>
+            <p className="type-body-m mt-1 text-secondary">
+              Go have the conversations. Log each one here as you go.
+            </p>
+          </div>
+
+          {/* The number the track exists to produce, always in view. Before
+              anything is logged there is no rate to show, and "0%" reads as a
+              bad result rather than an empty one. */}
+          <div className="shrink-0 text-left sm:text-right">
+            {total > 0 ? (
+              <>
+                <div className="flex items-baseline gap-1.5 sm:justify-end">
+                  <span className="type-data-l text-[26px] text-primary">
+                    {rate}%
+                  </span>
+                  <span className="type-body-m text-secondary">confirmed</span>
+                </div>
+                <p className="type-caption mt-0.5 text-tertiary">
+                  {confirmed} of {total} logged
+                </p>
+              </>
+            ) : (
+              <p className="type-body-m text-tertiary">
+                Nothing logged yet
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* The number the track exists to produce - always in view */}
-        <Card className="shrink-0 px-5 py-3">
-          <div className="flex items-baseline gap-2">
-            <span className="type-data-l text-[28px] text-primary">{rate}</span>
-            <span className="type-body-m text-secondary">% confirmed</span>
-          </div>
-          <p className="type-caption mt-0.5 text-tertiary">
-            {confirmed} of {total} logged
-          </p>
-        </Card>
-      </header>
-
-      {/* Stated ONCE per idea, above the tabs.
-          It previously appeared on the questions tab, the responses tab and
-          the track screen, so the same fact was worded three different ways
-          depending on where you happened to be. One place, one wording, and
-          the top bar carries the compact version everywhere else. */}
-      <ValidationInProgress ideaId={ideaId} state={state} className="mt-6" />
+        <ValidationInProgress
+          ideaId={ideaId}
+          state={state}
+          bare
+          className="mt-5"
+        />
+      </Card>
 
       <div className="mt-8">
         <TabList ariaLabel="Validation workspace">
