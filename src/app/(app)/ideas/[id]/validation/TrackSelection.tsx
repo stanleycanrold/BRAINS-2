@@ -10,14 +10,13 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { InterviewCount } from "@/components/InterviewCount";
 import { useToast } from "@/components/ui/Toast";
 import { TopBar } from "@/components/shell/AppShell";
 import { PipelineStepper } from "@/components/shell/PipelineStepper";
-import { cn } from "@/lib/cn";
 import type { IdeaState } from "@/lib/domain/types";
 import { ValidationInProgress } from "@/components/ValidationInProgress";
-import { recalculate, type Estimate } from "@/lib/pricing-math";
+import { FastTrackButton } from "../FastTrackButton";
+import { type Estimate } from "@/lib/pricing-math";
 
 /**
  * B4 — Validation Track Selection (design system §4.4).
@@ -43,43 +42,11 @@ export function TrackSelection({
   const { toast } = useToast();
 
   const [starting, setStarting] = React.useState(false);
-  const [n, setN] = React.useState(
-    Math.max(initialEstimate.minInterviews, Math.min(8, initialEstimate.maxInterviews)),
-  );
-  const [serverEstimate, setServerEstimate] = React.useState(initialEstimate);
 
-  /**
-   * Priced in the browser from the coefficients the server sent, so the total
-   * moves on the same frame as the slider. The server is still asked to
-   * confirm — quietly, debounced — and its answer wins if the two ever differ,
-   * because the server figure is what Stripe charges.
-   */
-  const estimate = recalculate(serverEstimate, n);
-
-  React.useEffect(() => {
-    if (n === serverEstimate.nRequested) return;
-    let cancelled = false;
-
-    const timer = setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/ideas/${ideaId}/fast-track/estimate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ n }),
-        });
-        if (!response.ok) return;
-        const body = await response.json();
-        if (!cancelled) setServerEstimate(body.estimate);
-      } catch {
-        // Keep showing the locally-computed figure; checkout re-prices anyway.
-      }
-    }, 400);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [n, ideaId, serverEstimate.nRequested]);
+  // Only the per-interview rate is shown here, and it doesn't vary with
+  // quantity — so this screen no longer re-prices as anything changes.
+  // Quantity, totals and confirmation all live at checkout.
+  const estimate = initialEstimate;
 
   async function startNormal() {
     setStarting(true);
@@ -123,16 +90,19 @@ export function TrackSelection({
             status={initialState.status}
             currentStage="validate"
           />
+          <div className="ml-auto shrink-0">
+            <FastTrackButton ideaId={ideaId} state={initialState} />
+          </div>
         </div>
       </TopBar>
 
       <header>
         <h1 className="type-display-l text-primary">
-          Time to talk to real people
+          How do you want to talk to people?
         </h1>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
-          Research tells you the problem probably exists. Only people can tell
-          you it matters. Two ways to do that — same report at the end.
+          Research says the problem probably exists. Only people can tell you it
+          matters. Pick either — you get the same analysed report at the end.
         </p>
       </header>
 
@@ -145,41 +115,43 @@ export function TrackSelection({
         className="mt-6"
       />
 
-      <div className="mt-8 grid items-start gap-5 lg:grid-cols-2">
-        {/* ── Normal Track ─────────────────────────────────────────────── */}
+      {/**
+        * Two options, equal weight, decided at a glance.
+        *
+        * This screen previously asked for an interview count and showed an
+        * itemised price table before the founder had chosen anything — a
+        * spreadsheet in the middle of a yes/no decision. Quantity and
+        * itemisation belong at checkout, where they already exist and where
+        * someone has decided to buy. Here the only job is: which of these two.
+        */}
+      <div className="mt-8 grid items-stretch gap-5 lg:grid-cols-2">
+        {/* ── Do it yourself ───────────────────────────────────────────── */}
         <Card elevation="raised" className="flex h-full flex-col p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="type-display-m text-primary">Do it yourself</h2>
-              <p className="type-body-m mt-0.5 text-secondary">
-                Self-paced, at your own speed
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="type-display-m text-primary">Do it yourself</h2>
             <Badge tone="success">Free</Badge>
           </div>
-
-          <p className="type-body-l mt-4 text-secondary">
-            We find the communities where your people already talk, write your
-            interview script, and you go have the conversations.
+          <p className="type-body-l mt-2 text-secondary">
+            We find where your people talk and write your questions. You go and
+            have the conversations.
           </p>
 
           <ul className="mt-5 flex-1 space-y-2.5">
-            <Feature>Named communities with real threads to start from</Feature>
-            <Feature>An interview script written not to lead the witness</Feature>
-            <Feature>Log responses as you go, see the rate update live</Feature>
+            <Feature>Named communities, with real threads to start from</Feature>
+            <Feature>Questions written not to lead the witness</Feature>
             <Feature>Same AI analysis and scored report at the end</Feature>
           </ul>
 
-          <div className="mt-6 border-t border-line pt-5">
+          <div className="mt-6">
             <Button
-              variant="primary"
+              variant="secondary"
               size="large"
               fullWidth
               loading={starting}
               onClick={() => void startNormal()}
               iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
             >
-              Start talking to people
+              I&rsquo;ll do the interviews
             </Button>
             <p className="type-caption mt-2.5 text-center text-tertiary">
               Takes a minute to find your communities
@@ -187,68 +159,35 @@ export function TrackSelection({
           </div>
         </Card>
 
-        {/* ── Fast Track ───────────────────────────────────────────────── */}
+        {/* ── Done for you ─────────────────────────────────────────────── */}
         <Card
           elevation="raised"
-          className={cn(
-            "flex h-full flex-col p-6",
-            !paymentsEnabled && "opacity-95",
-          )}
+          className="flex h-full flex-col border-brand/35 p-6"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="type-display-m text-primary">
-                Interviews, analysed for you
-              </h2>
-              <p className="type-body-m mt-0.5 text-secondary">
-                Report back in 1&ndash;2 weeks
-              </p>
-            </div>
-            <Badge tone="brand">Paid</Badge>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="type-display-m text-primary">We do it for you</h2>
+            <Badge tone="brand">
+              {paymentsEnabled
+                ? `From ${money(estimate.costPerInterviewCents)} an interview`
+                : "Paid"}
+            </Badge>
           </div>
-
-          <p className="type-body-l mt-4 text-secondary">
-            Interviews get run against your script, then our AI reads every one
-            of them, finds the patterns across all of them, scores the result
-            and puts the finished report on your dashboard.
+          <p className="type-body-l mt-2 text-secondary">
+            The interviews get run against your questions. Our AI reads every
+            one, finds what people have in common, and scores it.
           </p>
 
-          <div className="mt-5 flex-1">
-            <InterviewCount
-              value={n}
-              onChange={setN}
-              min={estimate.minInterviews}
-              max={estimate.maxInterviews}
-            />
+          <ul className="mt-5 flex-1 space-y-2.5">
+            <Feature>You choose how many — more interviews, firmer signal</Feature>
+            <Feature>Nothing for you to chase or schedule</Feature>
+            <Feature>Finished report on your dashboard in 1&ndash;2 weeks</Feature>
+          </ul>
 
-            {/* Itemised before committing — PRD §4.3.2 acceptance criteria */}
-            <dl
-              className="mt-5 space-y-2 rounded-[8px] border border-line bg-page p-4"
-              aria-live="polite"
-            >
-              <Line
-                label={`Interviews · ${money(estimate.costPerInterviewCents)} × ${estimate.nRequested}`}
-                value={money(estimate.interviewsSubtotalCents)}
-              />
-              <Line
-                label="AI analysis, scoring &amp; report"
-                value={money(estimate.analysisFeeCents)}
-              />
-              <div className="border-t border-line pt-2">
-                <Line
-                  label="Total"
-                  value={money(estimate.totalCents)}
-                  emphasis
-                />
-              </div>
-            </dl>
-          </div>
-
-          <div className="mt-6 border-t border-line pt-5">
+          <div className="mt-6">
             {paymentsEnabled ? (
               <>
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="large"
                   fullWidth
                   onClick={() =>
@@ -258,16 +197,17 @@ export function TrackSelection({
                   }
                   iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
                 >
-                  Review and pay
+                  Get interviews done for me
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Nobody is contacted until your payment clears.
+                  Pick your number next. Nobody is contacted until payment
+                  clears.
                 </p>
               </>
             ) : (
               <>
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="large"
                   fullWidth
                   disabled
@@ -306,33 +246,3 @@ function Feature({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Line({
-  label,
-  value,
-  emphasis,
-}: {
-  label: string;
-  value: string;
-  emphasis?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt
-        className={cn(
-          "type-body-m",
-          emphasis ? "font-medium text-primary" : "text-secondary",
-        )}
-      >
-        {label}
-      </dt>
-      <dd
-        className={cn(
-          "shrink-0",
-          emphasis ? "type-body-l font-medium text-primary" : "type-data-m text-primary",
-        )}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}

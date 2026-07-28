@@ -4,6 +4,7 @@ import Link from "next/link";
 import { TopBar } from "@/components/shell/AppShell";
 import { PipelineStepper } from "@/components/shell/PipelineStepper";
 import { EngageButton } from "./EngageButton";
+import { FastTrackButton } from "./FastTrackButton";
 import type { IdeaState, IdeaStatus } from "@/lib/domain/types";
 
 export function IdeaTopBar({
@@ -33,7 +34,9 @@ export function IdeaTopBar({
           <PipelineStepper ideaId={ideaId} status={status} />
         ) : null}
         {state ? (
-          <div className="ml-auto shrink-0">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            {/* Fixed position on every idea screen — see FastTrackButton. */}
+            <FastTrackButton ideaId={ideaId} state={state} />
             <EngageButton ideaId={ideaId} state={state} />
           </div>
         ) : null}

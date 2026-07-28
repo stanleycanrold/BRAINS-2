@@ -6,6 +6,7 @@ import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
 import { getStripe, paymentsEnabled } from "@/lib/stripe";
+import { originFor } from "@/lib/app-url";
 
 export const runtime = "nodejs";
 
@@ -115,7 +116,9 @@ export async function POST(
       })
       .returning();
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    // Resolved from the request so it can't drift from where the app is
+    // actually served — see app-url.ts.
+    const appUrl = originFor(request);
     const stripe = getStripe();
 
     const session = await stripe.checkout.sessions.create({
