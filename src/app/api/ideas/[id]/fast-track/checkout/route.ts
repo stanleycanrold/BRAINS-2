@@ -90,6 +90,18 @@ export async function POST(
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      /**
+       * Embedded, not redirect.
+       *
+       * The founder stays inside the product through payment, which matters
+       * at this point in the flow — they've just spent time on questions and
+       * a hand-off to a different domain is where people reconsider. Stripe
+       * still renders and owns the card fields inside the iframe, so no card
+       * data touches our servers and PCI scope stays SAQ-A. Building our own
+       * form with the Payment Element would buy visual control we don't need
+       * and take on obligations we'd rather not.
+       */
+      ui_mode: "embedded_page",
       customer_email: user.email || undefined,
       client_reference_id: order.id,
       // The webhook trusts this metadata, not the client.
@@ -124,8 +136,8 @@ export async function POST(
           },
         },
       ],
-      success_url: `${appUrl}/ideas/${id}/validation/fast-track/status?checkout=success`,
-      cancel_url: `${appUrl}/ideas/${id}/validation/fast-track/checkout?checkout=cancelled`,
+      // Embedded mode uses a single return_url instead of success/cancel.
+      return_url: `${appUrl}/ideas/${id}/validation/fast-track/status?session_id={CHECKOUT_SESSION_ID}`,
     });
 
     await db
@@ -153,7 +165,8 @@ export async function POST(
     }));
 
     return NextResponse.json({
-      url: session.url,
+      // The client secret mounts the embedded form; there is no URL to visit.
+      client_secret: session.client_secret,
       order_id: order.id,
       total: formatMoney(estimate.totalCents, estimate.currency),
     });

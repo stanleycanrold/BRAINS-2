@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { Textarea, Input } from "@/components/ui/Field";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { Logo } from "@/components/brand/Logo";
-import { cn } from "@/lib/cn";
 import type { PublicQuestionnaire } from "@/lib/data/questionnaire";
 import type { Confirmed } from "@/lib/domain/types";
 
@@ -229,16 +228,45 @@ export function QuestionnaireForm({
   );
 }
 
+/**
+ * The public shell.
+ *
+ * A respondent arrives from a link with no idea who we are or why they're
+ * being asked. The masthead answers that in one line before anything is asked
+ * of them — people give better answers when they know what the answers are
+ * for, and a bare form from an unknown sender reads as spam.
+ */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className={cn("min-h-screen px-4 py-10 sm:px-6 sm:py-16")}>
-      <div className="mx-auto w-full max-w-[640px]">
-        {children}
-        <footer className="mt-14 flex items-center justify-center gap-2 border-t border-line pt-6">
-          <span className="type-caption text-tertiary">Collected with</span>
-          <Logo size={12} />
-        </footer>
+    <div className="min-h-screen">
+      <header className="border-b border-line bg-raised">
+        <div className="mx-auto flex w-full max-w-[640px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <Logo size={16} priority />
+          <p className="type-body-m text-secondary">
+            Helping founders find out if a problem is real
+          </p>
+        </div>
+      </header>
+
+      <div className="px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-[640px]">{children}</div>
       </div>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto w-full max-w-[640px] px-4 py-6 sm:px-6">
+          <p className="type-body-m text-secondary">
+            <span className="font-medium text-primary">What is this?</span>{" "}
+            Someone is trying to work out whether a problem they&rsquo;ve
+            noticed is real before they spend months building something for it.
+            BRAINS AI reads answers like yours across everyone who replies and
+            looks for what people genuinely have in common — so ideas that
+            nobody needed get caught early.
+          </p>
+          <p className="type-caption mt-3 text-tertiary">
+            Your answers go only to the person who sent you this link.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

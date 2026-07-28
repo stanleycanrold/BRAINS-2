@@ -100,6 +100,38 @@ export function usePersistedValue<T extends string>(
   return [value, setValue] as const;
 }
 
+/**
+ * A boolean held in sessionStorage — resets when the tab closes.
+ *
+ * Used for "dismiss this for now" affordances: a founder who waves an offer
+ * away today may well want it next week, so persisting it forever is the
+ * wrong default.
+ */
+export function useSessionFlag(
+  key: string,
+): readonly [boolean, (next: boolean) => void] {
+  const subscribe = React.useCallback(
+    (callback: () => void) => subscribeToKey(key, callback),
+    [key],
+  );
+
+  const value = React.useSyncExternalStore(
+    subscribe,
+    () => window.sessionStorage.getItem(key) === "1",
+    () => false,
+  );
+
+  const setValue = React.useCallback(
+    (next: boolean) => {
+      window.sessionStorage.setItem(key, next ? "1" : "0");
+      notify(key);
+    },
+    [key],
+  );
+
+  return [value, setValue] as const;
+}
+
 /** Live media-query match. Returns `false` on the server. */
 export function useMediaQuery(query: string): boolean {
   const subscribe = React.useCallback(

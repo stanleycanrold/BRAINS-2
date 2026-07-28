@@ -74,7 +74,7 @@ export function StatusView({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const justPaid = searchParams.get("checkout") === "success";
+  const sessionId = searchParams.get("session_id");
 
   const paid = order.paymentStatus === "paid";
   const currentIndex = Math.max(
@@ -82,19 +82,49 @@ export function StatusView({
     STAGES.findIndex((s) => s.key === order.status),
   );
 
-  // Payment confirmation arrives by webhook, moments after the redirect. Poll
-  // briefly so the founder isn't left staring at "awaiting confirmation" on a
-  // payment that has in fact gone through.
+  /**
+   * Confirm the payment on return.
+   *
+   * The webhook is the authority, but it can lag by seconds — or never arrive
+   * at all in local development where nobody is running `stripe listen`. So on
+   * return from checkout we ask our server to verify the session against
+   * Stripe directly, then fall back to polling in case the webhook is what
+   * lands first. Either way the founder shouldn't sit looking at "awaiting
+   * confirmation" for a payment that has gone through.
+   */
   React.useEffect(() => {
-    if (paid || !justPaid) return;
+    if (paid || !sessionId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch(
+          `/api/ideas/${ideaId}/fast-track/reconcile`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          },
+        );
+        const body = await response.json();
+        if (!cancelled && body.paid) router.refresh();
+      } catch {
+        // Polling below is the fallback.
+      }
+    })();
+
     let tries = 0;
     const timer = setInterval(() => {
       tries += 1;
       router.refresh();
-      if (tries >= 10) clearInterval(timer);
+      if (tries >= 8) clearInterval(timer);
     }, 3000);
-    return () => clearInterval(timer);
-  }, [paid, justPaid, router]);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [paid, sessionId, ideaId, router]);
 
   const money = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -119,12 +149,19 @@ export function StatusView({
       />
 
       <header>
-        <h1 className="type-display-l text-primary">
-          {paid ? "We're on it" : "Confirming your payment"}
-        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="type-display-l text-primary">
+            {paid ? "Validation in progress" : "Confirming your payment"}
+          </h1>
+          {paid ? (
+            <Badge tone="brand" dot>
+              Underway
+            </Badge>
+          ) : null}
+        </div>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {paid
-            ? "Nothing more for you to do. Every interview is analysed automatically and the finished report appears on your dashboard — usually within one to two weeks."
+            ? "Nothing more for you to do. Interviews run against your questions, our AI analyses every one of them, and the finished report appears on your dashboard — usually within one to two weeks."
             : "This normally takes a few seconds. You can safely leave this page."}
         </p>
       </header>

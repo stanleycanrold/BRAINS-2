@@ -3,16 +3,23 @@
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout,
+} from "@stripe/react-stripe-js";
 import {
   LockSimpleIcon,
   ArrowLeftIcon,
   WarningIcon,
+  ShieldCheckIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InterviewCount } from "@/components/InterviewCount";
 import { useToast } from "@/components/ui/Toast";
 import { IdeaTopBar } from "../../../IdeaTopBar";
+import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/cn";
 import type { IdeaState } from "@/lib/domain/types";
 import { recalculate, type Estimate } from "@/lib/pricing-math";
@@ -20,11 +27,17 @@ import { recalculate, type Estimate } from "@/lib/pricing-math";
 /**
  * B6 — Fast Track: Estimate & Checkout (design system §4.6).
  *
- * The founder sees exactly what they're paying for, itemised, before they
- * commit — a PRD acceptance criterion, not a nicety. Card details are never
- * handled here: checkout redirects to Stripe, so no card data touches our
- * servers and PCI scope stays with Stripe.
+ * Payment happens INSIDE the product. Stripe's embedded checkout renders the
+ * card fields in an iframe it owns, so no card data touches our servers and
+ * PCI scope stays SAQ-A — but the founder never leaves the page. That matters
+ * here specifically: they have just spent real effort on their questions, and
+ * a hand-off to a different domain is exactly where people reconsider.
  */
+
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
 export function CheckoutView({
   ideaId,
   state,
@@ -35,24 +48,22 @@ export function CheckoutView({
   initialEstimate: Estimate;
 }) {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const searchParams = useSearchParams();
   const cancelled = searchParams.get("checkout") === "cancelled";
 
   const [n, setN] = React.useState(initialEstimate.nRequested);
   const [serverEstimate, setServerEstimate] = React.useState(initialEstimate);
-  const [redirecting, setRedirecting] = React.useState(false);
+  const [clientSecret, setClientSecret] = React.useState<string | null>(null);
+  const [preparing, setPreparing] = React.useState(false);
 
-  /**
-   * Priced in the browser from the coefficients the server sent, so the total
-   * moves on the same frame as the slider or keystroke. The server is still
-   * asked to confirm — quietly, debounced — and its answer wins if the two
-   * ever differ, because the server figure is what Stripe actually charges.
-   */
+  // Priced locally so the total moves on the same frame as the input; the
+  // server confirms in the background and its figure is what Stripe charges.
   const estimate = recalculate(serverEstimate, n);
 
   React.useEffect(() => {
     if (n === serverEstimate.nRequested) return;
-    let cancelled = false;
+    let stale = false;
 
     const timer = setTimeout(async () => {
       try {
@@ -63,20 +74,20 @@ export function CheckoutView({
         });
         if (!response.ok) return;
         const body = await response.json();
-        if (!cancelled) setServerEstimate(body.estimate);
+        if (!stale) setServerEstimate(body.estimate);
       } catch {
-        // Keep showing the locally-computed figure; checkout re-prices anyway.
+        // Keep the local figure; checkout re-prices server-side anyway.
       }
     }, 400);
 
     return () => {
-      cancelled = true;
+      stale = true;
       clearTimeout(timer);
     };
   }, [n, ideaId, serverEstimate.nRequested]);
 
-  async function checkout() {
-    setRedirecting(true);
+  async function beginPayment() {
+    setPreparing(true);
     try {
       const response = await fetch(`/api/ideas/${ideaId}/fast-track/checkout`, {
         method: "POST",
@@ -84,16 +95,17 @@ export function CheckoutView({
         body: JSON.stringify({ n }),
       });
       const body = await response.json();
-      if (!response.ok || !body.url) {
+      if (!response.ok || !body.client_secret) {
         throw new Error(body.error ?? "We couldn't start checkout.");
       }
-      window.location.href = body.url;
+      setClientSecret(body.client_secret);
     } catch (err) {
-      setRedirecting(false);
       toast(
         err instanceof Error ? err.message : "We couldn't start checkout.",
         "danger",
       );
+    } finally {
+      setPreparing(false);
     }
   }
 
@@ -124,16 +136,16 @@ export function CheckoutView({
 
       <header className="mt-4">
         <h1 className="type-display-l text-primary">
-          How many interviews do you want analysed?
+          {clientSecret ? "Confirm and pay" : "How many interviews?"}
         </h1>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
-          Every interview is transcribed and read by our AI, synthesised across
-          all of them, scored, and delivered as a finished report on your
-          dashboard. You do no analysis and no spreadsheet work.
+          {clientSecret
+            ? "Your order is held below. Nothing starts until this clears."
+            : "Every interview is read by our AI, synthesised across all of them, scored, and delivered as a finished report on your dashboard."}
         </p>
       </header>
 
-      {cancelled ? (
+      {cancelled && !clientSecret ? (
         <Card className="mt-6 border-caution/40 bg-caution-subtle p-4">
           <p className="type-body-m flex items-start gap-2 text-primary">
             <WarningIcon
@@ -142,63 +154,100 @@ export function CheckoutView({
               aria-hidden="true"
             />
             <span>
-              Checkout was cancelled and you haven&rsquo;t been charged. Your
-              order is still here whenever you want to pick it back up.
+              That checkout was cancelled and you haven&rsquo;t been charged.
             </span>
           </p>
         </Card>
       ) : null}
 
-      <Card elevation="raised" className="mt-8 p-6">
-        <InterviewCount
-          value={n}
-          onChange={setN}
-          min={estimate.minInterviews}
-          max={estimate.maxInterviews}
-        />
-
-        <dl
-          className="mt-6 space-y-2.5 border-t border-line pt-5"
-          aria-live="polite"
-        >
-          <Line
-            label={`Interviews · ${money(estimate.costPerInterviewCents)} each`}
-            value={money(estimate.interviewsSubtotalCents)}
+      {!clientSecret ? (
+        <Card elevation="raised" className="mt-8 p-6">
+          <InterviewCount
+            value={n}
+            onChange={setN}
+            min={estimate.minInterviews}
+            max={estimate.maxInterviews}
           />
-          <Line
-            label="AI analysis, scoring & report"
-            value={money(estimate.analysisFeeCents)}
-          />
-          <div className="border-t border-line pt-2.5">
-            <Line label="Total" value={money(estimate.totalCents)} emphasis />
-          </div>
-        </dl>
 
-        <div className="mt-6 border-t border-line pt-5">
-          <Button
-            variant="primary"
-            size="large"
-            fullWidth
-            loading={redirecting}
-            onClick={() => void checkout()}
-            iconLeft={<LockSimpleIcon size={16} aria-hidden="true" />}
+          <dl
+            className="mt-6 space-y-2.5 border-t border-line pt-5"
+            aria-live="polite"
           >
-            {redirecting
-              ? "Taking you to Stripe…"
-              : `Pay ${money(estimate.totalCents)}`}
-          </Button>
+            <Line
+              label={`Interviews · ${money(estimate.costPerInterviewCents)} each`}
+              value={money(estimate.interviewsSubtotalCents)}
+            />
+            <Line
+              label="AI analysis, scoring & report"
+              value={money(estimate.analysisFeeCents)}
+            />
+            <div className="border-t border-line pt-2.5">
+              <Line label="Total" value={money(estimate.totalCents)} emphasis />
+            </div>
+          </dl>
 
-          <p className="type-caption mt-3 text-center text-tertiary">
-            Card details are handled by Stripe and never touch our servers.
-            Nothing starts until your payment clears.
-          </p>
+          <div className="mt-6 border-t border-line pt-5">
+            <Button
+              variant="primary"
+              size="large"
+              fullWidth
+              loading={preparing}
+              onClick={() => void beginPayment()}
+              iconLeft={<LockSimpleIcon size={16} aria-hidden="true" />}
+            >
+              Continue to payment
+            </Button>
+            <p className="type-caption mt-3 flex items-center justify-center gap-1.5 text-tertiary">
+              <ShieldCheckIcon size={14} aria-hidden="true" />
+              Card handled by Stripe. Nothing starts until payment clears.
+            </p>
+          </div>
+        </Card>
+      ) : (
+        <div className="mt-8">
+          {/* Order summary stays visible above the form — the founder should
+              never have to remember what they're paying for. */}
+          <Card className="p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span className="type-body-m text-secondary">
+                {estimate.nRequested} interviews, analysed and scored
+              </span>
+              <span className="type-data-l text-[20px] text-primary">
+                {money(estimate.totalCents)}
+              </span>
+            </div>
+          </Card>
+
+          <Card elevation="raised" className="mt-3 overflow-hidden p-1">
+            {stripePromise ? (
+              <EmbeddedCheckoutProvider
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  // Stripe's iframe can't read our CSS, so the theme has to be
+                  // passed explicitly or the form looks pasted on in dark mode.
+                  onComplete: () => {},
+                }}
+                key={theme}
+              >
+                <EmbeddedCheckout className="min-h-[520px]" />
+              </EmbeddedCheckoutProvider>
+            ) : null}
+          </Card>
+
+          <button
+            type="button"
+            onClick={() => setClientSecret(null)}
+            className="type-body-m mt-4 text-secondary hover:text-primary"
+          >
+            Change the number of interviews
+          </button>
         </div>
-      </Card>
+      )}
 
       <p className="type-body-m mt-6 max-w-prose text-tertiary">
         Responses land in the same pool as anything you gather yourself, so the
-        score is computed across everything together — not one number for your
-        interviews and another for ours.
+        score is computed across everything together.
       </p>
     </>
   );

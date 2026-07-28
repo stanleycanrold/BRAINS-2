@@ -33,13 +33,13 @@ export function QuestionsTab({
   ideaId,
   state,
   onUpdated,
-  fastTrackFromPrice,
+  fastTrackPerInterview,
   paymentsEnabled,
 }: {
   ideaId: string;
   state: IdeaState;
   onUpdated: (next: IdeaState) => void;
-  fastTrackFromPrice?: string;
+  fastTrackPerInterview?: string;
   paymentsEnabled?: boolean;
 }) {
   const { toast } = useToast();
@@ -136,7 +136,7 @@ export function QuestionsTab({
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <p className="type-body-m max-w-prose text-secondary">
+        <p className="type-body-m max-w-prose flex-1 text-secondary">
           Built from your research. Edit anything — you know how your people
           talk better than we do, and questions that sound like a survey get
           survey-quality answers.
@@ -152,16 +152,16 @@ export function QuestionsTab({
         </Button>
       </div>
 
-      {/* The offer sits here, between having the questions and having to go
-          use them — the moment the founder realises the questions are the easy
-          part. */}
-      {paymentsEnabled && fastTrackFromPrice ? (
-        <FastTrackTeaser
-          ideaId={ideaId}
-          fromPrice={fastTrackFromPrice}
-          responsesLogged={state.validation.responses.length}
-          className="mt-6"
-        />
+      {/* Offered beside the work, not on top of it: the founder now has the
+          questions and is about to discover that asking them is the slow part. */}
+      {paymentsEnabled && fastTrackPerInterview ? (
+        <div className="mt-5 flex justify-end">
+          <FastTrackTeaser
+            ideaId={ideaId}
+            perInterviewPrice={fastTrackPerInterview}
+            responsesLogged={state.validation.responses.length}
+          />
+        </div>
       ) : null}
 
       {/* ── Share link ─────────────────────────────────────────────────── */}

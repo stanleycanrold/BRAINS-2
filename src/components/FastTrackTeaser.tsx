@@ -1,122 +1,101 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import {
   UsersThreeIcon,
   ArrowRightIcon,
-  ClockIcon,
+  XIcon,
+  LightningIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
+import { useSessionFlag } from "@/lib/client-state";
 
 /**
- * The Fast Track offer, surfaced where it's actually relevant.
+ * The Fast Track offer.
  *
- * Placement is the whole argument: it appears when a founder is stalled part
- * way through gathering responses — the moment they've discovered that finding
- * ten of the right strangers is harder than building was. Selling it on the
- * pricing page or at signup would be selling to someone who hasn't hit the
- * problem yet.
+ * Two rules shaped this:
  *
- * The copy names the real friction rather than claiming a benefit. Founders
- * who have just failed to book interviews do not need to be told interviews
- * are valuable; they need to be told they can hand it over.
+ *  1. Lead with the PER-INTERVIEW price, never a total. "From $40 an
+ *     interview" invites someone in; "from $530" makes them close the tab
+ *     before they've seen that they choose the quantity. The total is honest
+ *     and unavoidable at checkout — it just shouldn't be the opening line.
+ *
+ *  2. Small and dismissible. This is an offer beside the founder's work, not
+ *     an interruption of it. A full-width block competes with the thing they
+ *     came to do; a compact card in the corner of the section stays available
+ *     without demanding anything.
  */
+
+const DISMISS_KEY = "brains-fasttrack-dismissed";
+
 export function FastTrackTeaser({
   ideaId,
-  fromPrice,
-  variant = "card",
+  perInterviewPrice,
   responsesLogged,
   className,
+  dismissible = true,
 }: {
   ideaId: string;
-  /** Formatted, e.g. "$590" — the realistic entry point, not a per-unit tease. */
-  fromPrice: string;
-  variant?: "card" | "inline";
+  /** Formatted per-interview price, e.g. "$40" — never a total. */
+  perInterviewPrice: string;
   responsesLogged?: number;
   className?: string;
+  dismissible?: boolean;
 }) {
-  const stalled = typeof responsesLogged === "number" && responsesLogged < 3;
+  // Dismissal sticks for the session only — see useSessionFlag.
+  const [dismissed, setDismissed] = useSessionFlag(DISMISS_KEY);
 
-  if (variant === "inline") {
-    return (
-      <Link
-        href={`/ideas/${ideaId}/validation/fast-track/checkout`}
-        className={cn(
-          "group flex items-center gap-2.5 rounded-[8px] border border-line bg-raised px-3.5 py-2.5",
-          "transition-colors duration-[120ms] hover:border-brand/40",
-          className,
-        )}
-      >
-        <UsersThreeIcon
-          size={18}
-          className="shrink-0 text-brand"
-          aria-hidden="true"
-        />
-        <span className="type-body-m min-w-0 flex-1 text-primary">
-          Want more interviews, analysed automatically?
-        </span>
-        <ArrowRightIcon
-          size={15}
-          aria-hidden="true"
-          className="shrink-0 text-tertiary transition-transform duration-[120ms] group-hover:translate-x-0.5"
-        />
-      </Link>
-    );
-  }
+  if (dismissible && dismissed) return null;
+
+  const stalled = typeof responsesLogged === "number" && responsesLogged < 3;
 
   return (
     <aside
       aria-labelledby="fast-track-teaser"
       className={cn(
-        "rounded-[12px] border border-brand/25 bg-brand-subtle p-5",
+        "relative w-full max-w-sm rounded-[10px] border border-brand/25 bg-brand-subtle p-4",
         className,
       )}
     >
-      <div className="flex items-start gap-3.5">
-        <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-raised">
-          <UsersThreeIcon size={20} className="text-brand" aria-hidden="true" />
-        </span>
+      {dismissible ? (
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss"
+          className="absolute top-2.5 right-2.5 rounded p-1 text-tertiary transition-colors hover:bg-wash-hover hover:text-primary"
+        >
+          <XIcon size={14} aria-hidden="true" />
+        </button>
+      ) : null}
 
-        <div className="min-w-0 flex-1">
-          <h3 id="fast-track-teaser" className="type-display-m text-primary">
-            {stalled
-              ? "Getting interviews done is the slow part"
-              : "More interviews, analysed for you"}
+      <div className="flex items-start gap-2.5">
+        <LightningIcon
+          size={18}
+          weight="fill"
+          className="mt-0.5 shrink-0 text-brand"
+          aria-hidden="true"
+        />
+        <div className="min-w-0 pr-4">
+          <h3 id="fast-track-teaser" className="type-body-l font-medium text-primary">
+            {stalled ? "Skip the hard part" : "Validate faster"}
           </h3>
 
-          <p className="type-body-l mt-2 max-w-prose text-secondary">
-            This is where most ideas stall — not because the founder gave up,
-            but because gathering enough conversations takes longer than
-            building did. Order a batch and our AI reads every interview, finds
-            what recurs across all of them, scores it, and puts the finished
-            report on your dashboard. The more you run, the more the result is
-            worth trusting.
+          <p className="type-body-m mt-1 text-secondary">
+            Get the interviews done and analysed for you — from{" "}
+            <span className="font-medium text-primary">
+              {perInterviewPrice} an interview
+            </span>
+            . You pick how many.
           </p>
-
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="type-body-m flex items-center gap-1.5 text-secondary">
-              <ClockIcon size={16} aria-hidden="true" />
-              Back in 1&ndash;2 weeks
-            </span>
-            <span className="type-body-m text-secondary">
-              From <span className="type-data-m text-primary">{fromPrice}</span>
-            </span>
-          </div>
 
           <Link
             href={`/ideas/${ideaId}/validation/fast-track/checkout`}
-            className={cn(
-              "type-body-m mt-4 inline-flex h-10 items-center gap-2 rounded-[6px] px-4 font-medium",
-              "bg-brand text-on-accent transition-colors duration-[120ms] hover:bg-brand-hover",
-            )}
+            className="type-body-m mt-2.5 inline-flex items-center gap-1.5 font-medium text-brand hover:underline"
           >
-            See what it costs
-            <ArrowRightIcon size={16} aria-hidden="true" />
+            See pricing
+            <ArrowRightIcon size={14} aria-hidden="true" />
           </Link>
-
-          <p className="type-caption mt-2.5 text-tertiary">
-            Nothing starts until your payment clears.
-          </p>
         </div>
       </div>
     </aside>
@@ -124,11 +103,46 @@ export function FastTrackTeaser({
 }
 
 /**
+ * A one-line variant for tight spaces — same offer, same per-interview
+ * framing, no card.
+ */
+export function FastTrackInline({
+  ideaId,
+  perInterviewPrice,
+  className,
+}: {
+  ideaId: string;
+  perInterviewPrice: string;
+  className?: string;
+}) {
+  return (
+    <Link
+      href={`/ideas/${ideaId}/validation/fast-track/checkout`}
+      className={cn(
+        "group inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand-subtle px-3 py-1.5",
+        "transition-colors duration-[120ms] hover:border-brand/50",
+        className,
+      )}
+    >
+      <UsersThreeIcon size={15} className="shrink-0 text-brand" aria-hidden="true" />
+      <span className="type-body-m text-primary">
+        Interviews done for you, from {perInterviewPrice} each
+      </span>
+      <ArrowRightIcon
+        size={13}
+        aria-hidden="true"
+        className="shrink-0 text-brand transition-transform duration-[120ms] group-hover:translate-x-0.5"
+      />
+    </Link>
+  );
+}
+
+/**
  * The rework loop, stated plainly.
  *
- * Founders treat a low score as a verdict on them and quietly abandon the
- * idea. Saying the loop is unlimited — and that nothing is thrown away —
- * is what turns a "rethink" into a next step instead of an exit.
+ * Founders read a low score as a verdict on them and quietly abandon the idea.
+ * Saying the loop is unlimited — and that nothing is thrown away — is what
+ * turns a "rethink" into a next step instead of an exit.
  */
 export function LoopReminder({ className }: { className?: string }) {
   return (

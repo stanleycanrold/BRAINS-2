@@ -15,7 +15,7 @@ import {
 } from "@/lib/domain/types";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
 import { paymentsEnabled } from "@/lib/stripe";
-import { FastTrackTeaser, LoopReminder } from "@/components/FastTrackTeaser";
+import { FastTrackInline, LoopReminder } from "@/components/FastTrackTeaser";
 
 export const metadata: Metadata = { title: "Your Ideas" };
 
@@ -32,7 +32,7 @@ const NEXT_STEP: Record<IdeaStatus, string> = {
   draft: "Pick up where you left off",
   researching: "See what we found",
   validating_normal: "Log what people told you",
-  validating_fast: "Check on your interviews",
+  validating_fast: "See how the interviews are going",
   gate_review: "Read your score",
   needs_rework: "Start the next round",
   passed: "Validated — ready to build",
@@ -86,6 +86,7 @@ export default async function DashboardPage() {
       idea.state.validation.responses.length < MIN_RESPONSES,
   );
 
+  // The per-interview rate, not a total — a total is a door people close.
   const teaserPrice = stalled
     ? formatMoney(
         (
@@ -93,7 +94,7 @@ export default async function DashboardPage() {
             tier: stalled.state.structured.niche_tier,
             n: 5,
           })
-        ).totalCents,
+        ).costPerInterviewCents,
       )
     : null;
 
@@ -110,13 +111,21 @@ export default async function DashboardPage() {
               : "Everything here has reached a decision."}
           </p>
         </div>
-        <Link
-          href="/ideas/new"
-          className="type-body-m inline-flex items-center gap-1.5 text-brand hover:underline"
-        >
-          Start another
-          <ArrowRightIcon size={15} aria-hidden="true" />
-        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          {stalled && teaserPrice && paymentsEnabled() ? (
+            <FastTrackInline
+              ideaId={stalled.id}
+              perInterviewPrice={teaserPrice}
+            />
+          ) : null}
+          <Link
+            href="/ideas/new"
+            className="type-body-m inline-flex items-center gap-1.5 text-brand hover:underline"
+          >
+            Start another
+            <ArrowRightIcon size={15} aria-hidden="true" />
+          </Link>
+        </div>
       </header>
 
       {live.length > 0 ? (
@@ -125,15 +134,6 @@ export default async function DashboardPage() {
             <IdeaCard key={idea.id} idea={idea} />
           ))}
         </div>
-      ) : null}
-
-      {stalled && teaserPrice && paymentsEnabled() ? (
-        <FastTrackTeaser
-          ideaId={stalled.id}
-          fromPrice={teaserPrice}
-          responsesLogged={stalled.state.validation.responses.length}
-          className="mt-6"
-        />
       ) : null}
 
       {live.length > 0 ? <LoopReminder className="mt-6" /> : null}
@@ -162,6 +162,9 @@ function IdeaCard({
   const gate = idea.state.decision_gate;
   const hasScore = Boolean(gate?.signal);
   const stage = stageForStatus(idea.status);
+  const fastTrackPaid =
+    idea.state.fast_track_order != null &&
+    idea.state.fast_track_order.status !== "pending_sourcing";
 
   return (
     <article
@@ -217,8 +220,21 @@ function IdeaCard({
         })}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <StatusBadge status={idea.status} />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={idea.status} />
+          {/* Say a paid round is running so the founder doesn't have to open
+              the idea to remember it's in hand — but only once payment has
+              actually cleared. The idea flips to validating_fast when checkout
+              OPENS, so keying off status alone would promise work on an
+              abandoned checkout. `pending_sourcing` means unpaid. */}
+          {fastTrackPaid ? (
+            <span className="type-caption inline-flex items-center gap-1.5 rounded-full bg-brand-subtle px-2.5 py-1 text-brand">
+              <span className="size-1.5 animate-pulse rounded-full bg-brand" />
+              Interviews running
+            </span>
+          ) : null}
+        </div>
         <span className="type-caption text-tertiary">
           {idea.versionNumber > 1 ? `v${idea.versionNumber} · ` : ""}
           {formatDistanceToNow(idea.updatedAt, { addSuffix: true })}

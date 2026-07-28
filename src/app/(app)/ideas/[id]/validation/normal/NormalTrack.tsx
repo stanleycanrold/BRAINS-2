@@ -63,12 +63,12 @@ const CONFIRMED_OPTIONS: {
 export function NormalTrack({
   ideaId,
   initialState,
-  fastTrackFromPrice,
+  fastTrackPerInterview,
   paymentsEnabled,
 }: {
   ideaId: string;
   initialState: IdeaState;
-  fastTrackFromPrice: string;
+  fastTrackPerInterview: string;
   paymentsEnabled: boolean;
 }) {
   const router = useRouter();
@@ -175,7 +175,7 @@ export function NormalTrack({
                 ideaId={ideaId}
                 state={state}
                 onUpdated={setState}
-                fastTrackFromPrice={fastTrackFromPrice}
+                fastTrackPerInterview={fastTrackPerInterview}
                 paymentsEnabled={paymentsEnabled}
               />
             </TabPanel>
@@ -193,12 +193,13 @@ export function NormalTrack({
                   while they're still short of a usable sample. It disappears
                   the moment they no longer need it. */}
               {paymentsEnabled && remaining > 0 ? (
-                <FastTrackTeaser
-                  ideaId={ideaId}
-                  fromPrice={fastTrackFromPrice}
-                  responsesLogged={total}
-                  className="mt-8"
-                />
+                <div className="mt-8 flex justify-end">
+                  <FastTrackTeaser
+                    ideaId={ideaId}
+                    perInterviewPrice={fastTrackPerInterview}
+                    responsesLogged={total}
+                  />
+                </div>
               ) : null}
             </TabPanel>
           ) : null}

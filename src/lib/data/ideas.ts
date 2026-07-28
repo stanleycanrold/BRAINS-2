@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
   emptyIdeaState,
@@ -177,9 +177,18 @@ export async function listIdeas(userId: string): Promise<IdeaWithState[]> {
 
   if (ideas.length === 0) return [];
 
+  // Scoped to this user's ideas. Selecting the whole table and filtering in
+  // memory worked, but cost a full scan on every dashboard load and grew with
+  // every other user's history.
   const versions = await db
     .select()
     .from(schema.ideaStateVersions)
+    .where(
+      inArray(
+        schema.ideaStateVersions.ideaId,
+        ideas.map((idea) => idea.id),
+      ),
+    )
     .orderBy(desc(schema.ideaStateVersions.versionNumber));
 
   const byIdea = new Map<string, typeof schema.ideaStateVersions.$inferSelect>();

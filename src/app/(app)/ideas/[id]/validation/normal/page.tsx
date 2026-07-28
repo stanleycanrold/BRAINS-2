@@ -21,8 +21,8 @@ export default async function NormalTrackPage({
   // Reached directly without picking a track — send them to choose first.
   if (!idea.state.validation.track) redirect(`/ideas/${id}/validation`);
 
-  // "From" price uses the realistic entry point for this idea's tier, not a
-  // per-interview number that would understate the true cost.
+  // Per-interview rate for the teaser. The full itemised total is shown at
+  // checkout, where the founder has chosen a quantity and it means something.
   const entry = await estimateFastTrack({
     tier: idea.state.structured.niche_tier,
     n: 5,
@@ -32,7 +32,7 @@ export default async function NormalTrackPage({
     <NormalTrack
       ideaId={id}
       initialState={idea.state}
-      fastTrackFromPrice={formatMoney(entry.totalCents, entry.currency)}
+      fastTrackPerInterview={formatMoney(entry.costPerInterviewCents, entry.currency)}
       paymentsEnabled={paymentsEnabled()}
     />
   );

@@ -68,12 +68,17 @@ async function main() {
         },
       },
     ],
-    success_url: "http://localhost:3001/success",
-    cancel_url: "http://localhost:3001/cancel",
+    // Must match the app: payment happens in-app via embedded checkout, so
+    // there is no hosted URL — a client_secret mounts the form instead. If
+    // this drifts from the route, the smoke test stops testing the real thing.
+    ui_mode: "embedded_page",
+    return_url:
+      "http://localhost:3001/ideas/x/validation/fast-track/status?session_id={CHECKOUT_SESSION_ID}",
   });
 
   check("session created", Boolean(session.id), session.id);
-  check("checkout URL returned", Boolean(session.url));
+  check("embedded client_secret returned", Boolean(session.client_secret));
+  check("no hosted redirect — payment stays in-app", !session.url);
   check(
     "Stripe total matches our estimate",
     session.amount_total === estimate.totalCents,
@@ -89,8 +94,10 @@ async function main() {
   console.log(
     hook
       ? "\n  webhook secret present — payment confirmation will work"
-      : "\n  NOTE: STRIPE_WEBHOOK_SECRET not set. Checkout will work, but orders\n" +
-        "        stay 'awaiting confirmation' until you run:\n" +
+      : "\n  NOTE: STRIPE_WEBHOOK_SECRET not set. Payment still confirms on\n" +
+        "        return from checkout — the reconcile route verifies the\n" +
+        "        session against Stripe directly. For confirmation that\n" +
+        "        survives a closed tab, run:\n" +
         "          stripe listen --forward-to localhost:3001/api/webhooks/stripe",
   );
 

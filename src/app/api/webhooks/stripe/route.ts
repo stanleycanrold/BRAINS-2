@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { markOrderPaid } from "@/lib/fast-track-fulfil";
 import { getStripe, paymentsEnabled } from "@/lib/stripe";
-import { ideaStateSchema } from "@/lib/domain/types";
 
 export const runtime = "nodejs";
 
@@ -60,13 +60,13 @@ export async function POST(request: Request) {
       case "checkout.session.completed": {
         const session = event.data.object;
         if (session.payment_status === "paid") {
-          await markOrderPaid(session);
+          await handlePaidSession(session);
         }
         break;
       }
 
       case "checkout.session.async_payment_succeeded":
-        await markOrderPaid(event.data.object);
+        await handlePaidSession(event.data.object);
         break;
 
       case "checkout.session.async_payment_failed":
@@ -88,42 +88,17 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
-async function markOrderPaid(session: Stripe.Checkout.Session) {
+async function handlePaidSession(session: Stripe.Checkout.Session) {
   const orderId = session.metadata?.order_id;
   if (!orderId) {
     console.error("[stripe webhook] session without order_id", session.id);
     return;
   }
 
-  const rows = await db
-    .select()
-    .from(schema.fastTrackOrders)
-    .where(eq(schema.fastTrackOrders.id, orderId))
-    .limit(1);
-
-  const order = rows[0];
-  if (!order) {
-    console.error("[stripe webhook] unknown order", orderId);
-    return;
-  }
-
-  // Idempotency: Stripe may deliver this more than once.
-  if (order.paymentStatus === "paid") return;
-
-  await db
-    .update(schema.fastTrackOrders)
-    .set({
-      paymentStatus: "paid",
-      paidAt: new Date(),
-      paymentRef: session.payment_intent
-        ? String(session.payment_intent)
-        : session.id,
-      // Payment verified — only NOW does this become an Ops work item.
-      status: "scheduling",
-    })
-    .where(eq(schema.fastTrackOrders.id, orderId));
-
-  await patchIdeaState(order.ideaStateVersionId, "scheduling");
+  // Shared with the return-from-checkout reconcile path so the two can't
+  // disagree about what "paid" means — see fast-track-fulfil.
+  const done = await markOrderPaid(session, orderId);
+  if (!done) console.error("[stripe webhook] unknown order", orderId);
 }
 
 async function markOrderFailed(session: Stripe.Checkout.Session) {
@@ -144,33 +119,4 @@ async function markOrderFailed(session: Stripe.Checkout.Session) {
     .update(schema.fastTrackOrders)
     .set({ paymentStatus: "failed" })
     .where(eq(schema.fastTrackOrders.id, orderId));
-}
-
-/** Mirrors order progress onto the idea-state object the UI reads. */
-async function patchIdeaState(
-  versionId: string,
-  status: "pending_sourcing" | "scheduling" | "in_progress" | "completed",
-) {
-  const rows = await db
-    .select()
-    .from(schema.ideaStateVersions)
-    .where(eq(schema.ideaStateVersions.id, versionId))
-    .limit(1);
-
-  const version = rows[0];
-  if (!version) return;
-
-  const state = ideaStateSchema.parse(version.stateJson);
-  if (!state.fast_track_order) return;
-
-  const next = {
-    ...state,
-    fast_track_order: { ...state.fast_track_order, status },
-    updated_at: new Date().toISOString(),
-  };
-
-  await db
-    .update(schema.ideaStateVersions)
-    .set({ stateJson: next, updatedAt: new Date() })
-    .where(eq(schema.ideaStateVersions.id, versionId));
 }
