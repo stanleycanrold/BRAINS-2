@@ -4,40 +4,89 @@
 <title>Motion check</title>
 <style>
   body { background:#1f1e1d; color:#f0efec; font-family:system-ui,sans-serif;
-         display:flex; flex-direction:column; align-items:center; gap:28px;
-         padding:48px 20px; text-align:center; }
-  @keyframes orbit { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
-  .mark { width:80px; height:80px; animation: orbit 8s linear infinite; }
-  .verdict { font-size:18px; font-weight:600; padding:12px 18px; border-radius:10px; }
-  .on  { background:#7b93f022; color:#7b93f0; }
-  .off { background:#e0666622; color:#e06666; }
-  .note { max-width:44ch; color:#a8a59e; line-height:1.5; }
+         display:flex; flex-direction:column; align-items:center; gap:22px;
+         padding:44px 20px; text-align:center; }
+  @keyframes localorbit { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+  .local { width:72px; height:72px; animation: localorbit 8s linear infinite; }
+  .row { display:flex; gap:48px; align-items:center; }
+  .cap { font-size:13px; color:#a8a59e; margin-top:8px }
+  .verdict { font-size:17px; font-weight:600; padding:12px 18px; border-radius:10px;
+             max-width:52ch; line-height:1.45 }
+  .on  { background:#7b93f022; color:#7b93f0 }
+  .off { background:#e0666622; color:#e06666 }
+  pre { font-size:12px; color:#a8a59e; background:#00000040; padding:12px 14px;
+        border-radius:8px; text-align:left; max-width:52ch; overflow:auto }
 </style>
 
-<h1 style="font-size:20px;margin:0">Is animation reaching your browser?</h1>
+<h1 style="font-size:19px;margin:0">Motion check</h1>
 
-<img class="mark" src="/brains-mark.png" alt="">
+<div class="row">
+  <div>
+    <img class="local" src="/brains-mark.png" alt="">
+    <div class="cap">This page's own CSS</div>
+  </div>
+  <div>
+    <!-- Uses the APP's stylesheet and the APP's real class name. -->
+    <span id="appmark" class="animate-orbit" style="display:block;width:72px;height:72px">
+      <img src="/brains-mark.png" alt="" style="width:100%;height:100%">
+    </span>
+    <div class="cap">The app's CSS</div>
+  </div>
+</div>
 
 <div id="verdict" class="verdict">checking…</div>
-<p class="note" id="note"></p>
+<pre id="detail"></pre>
 
 <script>
+(async () => {
+  const verdict = document.getElementById("verdict");
+  const detail = document.getElementById("detail");
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const v = document.getElementById("verdict");
-  const n = document.getElementById("note");
-  if (reduced) {
-    v.className = "verdict off";
-    v.textContent = "Reduced motion is ON for this device";
-    n.textContent =
-      "Your system is asking sites not to animate, and the app honours that, " +
-      "which is why the mark sits still. Windows: Settings > Accessibility > " +
-      "Visual effects > Animation effects.";
-  } else {
-    v.className = "verdict on";
-    v.textContent = "Reduced motion is OFF";
-    n.textContent =
-      "Animation is allowed here. If the mark above is spinning but the one " +
-      "in the app is not, the app is serving you a cached bundle: reload with " +
-      "Ctrl+Shift+R.";
+
+  // The sign-in page is public and loads the same stylesheet the app does,
+  // so we can borrow it without needing a session.
+  let injected = false;
+  try {
+    const html = await fetch("/sign-in", { credentials: "omit" }).then((r) => r.text());
+    const hrefs = [...html.matchAll(/href="([^"]+\.css[^"]*)"/g)].map((m) => m[1]);
+    for (const href of hrefs) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href.replace(/&amp;/g, "&");
+      document.head.appendChild(link);
+      injected = true;
+    }
+    await new Promise((r) => setTimeout(r, 900));
+  } catch (e) {
+    detail.textContent = "could not load the app stylesheet: " + e;
   }
+
+  const style = getComputedStyle(document.getElementById("appmark"));
+  const name = style.animationName;
+  const dur = style.animationDuration;
+  const works = name && name !== "none" && parseFloat(dur) > 0.1;
+
+  detail.textContent =
+    "reduced motion : " + reduced + "\n" +
+    "stylesheet     : " + (injected ? "loaded" : "NOT loaded") + "\n" +
+    "animation-name : " + name + "\n" +
+    "duration       : " + dur;
+
+  if (reduced) {
+    verdict.className = "verdict off";
+    verdict.textContent =
+      "Your device asks for reduced motion, and the app honours that. " +
+      "Windows: Settings > Accessibility > Visual effects > Animation effects.";
+  } else if (works) {
+    verdict.className = "verdict on";
+    verdict.textContent =
+      "The app's own rule animates correctly here. If the mark in the app " +
+      "still sits still, the app tab is running a cached bundle: reload it " +
+      "with Ctrl+Shift+R.";
+  } else {
+    verdict.className = "verdict off";
+    verdict.textContent =
+      "The app's rule is NOT animating. Send me the box below and I will fix it.";
+  }
+})();
 </script>
