@@ -111,12 +111,14 @@ export function IdeaComposer({
         </div>
 
         <div className="flex items-center gap-2 px-3 pt-1 pb-3">
-          {/* Attachments are a signed-in capability, so this points into the
-              product rather than pretending to accept a file here. */}
+          {/* Attaching a document is a signed-in capability. The control stays
+              visible so the capability is discoverable, but it sends you to
+              sign up rather than opening a file picker that could not do
+              anything useful with the file out here. */}
           <a
             href={signUpUrl}
-            aria-label="Attach documents (sign up first)"
-            title="Attach documents"
+            aria-label="Sign up to attach documents"
+            title="Sign up to attach documents"
             className={cn(
               "flex size-8 shrink-0 items-center justify-center rounded-full border border-line",
               "text-secondary transition-colors duration-[120ms]",
@@ -126,9 +128,9 @@ export function IdeaComposer({
             <PaperclipIcon size={15} aria-hidden="true" />
           </a>
 
-          <span className="type-caption min-w-0 flex-1 truncate text-tertiary">
-            Free to start. No card required.
-          </span>
+          {/* Deliberately empty. The reassurance line lives once, beneath the
+              composer, rather than being repeated inside it. */}
+          <span className="flex-1" aria-hidden="true" />
 
           <button
             type="button"

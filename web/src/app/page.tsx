@@ -129,24 +129,25 @@ export default function HomePage() {
       <MobileCta />
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <section className="pt-16 pb-14 sm:pt-24 sm:pb-16">
+      <section className="pt-14 pb-12 sm:pt-20 sm:pb-14">
         <Container>
           <div className="mx-auto max-w-[720px]">
-            <h1 className="type-display-xl text-center text-primary">
-              Talk to the right people.
-              <br />
-              Build the right thing.
+            <h1 className="text-[clamp(42px,6vw,72px)] font-semibold leading-[1.05] tracking-[-0.03em] text-center">
+              <span className="block text-white">Test fast.</span>
+              <span className="block text-brand">Build what sells.</span>
             </h1>
-            <p className="type-body-l mx-auto mt-5 max-w-[560px] text-center text-secondary">
-              We research whether the problem is real, find the people who
-              actually live it, and turn what they tell you into a score you
-              can defend.
+            <p className="type-body-l mx-auto mt-4 max-w-[560px] text-center text-secondary">
+              Validate with real people before you spend months building
+              something nobody asked for.
             </p>
 
-            <IdeaComposer className="mt-9" />
+            <IdeaComposer className="mt-8" />
 
+            {/* Says what happens next rather than repeating the reassurance
+                that used to sit inside the box too. Naming the signup here
+                costs nothing and stops it arriving as a surprise. */}
             <p className="type-caption mt-4 text-center tracking-[0.08em] text-tertiary uppercase">
-              Free to use. No card, no call.
+              Free to use. Create an account to see your report.
             </p>
           </div>
         </Container>
@@ -156,9 +157,6 @@ export default function HomePage() {
       <section className="pb-20 sm:pb-28">
         <Container>
           <ProductShowcase />
-          <p className="type-caption mt-3 text-center text-tertiary">
-            An illustrative report. The figures are made up, not a customer&rsquo;s.
-          </p>
 
           <div className="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {SHOWCASE_POINTS.map((point) => (
