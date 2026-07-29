@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpIcon, PaperclipIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl, signUpWithDraft } from "@/lib/urls";
 import { useTypewriter } from "@/lib/use-typewriter";
 
 /**
@@ -56,14 +56,11 @@ export function IdeaComposer({
   }, [value]);
 
   function submit() {
-    const trimmed = value.trim();
-    // Signup carries the context through rather than making anyone retype
-    // what they already gave us (UX guide, Part 10). This raw query param is
-    // an interim mechanism; it becomes a signed short-lived token once Clerk
-    // satellite domains are wired up.
-    router.push(
-      trimmed ? `${signUpUrl}?draft=${encodeURIComponent(trimmed)}` : signUpUrl,
-    );
+    // Signup carries the idea through rather than making anyone retype what
+    // they already gave us (UX guide, Part 10). The app reads it back off the
+    // query string and seeds its own composer with it. A raw param for now; it
+    // becomes a signed short-lived token once Clerk satellite domains are up.
+    router.push(signUpWithDraft(value));
   }
 
   function onKeyDown(event: React.KeyboardEvent) {

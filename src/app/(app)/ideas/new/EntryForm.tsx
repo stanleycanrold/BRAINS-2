@@ -101,11 +101,18 @@ const STARTERS = [
   },
 ];
 
-export function EntryForm({ compact = false }: { compact?: boolean }) {
+export function EntryForm({
+  compact = false,
+  initialDescription = "",
+}: {
+  compact?: boolean;
+  /** Seeded from ?draft= when someone typed their idea before signing up. */
+  initialDescription?: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [description, setDescription] = React.useState("");
+  const [description, setDescription] = React.useState(initialDescription);
   const [attachments, setAttachments] = React.useState<Attachment[]>([]);
   const [reading, setReading] = React.useState(false);
 
@@ -382,7 +389,13 @@ export function EntryForm({ compact = false }: { compact?: boolean }) {
  * during render is what produces hydration mismatches, and the novelty wears
  * off long before the thousandth visit anyway.
  */
-export function EntryScreen({ heading }: { heading: string }) {
+export function EntryScreen({
+  heading,
+  initialDescription = "",
+}: {
+  heading: string;
+  initialDescription?: string;
+}) {
   return (
     /**
      * Two layouts, one component.
@@ -419,7 +432,7 @@ export function EntryScreen({ heading }: { heading: string }) {
       </div>
 
       <div className="pb-4 sm:mt-8 sm:pb-0">
-        <EntryForm />
+        <EntryForm initialDescription={initialDescription} />
       </div>
 
       <Highlights />

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Button } from "./Button";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
 import { cn } from "@/lib/cn";
 
 /**

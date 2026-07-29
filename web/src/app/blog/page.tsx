@@ -3,7 +3,7 @@ import { Container } from "@/components/Container";
 import { Section } from "@/components/Section";
 import { Button } from "@/components/Button";
 import { MobileCta } from "@/components/MobileCta";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
 
 export const metadata: Metadata = {
   title: "Blog",

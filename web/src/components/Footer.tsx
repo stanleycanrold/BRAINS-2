@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { Container } from "./Container";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
 
 /**
  * Four columns (UX guide 2.2). "Validate by category" is real internal-link

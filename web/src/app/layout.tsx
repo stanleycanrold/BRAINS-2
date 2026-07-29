@@ -3,9 +3,8 @@ import { fontVariables } from "@/lib/fonts";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
+import { SITE_URL } from "@/lib/urls";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

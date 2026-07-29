@@ -7,7 +7,7 @@ import { ListIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { Logo } from "./Logo";
 import { Button } from "./Button";
 import { Container } from "./Container";
-import { signInUrl, signUpUrl } from "@/lib/app-url";
+import { signInUrl, signUpUrl } from "@/lib/urls";
 import { cn } from "@/lib/cn";
 
 /**

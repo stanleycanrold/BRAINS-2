@@ -8,7 +8,8 @@ import { IdeaComposer } from "@/components/IdeaComposer";
 import { Faq, FaqJsonLd, type FaqItem } from "@/components/Faq";
 import { MobileCta } from "@/components/MobileCta";
 import { Button } from "@/components/Button";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
+import { SITE_URL } from "@/lib/urls";
 
 /**
  * The pSEO template, as one real page rather than a generator.
@@ -26,8 +27,6 @@ import { signUpUrl } from "@/lib/app-url";
  * immediately, or once they have read enough to trust it.
  */
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
 export const metadata: Metadata = {
   title: "How to validate a marketplace startup idea before you build it",

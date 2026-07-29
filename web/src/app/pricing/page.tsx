@@ -5,7 +5,7 @@ import { Section, SectionHeading } from "@/components/Section";
 import { Button } from "@/components/Button";
 import { Faq, FaqJsonLd, type FaqItem } from "@/components/Faq";
 import { MobileCta } from "@/components/MobileCta";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
 
 export const metadata: Metadata = {
   title: "Pricing",

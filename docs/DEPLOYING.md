@@ -51,8 +51,14 @@ the shared package was, so nothing was lost except a build failure.
 ### 2. Environment variables
 
 **Settings → Environment Variables.** Both are public (`NEXT_PUBLIC_`), so
-neither is a secret, but both must be set or links will point at localhost in
-production.
+neither is a secret.
+
+Neither is strictly required any more: a production build defaults to the
+real domains, and only `next dev` falls back to localhost. That default is
+there because an earlier deploy shipped a Sign up button pointing at the
+visitor's own machine when the variable was missing. Set them anyway, so a
+preview or staging deploy can be pointed somewhere else without a code
+change.
 
 | Name | Production value |
 |---|---|

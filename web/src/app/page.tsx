@@ -16,7 +16,7 @@ import { Section, SectionHeading } from "@/components/Section";
 import { IdeaComposer } from "@/components/IdeaComposer";
 import { ProductShowcase } from "@/components/ProductShowcase";
 import { MobileCta } from "@/components/MobileCta";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
 
 /**
  * Section order follows the visitor's real question sequence (UX guide 3):

@@ -6,10 +6,9 @@ import { Section } from "@/components/Section";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { MobileCta } from "@/components/MobileCta";
 import { Button } from "@/components/Button";
-import { signUpUrl } from "@/lib/app-url";
+import { signUpUrl } from "@/lib/urls";
+import { SITE_URL } from "@/lib/urls";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
 export const metadata: Metadata = {
   title: "Validation guides by idea type",
