@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@import "@brains-ai/tokens/tokens.css";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BRAINS AI - Marketing site shell rules
+
+   Everything above this line (palette, type roles, radii, shadows) comes from
+   the shared @brains-ai/tokens package and must not diverge from the app.
+   Everything below is specific to this shell: wider max-width, top nav, more
+   decorative license - per the design system's own appendix.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 26px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Visible keyboard focus everywhere, never a browser default. Matches the
+   app's own accessibility floor (design system Part 5). */
+:focus-visible {
+  outline: 2px solid var(--accent-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Motion budget: hover/focus only, 120ms, same as the app. No scroll-triggered
+   reveals, no ambient background motion - restrained even where the shell
+   affords more decorative license (design system §1.6, Part 6). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

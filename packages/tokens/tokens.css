@@ -1,0 +1,258 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BRAINS AI — Shared brand tokens
+
+   The single source of truth for color, type role, radius, and shadow tokens
+   shared between the app (app.nexabrains.io) and the marketing site
+   (nexabrains.io). Per the design system's own appendix: the two properties
+   use different shells (sidebar vs. top nav, 960px vs. 1120px, different
+   motion budget) on purpose, but the palette, type roles, and the Score gauge
+   itself carry over unchanged — that's what keeps them reading as one brand.
+
+   Snapshot, not a live import: this is copied from the app's own
+   src/app/globals.css, not re-exported from it, so the two apps can each
+   build independently. If the app's palette changes, port the change here by
+   hand — nothing keeps this file in sync automatically.
+
+   Consuming app's globals.css should `@import "tailwindcss";` first, then
+   `@import "@brains-ai/tokens/tokens.css";`, before adding any of its own
+   shell-specific rules.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="light"] {
+  /* Surfaces */
+  --surface-page: #f7f8fa;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f2;
+  --surface-inset: #eef0f2;
+  --surface-sidebar: #f7f8fa;
+
+  /* Borders */
+  --border-default: #dee1e5;
+  --border-strong: #c4c9cf;
+
+  /* Text */
+  --text-primary: #14181f;
+  --text-secondary: #6b7480;
+  --text-tertiary: #9aa2ab;
+  --text-on-accent: #ffffff;
+
+  /* Brand */
+  --accent-brand: #14267a;
+  --accent-brand-hover: #101f66;
+  --accent-brand-active: #0c1852;
+  --accent-brand-subtle: rgb(20 38 122 / 0.08);
+  --accent-brand-subtle-strong: rgb(20 38 122 / 0.14);
+
+  /* The logo mark's own blue. Used ONLY for the mark itself, never for UI. */
+  --brand-mark: #2563eb;
+
+  /* Status — never used decoratively, never outside status contexts */
+  --status-success: #2f8f5b;
+  --status-success-subtle: rgb(47 143 91 / 0.1);
+  --status-caution: #c67c1e;
+  --status-caution-subtle: rgb(198 124 30 / 0.1);
+  --status-danger: #b3433d;
+  --status-danger-subtle: rgb(179 67 61 / 0.1);
+  --status-danger-border: rgb(179 67 61 / 0.3);
+  --status-neutral-subtle: rgb(222 225 229 / 0.85);
+
+  /* Elevation — two levels only */
+  --shadow-raised: 0 1px 3px rgb(20 24 31 / 0.08);
+  --shadow-raised-hover: 0 4px 12px rgb(20 24 31 / 0.1);
+  --shadow-overlay: 0 12px 32px rgb(20 24 31 / 0.16);
+
+  /* Interaction wash — the "6% / 12%" hover & active shift */
+  --wash-hover: rgb(20 24 31 / 0.04);
+  --wash-active: rgb(20 24 31 / 0.08);
+  --wash-row-hover: rgb(20 24 31 / 0.03);
+
+  /* Scrim */
+  --scrim: rgb(20 24 31 / 0.4);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  /* A WARM neutral dark, not a cool blue-black — matches the app exactly. */
+  --surface-page: #1f1e1d;
+  --surface-raised: #292827;
+  --surface-sunken: #171716;
+  --surface-inset: #302f2d;
+  --surface-sidebar: #1f1e1d;
+
+  --border-default: #3a3936;
+  --border-strong: #4e4c48;
+
+  --text-primary: #f0efec;
+  --text-secondary: #a8a59e;
+  --text-tertiary: #7d7a74;
+  --text-on-accent: #ffffff;
+
+  --accent-brand: #7b93f0;
+  --accent-brand-hover: #92a6f4;
+  --accent-brand-active: #a5b5f7;
+  --accent-brand-subtle: rgb(123 147 240 / 0.14);
+  --accent-brand-subtle-strong: rgb(123 147 240 / 0.22);
+
+  --brand-mark: #6f8ef5;
+
+  --status-success: #7ecfa3;
+  --status-success-subtle: rgb(126 207 163 / 0.14);
+  --status-caution: #e5b475;
+  --status-caution-subtle: rgb(229 180 117 / 0.14);
+  --status-danger: #e09b96;
+  --status-danger-subtle: rgb(224 155 150 / 0.14);
+  --status-danger-border: rgb(224 155 150 / 0.35);
+  --status-neutral-subtle: rgb(58 57 54 / 0.9);
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-raised-hover: 0 4px 14px rgb(0 0 0 / 0.45);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.55);
+
+  --wash-hover: rgb(240 239 236 / 0.055);
+  --wash-active: rgb(240 239 236 / 0.09);
+  --wash-row-hover: rgb(240 239 236 / 0.035);
+
+  --scrim: rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+/* ── Tailwind v4 theme bridge ─────────────────────────────────────────────
+   Exposes the semantic tokens above as Tailwind utilities so components can
+   write `bg-raised` / `text-secondary` instead of arbitrary values. Every
+   consuming app's globals.css gets this for free via the import above. */
+
+@theme inline {
+  --color-page: var(--surface-page);
+  --color-raised: var(--surface-raised);
+  --color-sunken: var(--surface-sunken);
+  --color-sidebar: var(--surface-sidebar);
+  --color-inset: var(--surface-inset);
+
+  --color-line: var(--border-default);
+  --color-line-strong: var(--border-strong);
+
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-tertiary: var(--text-tertiary);
+  --color-on-accent: var(--text-on-accent);
+
+  --color-brand: var(--accent-brand);
+  --color-brand-hover: var(--accent-brand-hover);
+  --color-brand-active: var(--accent-brand-active);
+  --color-brand-subtle: var(--accent-brand-subtle);
+  --color-brand-subtle-strong: var(--accent-brand-subtle-strong);
+  --color-mark: var(--brand-mark);
+
+  --color-success: var(--status-success);
+  --color-success-subtle: var(--status-success-subtle);
+  --color-caution: var(--status-caution);
+  --color-caution-subtle: var(--status-caution-subtle);
+  --color-danger: var(--status-danger);
+  --color-danger-subtle: var(--status-danger-subtle);
+  --color-danger-border: var(--status-danger-border);
+  --color-neutral-subtle: var(--status-neutral-subtle);
+
+  --color-wash-hover: var(--wash-hover);
+  --color-wash-active: var(--wash-active);
+  --color-wash-row: var(--wash-row-hover);
+  --color-scrim: var(--scrim);
+
+  /* Typefaces — three roles, deliberately not one grotesk for all */
+  --font-display: var(--font-general-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Radii — 999px reserved exclusively for badges & segmented control */
+  --radius-button: 6px;
+  --radius-card: 8px;
+  --radius-input: 8px;
+  --radius-modal: 12px;
+
+  --shadow-raised: var(--shadow-raised);
+  --shadow-raised-hover: var(--shadow-raised-hover);
+  --shadow-overlay: var(--shadow-overlay);
+}
+
+/* ── Type scale — base 16px / 1.25 ratio ──────────────────────────────────
+   The "type roles carry over unchanged" half of the design system's own
+   appendix. A consuming app's shell can be as different as it likes; these
+   class definitions should not diverge between the app and the site, since
+   they're the actual signature that makes both read as the same brand. */
+
+.type-display-xl {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.type-display-l {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.015em;
+}
+
+.type-display-m {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+}
+
+.type-body-l {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.type-body-m {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.type-caption {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+/* Data/Mono — anything measured, never anything written.
+   tabular-nums is non-negotiable: the Score must not reflow as it animates. */
+.type-data-l {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.type-data-m {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.type-data-s {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
