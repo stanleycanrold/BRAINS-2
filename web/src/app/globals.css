@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@brains-ai/tokens/tokens.css";
+@import "./tokens.css";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BRAINS AI - Marketing site shell rules

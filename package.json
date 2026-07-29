@@ -2,14 +2,10 @@
   "name": "brains-ai",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "web",
-    "packages/*"
-  ],
   "scripts": {
     "dev": "next dev",
-    "dev:web": "npm run dev -w web",
-    "build:web": "npm run build -w web",
+    "dev:web": "npm --prefix web run dev",
+    "build:web": "npm --prefix web run build",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

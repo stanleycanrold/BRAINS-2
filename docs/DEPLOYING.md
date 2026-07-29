@@ -1,8 +1,8 @@
 # Deploying — Vercel setup
 
-This repo holds two deployables. They share a git repository and a small
-tokens package, but they are **two separate Vercel projects**, each pointed at
-a different folder in the same repo.
+This repo holds two deployables. They share a git repository and nothing
+else: each is a self-contained npm project, and they are **two separate
+Vercel projects**, each pointed at a different folder in the same repo.
 
 | What | Folder | Domain |
 |---|---|---|
@@ -35,10 +35,18 @@ Then, before the first deploy, open **Settings → Build and Deployment**:
 that is easy to miss.** Without it Vercel builds the app at the repo root and
 deploys the wrong thing to the marketing domain.
 
-Leave Install Command alone. This is an npm workspaces monorepo, and Vercel
-detects the workspace root from `package-lock.json` and installs from there,
-which is what makes the `@brains-ai/tokens` import resolve. Overriding the
-install command with something scoped to `web/` will break that import.
+Leave Install Command alone. `web/` is a standalone npm project with its own
+`package.json` and no dependencies on anything outside its own folder, so a
+plain `npm install` inside it is all that is needed.
+
+It was briefly an npm workspace sharing a `@brains-ai/tokens` package with the
+app, and that is what made the first Vercel deploy fail with
+`Command "npm install" exited with 1`: with Root Directory set to `web`,
+install ran inside that folder, and the workspace sibling was not resolvable
+from there, so npm went looking for it on the public registry and got a 404.
+The tokens now live at `web/src/app/tokens.css`, imported by relative path.
+They are still a manual snapshot of the app's own `globals.css`, exactly as
+the shared package was, so nothing was lost except a build failure.
 
 ### 2. Environment variables
 
@@ -112,7 +120,7 @@ Step** under Settings → Git.
 For the **web** project:
 
 ```sh
-git diff --quiet HEAD^ HEAD -- web packages
+git diff --quiet HEAD^ HEAD -- web
 ```
 
 For the **app** project:

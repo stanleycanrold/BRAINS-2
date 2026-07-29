@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The marketing site is a separate project with its own eslint config
+    // and its own node_modules. Linting it from here would scan its
+    // dependencies and apply the wrong path aliases.
+    "web/**",
   ]),
 ]);
 
