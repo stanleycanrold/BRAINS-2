@@ -101,6 +101,7 @@ export function TrackSelection({
       <ValidationInProgress
         ideaId={ideaId}
         state={initialState}
+        paymentsEnabled={paymentsEnabled}
         className="mt-6"
       />
 

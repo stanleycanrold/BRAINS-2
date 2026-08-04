@@ -3,7 +3,6 @@ import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
 import { Container } from "@/components/Container";
 import { Section } from "@/components/Section";
 import { Button } from "@/components/Button";
-import { SampleReport } from "@/components/SampleReport";
 import { MobileCta } from "@/components/MobileCta";
 import { signUpUrl } from "@/lib/urls";
 
@@ -98,8 +97,10 @@ export default function HowItWorksPage() {
       ))}
 
       {/* Step 4 earns more room than the others: "can I trust an AI's
-          verdict?" is where skepticism peaks on this page, and the honest
-          answer is showing the artifact rather than describing it. */}
+          verdict?" is where skepticism peaks on this page. The honest answer
+          is not a mocked-up report with invented numbers - it is telling
+          someone what a real one contains and letting them go generate their
+          own, which the closing section below sends them to do. */}
       <Section bordered tone="sunken">
         <div className="mx-auto max-w-[720px]">
           <p className="type-data-s text-tertiary">04</p>
@@ -111,13 +112,6 @@ export default function HowItWorksPage() {
             response, the risk factors, and the raw responses themselves are
             all there to check yourself. If the sample is too small to trust
             yet, the report says so plainly rather than rounding up.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-10 max-w-[720px]">
-          <SampleReport />
-          <p className="type-caption mt-3 text-center text-tertiary">
-            An illustrative report. The numbers are made up, not a customer&rsquo;s.
           </p>
         </div>
 

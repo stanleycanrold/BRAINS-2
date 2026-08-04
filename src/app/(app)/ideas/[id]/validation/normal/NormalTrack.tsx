@@ -161,6 +161,7 @@ export function NormalTrack({
         <ValidationInProgress
           ideaId={ideaId}
           state={state}
+          paymentsEnabled={paymentsEnabled}
           bare
           className="mt-5"
         />

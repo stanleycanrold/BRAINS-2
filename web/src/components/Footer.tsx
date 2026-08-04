@@ -22,9 +22,9 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   {
     title: "Validate",
     links: [
-      { href: "/validate", label: "All guides" },
+      { href: "/validation", label: "All guides" },
       {
-        href: "/validate/marketplace-startup-idea",
+        href: "/validation/marketplace-startup-idea",
         label: "Marketplace ideas",
       },
     ],
@@ -33,14 +33,14 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     title: "Company",
     links: [
       { href: "/about", label: "About" },
-      { href: "/blog", label: "Blog" },
+      { href: "/validation", label: "Answers" },
     ],
   },
   {
     title: "Get started",
     links: [
       { href: signUpUrl, label: "Create an account" },
-      { href: "/how-it-works", label: "See a sample report" },
+      { href: "/how-it-works", label: "How it works" },
     ],
   },
 ];

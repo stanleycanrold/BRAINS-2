@@ -60,6 +60,24 @@ export function canMarketFastTrack(state: IdeaState): boolean {
   return validationStage(state) === "not_started";
 }
 
+/**
+ * Whether the checkout page can actually be reached.
+ *
+ * A different question from `canMarketFastTrack`: that one asks "should we
+ * pitch this?", this one asks "will the link work?". Any surface that offers
+ * to hand the interviews over has to ask BOTH, because checkout redirects away
+ * when Stripe isn't configured or research hasn't run - and from a round that
+ * is already underway that redirect lands right back on the page the founder
+ * clicked from. The result is a link that reads as broken rather than as
+ * unavailable, which is worse than not offering it at all.
+ */
+export function canBuyFastTrack(
+  state: IdeaState,
+  paymentsEnabled: boolean,
+): boolean {
+  return paymentsEnabled && state.research_report != null;
+}
+
 /** Whether a round is running - paid or self-serve. */
 export function isValidationRunning(state: IdeaState): boolean {
   const stage = validationStage(state);

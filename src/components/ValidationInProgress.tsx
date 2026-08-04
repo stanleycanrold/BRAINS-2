@@ -7,7 +7,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
 import type { IdeaState } from "@/lib/domain/types";
-import { validationStage } from "@/lib/validation-stage";
+import { canBuyFastTrack, validationStage } from "@/lib/validation-stage";
 
 /**
  * States that this round is already running.
@@ -19,16 +19,20 @@ import { validationStage } from "@/lib/validation-stage";
  *
  * When they're doing it themselves it still carries the option to hand the
  * interviews over, because that remains genuinely useful mid-round - but as a
- * plain line of text, not a pitch competing with their work.
+ * plain line of text, not a pitch competing with their work. That option is
+ * only shown when checkout can actually be reached: see canBuyFastTrack.
  */
 export function ValidationInProgress({
   ideaId,
   state,
+  paymentsEnabled,
   className,
   bare,
 }: {
   ideaId: string;
   state: IdeaState;
+  /** Whether Stripe is configured. Without it checkout has nowhere to go. */
+  paymentsEnabled: boolean;
   className?: string;
   /** Drops the panel chrome, for when it sits inside a card already. */
   bare?: boolean;
@@ -39,6 +43,7 @@ export function ValidationInProgress({
   if (stage === "not_started") return null;
 
   const logged = state.validation.responses.length;
+  const buyable = canBuyFastTrack(state, paymentsEnabled);
 
   if (stage === "awaiting_payment") {
     return (
@@ -48,10 +53,14 @@ export function ValidationInProgress({
         icon={<ClockIcon size={16} className="text-caution" aria-hidden="true" />}
         title="Payment not finished"
         body="Your Fast Track order is held but hasn't been paid for, so nothing has started yet."
-        action={{
-          href: `/ideas/${ideaId}/validation/fast-track/checkout`,
-          label: "Finish payment",
-        }}
+        action={
+          buyable
+            ? {
+                href: `/ideas/${ideaId}/validation/fast-track/checkout`,
+                label: "Finish payment",
+              }
+            : undefined
+        }
       />
     );
   }
@@ -117,10 +126,16 @@ export function ValidationInProgress({
       }
       // Kept available but not sold: mid-round is exactly when handing the
       // interviews over becomes attractive, and hiding it would be unhelpful.
-      action={{
-        href: `/ideas/${ideaId}/validation/fast-track/checkout`,
-        label: "Have them run for you instead",
-      }}
+      // Only when it leads somewhere, though - unreachable checkout bounces
+      // back to this very page, which reads as a link that does nothing.
+      action={
+        buyable
+          ? {
+              href: `/ideas/${ideaId}/validation/fast-track/checkout`,
+              label: "Have them run for you instead",
+            }
+          : undefined
+      }
     />
   );
 }
@@ -137,7 +152,8 @@ function Flag({
   icon: React.ReactNode;
   title: string;
   body: string;
-  action: { href: string; label: string };
+  /** Omitted when there is nowhere useful to send them. */
+  action?: { href: string; label: string };
   live?: boolean;
   className?: string;
   bare?: boolean;
@@ -164,13 +180,15 @@ function Flag({
             ) : null}
           </h3>
           <p className="type-body-m mt-1 text-secondary">{body}</p>
-          <Link
-            href={action.href}
-            className="type-body-m mt-1.5 inline-flex items-center gap-1 text-brand hover:underline"
-          >
-            {action.label}
-            <ArrowRightIcon size={13} aria-hidden="true" />
-          </Link>
+          {action ? (
+            <Link
+              href={action.href}
+              className="type-body-m mt-1.5 inline-flex items-center gap-1 text-brand hover:underline"
+            >
+              {action.label}
+              <ArrowRightIcon size={13} aria-hidden="true" />
+            </Link>
+          ) : null}
         </div>
       </div>
     </aside>

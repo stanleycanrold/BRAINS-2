@@ -48,3 +48,6 @@ web/.vercel
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Archive of the unzipped brainscontentintelligence/ docs, which are tracked.
+brainscontentintelligence.zip

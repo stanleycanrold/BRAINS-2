@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/pricing-math";
 import type { IdeaState } from "@/lib/domain/types";
-import { validationStage } from "@/lib/validation-stage";
+import { canBuyFastTrack, validationStage } from "@/lib/validation-stage";
 
 /**
  * The always-there Fast Track action, top right of every idea screen.
@@ -28,17 +28,33 @@ import { validationStage } from "@/lib/validation-stage";
  */
 
 /**
+ * Whether checkout is open for business, and at what rate.
+ *
+ * These have to travel together. Collapsing them to a bare price meant "still
+ * loading" and "Stripe isn't configured" looked identical, so the button drew
+ * itself without a price and sent people to a checkout page that redirects
+ * straight back - a link that appears to do nothing when clicked.
+ */
+type Rates = { enabled: boolean; cents: number | null };
+
+/**
  * Cached across mounts - the rate doesn't change within a session, and it is
  * the same floor price for every idea, so one fetch serves the whole app.
  */
-let ratePromise: Promise<number | null> | null = null;
+let ratePromise: Promise<Rates> | null = null;
 
-function fetchRate(): Promise<number | null> {
+function fetchRates(): Promise<Rates> {
   if (!ratePromise) {
     ratePromise = fetch("/api/pricing/rates")
       .then((r) => r.json())
-      .then((body) => (body.enabled ? body.cost_per_interview : null))
-      .catch(() => null);
+      .then((body) => ({
+        enabled: Boolean(body.enabled),
+        cents:
+          typeof body.cost_per_interview === "number"
+            ? body.cost_per_interview
+            : null,
+      }))
+      .catch(() => ({ enabled: false, cents: null }));
   }
   return ratePromise;
 }
@@ -52,12 +68,12 @@ export function FastTrackButton({
 }) {
   const router = useRouter();
   const stage = validationStage(state);
-  const [rate, setRate] = React.useState<number | null>(null);
+  const [rates, setRates] = React.useState<Rates | null>(null);
 
   React.useEffect(() => {
     let live = true;
-    void fetchRate().then((value) => {
-      if (live) setRate(value);
+    void fetchRates().then((value) => {
+      if (live) setRates(value);
     });
     return () => {
       live = false;
@@ -66,6 +82,18 @@ export function FastTrackButton({
 
   // Nothing to buy or track until there's research to build questions from.
   if (!state.research_report) return null;
+
+  /**
+   * The three buying stages all point at checkout, so they only exist while
+   * checkout does. `rates === null` is the moment before the fetch lands: the
+   * button waits rather than flashing an offer it might have to withdraw.
+   */
+  const buyable = canBuyFastTrack(state, rates?.enabled === true);
+  const needsCheckout =
+    stage === "not_started" || stage === "self_serve" || stage === "awaiting_payment";
+  if (needsCheckout && !buyable) return null;
+
+  const rate = rates?.cents ?? null;
 
   const view = {
     not_started: {

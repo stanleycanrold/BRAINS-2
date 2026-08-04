@@ -321,12 +321,18 @@ export function EntryForm({
           to get someone unstuck, not to sit under a paragraph they have
           already written. */}
       {description.length === 0 ? (
-        // One scrolling row on a phone, wrapped and centred once there is
-        // room. Four long labels wrapping into four stacked lines was most of
-        // what made this screen look broken on mobile. The row bleeds to the
-        // screen edge so it reads as scrollable rather than clipped.
-        <div className="mt-3 hidden sm:block">
-          <div className="flex flex-wrap justify-center gap-2">
+        /**
+         * One scrolling row on a phone, wrapped and centred once there is
+         * room. Four long labels wrapping into four stacked lines was most of
+         * what made this screen look broken on mobile, so below `sm` they stay
+         * on one line and the row scrolls sideways instead of growing
+         * downwards - which matters on a screen that deliberately does not
+         * scroll. The negative margin cancels the shell's page padding so the
+         * row runs to the screen edge and reads as scrollable rather than
+         * clipped.
+         */
+        <div className="-mx-4 mt-3 overflow-x-auto px-4 sm:mx-0 sm:overflow-x-visible sm:px-0">
+          <div className="flex gap-2 sm:flex-wrap sm:justify-center">
             {STARTERS.map((starter) => (
               <button
                 key={starter.label}

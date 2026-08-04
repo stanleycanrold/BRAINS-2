@@ -2,7 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpIcon, PaperclipIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowUpIcon,
+  PaperclipIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
 import { signUpUrl, signUpWithDraft } from "@/lib/urls";
 import { useTypewriter } from "@/lib/use-typewriter";
@@ -24,6 +28,12 @@ import { useTypewriter } from "@/lib/use-typewriter";
  * instead of discarding it, and becomes the real widget in place later.
  */
 
+/**
+ * Duplicated from the app's entry screen rather than shared, because `web` is
+ * a standalone Next app that cannot import across the boundary. Both lists
+ * have to be edited together - the point of this component is that the two
+ * boxes are indistinguishable.
+ */
 const EXAMPLES = [
   "A tool for freelancers who lose hours chasing unpaid invoices…",
   "A marketplace putting small farms in touch with restaurants…",
@@ -31,15 +41,69 @@ const EXAMPLES = [
   "An app for parents splitting the childcare run each week…",
 ];
 
+/**
+ * Starters, not categories.
+ *
+ * Each one seeds the shape of a usable answer rather than a label, because
+ * what makes research good is naming who has the problem and what they do
+ * about it today. A blank box gets "an app for fitness"; this gets something
+ * the agent can actually search for.
+ */
+export type Starter = { label: string; seed: string };
+
+/**
+ * A niche guide's business type, shown as a visible, dismissible tag rather
+ * than left implicit in the starter text underneath it.
+ *
+ * A starter you have to open to read is easy to miss on a page you arrived
+ * at from search; a tag sitting on the tool itself says "this is set up for
+ * your kind of business" before anyone has typed a word. Dismissible because
+ * it is a convenience, not a constraint - a marketplace founder testing an
+ * unrelated feature idea should not have to work around a label that no
+ * longer applies to what they are typing.
+ */
+export type ComposerFacet = { label: string };
+
+const STARTERS: Starter[] = [
+  {
+    label: "A tool for a job people do already",
+    seed: "We're building a tool for [who]. Today they [how they handle it now], which means [what goes wrong]. ",
+  },
+  {
+    label: "A marketplace",
+    seed: "We're building a marketplace connecting [one side] with [other side]. Right now they find each other by [current method], and the problem with that is ",
+  },
+  {
+    label: "Replacing a spreadsheet",
+    seed: "We're replacing the spreadsheet that [who] uses to [task]. It breaks down when ",
+  },
+  {
+    label: "One feature I am unsure about",
+    seed: "Our product already does [what]. The part I'm unsure about is [feature], which is meant to solve ",
+  },
+];
+
 export function IdeaComposer({
   autoFocus,
   className,
+  starters = STARTERS,
+  facet,
 }: {
   autoFocus?: boolean;
   className?: string;
+  /**
+   * Page-specific starters. An Answer page already knows something about who
+   * is reading it, and a starter that names their situation back to them is
+   * the difference between a blank box and a half-written first sentence.
+   * This is the seam the pSEO templates fill from their own facets.
+   */
+  starters?: Starter[];
+  /** The business type this page is written for, shown as a tag on the tool. */
+  facet?: ComposerFacet;
 }) {
   const router = useRouter();
   const [value, setValue] = React.useState("");
+  const [facetDismissed, setFacetDismissed] = React.useState(false);
   const textarea = React.useRef<HTMLTextAreaElement>(null);
 
   const typed = useTypewriter(EXAMPLES, { enabled: value.length === 0 });
@@ -78,6 +142,23 @@ export function IdeaComposer({
           "focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25",
         )}
       >
+        {facet && !facetDismissed ? (
+          <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
+            <span className="type-caption text-secondary">
+              Tailored to{" "}
+              <span className="font-medium text-primary">{facet.label}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setFacetDismissed(true)}
+              aria-label="Remove context"
+              className="text-tertiary transition-colors duration-[120ms] hover:text-primary"
+            >
+              <XIcon size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
+
         <div className="relative overflow-hidden">
           {showTypewriter ? (
             <div
@@ -142,6 +223,47 @@ export function IdeaComposer({
           </button>
         </div>
       </div>
+
+      {/* Starters disappear the moment there is anything to say - they exist
+          to get someone unstuck, not to sit under a paragraph they have
+          already written. */}
+      {value.length === 0 ? (
+        /**
+         * One scrolling row on a phone, wrapped and centred once there is
+         * room - the app's entry screen behaves identically.
+         *
+         * The app bleeds this row to the screen edge to say "scrollable
+         * rather than clipped". It cannot here: this composer is dropped into
+         * four different wrappers, one of them a padded card on the pSEO
+         * page, so a negative margin would break out of it. A fade on the
+         * trailing edge says the same thing and does not care what contains
+         * it.
+         */
+        <div
+          className={cn(
+            "mt-3 overflow-x-auto",
+            "[mask-image:linear-gradient(to_right,#000_calc(100%_-_28px),transparent)]",
+            "sm:overflow-x-visible sm:[mask-image:none]",
+          )}
+        >
+          <div className="flex gap-2 sm:flex-wrap sm:justify-center">
+            {starters.map((starter) => (
+              <button
+                key={starter.label}
+                type="button"
+                onClick={() => setValue(starter.seed)}
+                className={cn(
+                  "type-body-m shrink-0 rounded-full border border-line bg-raised px-3 py-1.5",
+                  "whitespace-nowrap text-secondary transition-colors duration-[120ms]",
+                  "hover:border-line-strong hover:text-primary sm:whitespace-normal",
+                )}
+              >
+                {starter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

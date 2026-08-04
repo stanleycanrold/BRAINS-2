@@ -3,8 +3,16 @@
  * has committed to how they'll gather answers. This walks a round through its
  * whole lifecycle and asserts the offer appears and disappears on cue.
  */
-import { emptyIdeaState, type IdeaState } from "../src/lib/domain/types";
-import { canMarketFastTrack, validationStage } from "../src/lib/validation-stage";
+import {
+  emptyIdeaState,
+  researchReportSchema,
+  type IdeaState,
+} from "../src/lib/domain/types";
+import {
+  canBuyFastTrack,
+  canMarketFastTrack,
+  validationStage,
+} from "../src/lib/validation-stage";
 
 let failures = 0;
 function check(label: string, ok: boolean, detail = "") {
@@ -93,6 +101,51 @@ console.log("\n6. Redo - a fork resets track and order");
   s.fast_track_order = null;
   check("stage returns to not_started", validationStage(s) === "not_started", validationStage(s));
   check("offer IS marketed again before they purchase", canMarketFastTrack(s));
+}
+
+/**
+ * Whether the offer may be SHOWN is only half of it. A link to checkout that
+ * cannot reach checkout redirects back to the page it was clicked from, which
+ * a founder reads as a broken button rather than as an unavailable option.
+ */
+console.log("\nFast Track link - when it actually leads somewhere\n");
+
+const researched = () => {
+  const s = base();
+  s.research_report = researchReportSchema.parse({});
+  return s;
+};
+
+console.log("7. Mid-round hand-over, everything configured");
+{
+  const s = researched();
+  s.validation.track = "normal";
+  check("stage is self_serve", validationStage(s) === "self_serve", validationStage(s));
+  check("link IS offered", canBuyFastTrack(s, true));
+}
+
+console.log("\n8. Mid-round hand-over with no Stripe keys");
+{
+  const s = researched();
+  s.validation.track = "normal";
+  check("link is NOT offered", !canBuyFastTrack(s, false));
+}
+
+console.log("\n9. Research hasn't run - there are no questions to buy against");
+{
+  const s = base();
+  s.validation.track = "normal";
+  check("research really is missing", s.research_report === null);
+  check("link is NOT offered even with Stripe on", !canBuyFastTrack(s, true));
+}
+
+console.log("\n10. An unpaid order still needs a reachable checkout");
+{
+  const s = researched();
+  s.fast_track_order = order("pending_sourcing");
+  check("stage is awaiting_payment", validationStage(s) === "awaiting_payment", validationStage(s));
+  check("finish-payment link offered when Stripe is on", canBuyFastTrack(s, true));
+  check("and withheld when it is off", !canBuyFastTrack(s, false));
 }
 
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} FAILED`);

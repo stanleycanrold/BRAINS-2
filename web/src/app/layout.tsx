@@ -10,23 +10,23 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: "BRAINS AI",
   title: {
-    default: "BRAINS AI - Know if your idea is worth building",
+    default: "BRAINS AI - Validate ideas. Find first customers.",
     template: "%s | BRAINS AI",
   },
   description:
-    "Describe your idea and BRAINS AI researches whether the problem is real, gets you answers from actual people, and gives you a score with the reasoning behind it. Evidence over opinion.",
+    "Turn an idea into a clearer path to market. BRAINS AI helps you validate the problem, find early buyers, and start the right conversations.",
   openGraph: {
     type: "website",
     siteName: "BRAINS AI",
-    title: "BRAINS AI - Know if your idea is worth building",
+    title: "BRAINS AI - Validate ideas. Find first customers.",
     description:
-      "Research, real answers, and a score you can argue with - before you spend months building.",
+      "Validate the problem, find early buyers, and start the right conversations before you build.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BRAINS AI - Know if your idea is worth building",
+    title: "BRAINS AI - Validate ideas. Find first customers.",
     description:
-      "Research, real answers, and a score you can argue with - before you spend months building.",
+      "Validate the problem, find early buyers, and start the right conversations before you build.",
   },
 };
 

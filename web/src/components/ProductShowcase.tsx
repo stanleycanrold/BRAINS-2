@@ -1,37 +1,21 @@
 import {
-  MagnifyingGlassIcon,
-  CheckIcon,
-  WarningIcon,
-  PlusIcon,
-  HouseIcon,
   ChartBarIcon,
-  UsersThreeIcon,
+  CheckIcon,
+  CompassIcon,
   GearIcon,
+  HouseIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  UsersThreeIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { ScoreGauge } from "./ScoreGauge";
 
-/**
- * The product, shown rather than described.
- *
- * A marketing page's single biggest credibility lever is a visitor seeing the
- * real thing early, and the fastest way to lose that is a stale screenshot
- * that stops matching the product. This is built from the app's own layout in
- * markup instead: it cannot go out of date silently, it stays sharp on any
- * display, it reflows on a phone rather than becoming an unreadable
- * thumbnail, and it costs no image weight on the largest element above the
- * fold.
- *
- * The figures shown are illustrative and the page says so beneath it.
- */
-
-const STAGES = ["Entry", "Research", "Validate", "Decide"];
+const STAGES = ["Idea", "Signal", "People", "Plan"];
 
 export function ProductShowcase() {
   return (
-    <div className="overflow-hidden rounded-[16px] border border-line bg-raised shadow-[var(--shadow-overlay)]">
+    <div className="overflow-hidden rounded-[8px] border border-line bg-raised shadow-[var(--shadow-overlay)]">
       <div className="flex">
-        {/* Rail - hidden on phones, where it would eat a third of the width
-            for something that carries no information here. */}
         <aside className="hidden w-[168px] shrink-0 flex-col border-r border-line bg-sunken p-3 sm:flex lg:w-[200px]">
           <div className="flex h-8 items-center gap-2 px-1">
             <span className="size-2 rounded-full bg-mark" aria-hidden="true" />
@@ -40,22 +24,22 @@ export function ProductShowcase() {
             </span>
           </div>
 
-          <div className="mt-4 flex h-8 items-center gap-2 rounded-[8px] bg-brand px-2.5 text-on-accent">
+          <div className="mt-4 flex h-8 items-center gap-2 rounded-[6px] bg-brand px-2.5 text-on-accent">
             <PlusIcon size={13} weight="bold" aria-hidden="true" />
             <span className="type-caption">New idea</span>
           </div>
 
           <nav className="mt-4 space-y-0.5" aria-hidden="true">
             <RailItem icon={<HouseIcon size={14} />} label="Dashboard" active />
-            <RailItem icon={<ChartBarIcon size={14} />} label="Reports" />
-            <RailItem icon={<UsersThreeIcon size={14} />} label="Engage" />
+            <RailItem icon={<ChartBarIcon size={14} />} label="Research" />
+            <RailItem icon={<UsersThreeIcon size={14} />} label="People" />
             <RailItem icon={<GearIcon size={14} />} label="Settings" />
           </nav>
 
           <div className="mt-5 border-t border-line pt-3">
             <p className="type-caption px-2 text-tertiary">Ideas</p>
             <div className="mt-2 space-y-1.5 px-2">
-              <RailIdea label="Invoice chasing" tone="success" />
+              <RailIdea label="Invoice follow-up" tone="success" />
               <RailIdea label="Farm to kitchen" tone="brand" />
               <RailIdea label="Shift swapping" tone="caution" />
             </div>
@@ -63,23 +47,17 @@ export function ProductShowcase() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          {/* Top bar with the pipeline stepper, as in the app */}
           <div className="flex items-center gap-2 border-b border-line px-4 py-3 sm:gap-3 sm:px-5">
             <span className="type-caption hidden truncate text-primary sm:inline">
-              Invoice chasing for freelance designers
+              Invoice follow-up for freelance designers
             </span>
-            <ol
-              className="flex items-center gap-1 sm:ml-auto"
-              aria-hidden="true"
-            >
-              {STAGES.map((stage, i) => (
+            <ol className="flex items-center gap-1 sm:ml-auto" aria-hidden="true">
+              {STAGES.map((stage, index) => (
                 <li key={stage} className="flex items-center gap-1">
-                  {i > 0 ? (
-                    <span className="h-px w-3 bg-line sm:w-4" />
-                  ) : null}
+                  {index > 0 ? <span className="h-px w-3 bg-line sm:w-4" /> : null}
                   <span
                     className={
-                      i === 3
+                      index === 3
                         ? "type-caption rounded-full bg-brand-subtle px-2 py-0.5 text-brand"
                         : "type-caption px-1 text-tertiary"
                     }
@@ -92,75 +70,58 @@ export function ProductShowcase() {
           </div>
 
           <div className="p-4 sm:p-6">
-            {/* Score band */}
             <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-7">
               <ScoreGauge score={72} size="md" className="shrink-0" />
               <div className="min-w-0 text-center sm:text-left">
                 <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <span className="type-caption rounded-full bg-success-subtle px-2.5 py-1 text-success">
-                    Go ahead
+                    Promising signal
                   </span>
                   <span className="type-caption text-tertiary">
-                    74% confirmed · 19 responses
+                    74% confirmed - 19 responses
                   </span>
                 </div>
                 <p className="type-body-m mt-2.5 text-primary">
-                  14 of 19 described chasing invoices unprompted. Six already
-                  pay for something to help.
+                  Independent designers recognise the problem, and several
+                  already pay for imperfect ways to reduce it.
                 </p>
               </div>
             </div>
 
-            {/* Findings */}
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <Panel
-                icon={
-                  <MagnifyingGlassIcon
-                    size={13}
-                    className="text-brand"
-                    aria-hidden="true"
-                  />
-                }
-                title="Evidence"
+                icon={<MagnifyingGlassIcon size={13} className="text-brand" aria-hidden="true" />}
+                title="Demand signal"
                 lines={[
-                  "11 sources, each linked",
-                  "3 competitors named, with the gap they leave",
+                  "14 of 19 described the problem unprompted",
+                  "Six already pay for an alternative",
                 ]}
               />
               <Panel
-                icon={
-                  <WarningIcon
-                    size={13}
-                    className="text-caution"
-                    aria-hidden="true"
-                  />
-                }
-                title="The case against"
+                icon={<UsersThreeIcon size={13} className="text-brand" aria-hidden="true" />}
+                title="First customer path"
                 lines={[
-                  "Most would not switch mid-project",
-                  "Sample skews to one community",
+                  "Four niche communities to begin with",
+                  "Discovery questions drafted from the research",
                 ]}
               />
             </div>
 
-            {/* Response strip */}
-            <div className="mt-3 rounded-[10px] border border-line bg-page p-3.5">
+            <div className="mt-3 rounded-[8px] border border-line bg-page p-3.5">
               <div className="flex items-center justify-between gap-3">
-                <span className="type-caption text-tertiary">
-                  Raw responses
-                </span>
-                <span className="type-caption text-tertiary">19</span>
+                <span className="type-caption text-tertiary">Next conversations</span>
+                <CompassIcon size={14} className="text-brand" aria-hidden="true" />
               </div>
               <div className="mt-2.5 space-y-2">
                 <Response
-                  verdict="Yes"
-                  tone="success"
-                  text="I lose about half a day a month to this."
+                  label="Start here"
+                  tone="brand"
+                  text="Independent designer communities"
                 />
                 <Response
-                  verdict="No"
-                  tone="danger"
-                  text="My accountant handles it, so it never reaches me."
+                  label="Ask next"
+                  tone="success"
+                  text="What makes invoice follow-up difficult today?"
                 />
               </div>
             </div>
@@ -226,7 +187,7 @@ function Panel({
   lines: string[];
 }) {
   return (
-    <div className="rounded-[10px] border border-line bg-page p-3.5">
+    <div className="rounded-[8px] border border-line bg-page p-3.5">
       <div className="flex items-center gap-1.5">
         {icon}
         <span className="type-caption text-secondary">{title}</span>
@@ -249,23 +210,23 @@ function Panel({
 }
 
 function Response({
-  verdict,
+  label,
   tone,
   text,
 }: {
-  verdict: string;
-  tone: "success" | "danger";
+  label: string;
+  tone: "brand" | "success";
   text: string;
 }) {
   const chip =
-    tone === "success"
-      ? "bg-success-subtle text-success"
-      : "bg-danger-subtle text-danger";
+    tone === "brand"
+      ? "bg-brand-subtle text-brand"
+      : "bg-success-subtle text-success";
 
   return (
     <div className="flex items-start gap-2">
       <span className={`type-caption shrink-0 rounded-full px-1.5 py-0.5 ${chip}`}>
-        {verdict}
+        {label}
       </span>
       <span className="type-caption min-w-0 text-secondary">{text}</span>
     </div>
