@@ -54,7 +54,11 @@ export default function RootLayout({
           Skip to content
         </a>
         <Nav />
-        <main id="main" className="flex-1">
+        {/* Bottom padding below `md` clears the sticky mobile CTA bar, which
+            is fixed to the viewport and was covering the last element on every
+            page - usually the closing composer, which is the worst thing on
+            the page to hide. */}
+        <main id="main" className="flex-1 pb-20 md:pb-0">
           {children}
         </main>
         <Footer />

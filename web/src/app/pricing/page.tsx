@@ -402,7 +402,7 @@ export default function PricingPage() {
               Find out this week, not next quarter.
             </h2>
             <p className="type-body-xl mt-5 max-w-[56ch] text-secondary">
-              The research costs nothing and comes back in minutes. Start with
+              The research costs nothing and comes back in under 60 seconds. Start with
               the idea you are least sure about, and decide on evidence instead
               of a hunch.
             </p>

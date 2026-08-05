@@ -1,8 +1,9 @@
 import { CheckIcon, WarningIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { Container } from "@/components/Container";
 import { Section } from "@/components/Section";
-import { IdeaComposer } from "@/components/IdeaComposer";
+import { CATEGORIES, IdeaComposer } from "@/components/IdeaComposer";
 import { LiveRun } from "@/components/LiveRun";
+import { SocialProof } from "@/components/SocialProof";
 import { ReportPreview } from "@/components/ReportPreview";
 import { Faq, FaqJsonLd, type FaqItem } from "@/components/Faq";
 import { MobileCta } from "@/components/MobileCta";
@@ -28,24 +29,6 @@ import { signUpUrl } from "@/lib/urls";
  * decision-gate, signal-scan, post-drafting and comment-drafting.
  */
 
-/**
- * The four questions the product answers, directly under the headline.
- *
- * Phrased as the founder's own questions rather than as our capabilities,
- * because that is how they arrive: nobody wakes up wanting to "validate an
- * idea", they wake up unsure whether anyone actually has the problem. A
- * founder scanning the fold looks for their own question and finds it here.
- *
- * These also replace the lead paragraph the hero used to carry. Same
- * information, a fifth of the vertical space, which is what keeps the
- * composer on the first screen.
- */
-const HIGHLIGHTS = [
-  "Is the problem real?",
-  "Who actually has it?",
-  "Where do I find them?",
-  "What do I ask?",
-];
 
 const FAILURE_MODES = [
   {
@@ -253,7 +236,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "How long does the research take?",
     answer:
-      "The research pass comes back in about a minute or two and you can keep working while it runs. Validation takes as long as your conversations take: self-paced on the free track, or one to two weeks if we run the interviews for you.",
+      "The research pass comes back in under 60 seconds and you can keep working while it runs. Validation itself takes as long as your conversations take: self-paced on the free track, or one to two weeks if we run them for you.",
   },
   {
     question: "Will you post on my behalf in the communities you find?",
@@ -300,9 +283,18 @@ export default function HomePage() {
           `svh` rather than `vh` because mobile browsers measure `vh` against
           the viewport with the address bar hidden, which pushes the composer
           under the fold on exactly the devices with least room to spare. */}
-      <section className="flex min-h-[calc(100svh-72px)] flex-col justify-center py-14 sm:py-16">
+      {/* Subtracts the nav only. The proof badge moved inside the hero, so it
+          is part of what this section has to fit rather than something taking
+          height above it.
+
+          `svh` rather than `vh` because mobile browsers measure `vh` against
+          the viewport with the address bar hidden, which overshoots on exactly
+          the devices with least room to spare. */}
+      <section className="flex min-h-[calc(100svh-72px)] flex-col justify-center py-12 sm:py-16">
         <Container>
           <div className="mx-auto flex max-w-[900px] flex-col items-center text-center">
+            <SocialProof className="mk-rise mb-7" />
+
             {/* Headline and box only. Anything between them is vertical space
                 the composer needs to stay on the first screen, and the four
                 questions below already say what the product does.
@@ -322,20 +314,14 @@ export default function HomePage() {
               Scale.
             </h1>
 
-            <ul className="mk-rise mk-delay-1 mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5">
-              {HIGHLIGHTS.map((highlight) => (
-                <li
-                  key={highlight}
-                  className="type-body-m rounded-full border border-line bg-raised px-4 py-2 text-secondary"
-                >
-                  {highlight}
-                </li>
-              ))}
-            </ul>
           </div>
 
-          <div className="mk-rise mk-delay-2 mx-auto mt-11 max-w-[880px]">
-            <IdeaComposer autoFocus className="text-left" />
+          <div className="mk-rise mk-delay-1 mx-auto mt-12 max-w-[880px]">
+            <IdeaComposer
+              autoFocus
+              className="text-left"
+              categories={CATEGORIES}
+            />
             <p className="type-caption mt-5 text-center text-tertiary">
               Free to start. No card. Nothing you type is lost at signup.
             </p>
