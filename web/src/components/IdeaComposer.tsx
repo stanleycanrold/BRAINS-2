@@ -88,6 +88,7 @@ export function IdeaComposer({
   className,
   starters = STARTERS,
   facet,
+  size = "default",
 }: {
   autoFocus?: boolean;
   className?: string;
@@ -96,10 +97,20 @@ export function IdeaComposer({
    * is reading it, and a starter that names their situation back to them is
    * the difference between a blank box and a half-written first sentence.
    * This is the seam the pSEO templates fill from their own facets.
+   *
+   * Pass an empty array to drop the row entirely. That is right in a closing
+   * call to action, where the reader has already been through the whole page
+   * and prompts to get them unstuck are just clutter under the one control
+   * that matters.
    */
   starters?: Starter[];
   /** The business type this page is written for, shown as a tag on the tool. */
   facet?: ComposerFacet;
+  /**
+   * `large` gives the box more presence where it is the only thing being
+   * offered, rather than one element among several.
+   */
+  size?: "default" | "large";
 }) {
   const router = useRouter();
   const [value, setValue] = React.useState("");
@@ -108,6 +119,7 @@ export function IdeaComposer({
 
   const typed = useTypewriter(EXAMPLES, { enabled: value.length === 0 });
   const showTypewriter = value.length === 0;
+  const large = size === "large";
 
   // Identical growth rule to the app's composer.
   React.useLayoutEffect(() => {
@@ -115,9 +127,9 @@ export function IdeaComposer({
     if (!el) return;
     const ceiling = Math.min(320, Math.round(window.innerHeight * 0.35));
     el.style.height = "auto";
-    const floor = 72;
+    const floor = large ? 116 : 72;
     el.style.height = `${Math.max(floor, Math.min(el.scrollHeight, Math.max(96, ceiling)))}px`;
-  }, [value]);
+  }, [value, large]);
 
   function submit() {
     // Signup carries the idea through rather than making anyone retype what
@@ -138,8 +150,11 @@ export function IdeaComposer({
     <div className={className}>
       <div
         className={cn(
-          "rounded-[16px] border border-line bg-inset transition-colors duration-[120ms]",
+          "rounded-[16px] bg-inset transition-colors duration-[120ms]",
           "focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25",
+          // A stronger resting border at large size, so the box reads as the
+          // thing to use rather than as another panel on the page.
+          large ? "border-2 border-line-strong" : "border border-line",
         )}
       >
         {facet && !facetDismissed ? (
@@ -163,7 +178,10 @@ export function IdeaComposer({
           {showTypewriter ? (
             <div
               aria-hidden="true"
-              className="type-body-l pointer-events-none absolute inset-0 overflow-hidden px-4 pt-4 pb-2 text-tertiary"
+              className={cn(
+                "pointer-events-none absolute inset-0 overflow-hidden text-tertiary",
+                large ? "type-body-xl px-5 pt-5 pb-2" : "type-body-l px-4 pt-4 pb-2",
+              )}
             >
               <span>{typed}</span>
               <span className="ml-px inline-block h-[1.1em] w-px translate-y-[0.18em] animate-pulse bg-tertiary" />
@@ -181,14 +199,19 @@ export function IdeaComposer({
             aria-label="Describe your idea"
             data-focus-ring="none"
             className={cn(
-              "type-body-l relative block w-full resize-none bg-transparent",
-              "px-4 pt-4 pb-2",
+              "relative block w-full resize-none bg-transparent",
               "text-primary placeholder:text-tertiary focus:outline-none",
+              large ? "type-body-xl px-5 pt-5 pb-2" : "type-body-l px-4 pt-4 pb-2",
             )}
           />
         </div>
 
-        <div className="flex items-center gap-2 px-3 pt-1 pb-3">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            large ? "px-4 pt-1 pb-4" : "px-3 pt-1 pb-3",
+          )}
+        >
           {/* Attaching a document is a signed-in capability. The control stays
               visible so the capability is discoverable, but it sends you to
               sign up rather than opening a file picker that could not do
@@ -226,8 +249,8 @@ export function IdeaComposer({
 
       {/* Starters disappear the moment there is anything to say - they exist
           to get someone unstuck, not to sit under a paragraph they have
-          already written. */}
-      {value.length === 0 ? (
+          already written. An empty `starters` array drops the row entirely. */}
+      {value.length === 0 && starters.length > 0 ? (
         /**
          * One scrolling row on a phone, wrapped and centred once there is
          * room - the app's entry screen behaves identically.

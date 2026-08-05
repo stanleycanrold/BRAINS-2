@@ -19,7 +19,10 @@ const nextConfig: NextConfig = {
    */
   async redirects() {
     return [
-      { source: "/blog", destination: "/validation", permanent: true },
+      // /blog used to redirect here. It now serves the internal content index
+      // (src/app/blog/page.tsx), which is noindex and gets deleted before
+      // launch. Restore this line at that point: the old /blog was only ever
+      // an empty state, so there is nothing to preserve either way.
       { source: "/answers", destination: "/validation", permanent: true },
       {
         source: "/answers/:slug",

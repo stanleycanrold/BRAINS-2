@@ -2,14 +2,26 @@ import type { Metadata } from "next";
 import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
 import { Container } from "@/components/Container";
 import { Section } from "@/components/Section";
-import { Button } from "@/components/Button";
+import { IdeaComposer } from "@/components/IdeaComposer";
 import { MobileCta } from "@/components/MobileCta";
-import { signUpUrl } from "@/lib/urls";
+import { SITE_URL } from "@/lib/urls";
+
+/**
+ * How it works, rebuilt on the current system and aligned to the app's real
+ * pipeline: entry, research, validate, decide (PIPELINE_STAGES in
+ * src/lib/domain/types.ts). The four steps here are the four the product's own
+ * top bar shows a signed-in founder, in the same order.
+ *
+ * The old version rendered one full-bleed alternating band per step, each
+ * holding a 720px centred column, which spent four screens saying what fits
+ * in one grid.
+ */
 
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "The full validation loop: research with sources, real answers from real people, and a score with the reasoning behind it. Exactly what happens at each step.",
+    "The four steps of a validation round: describe the idea, research it against real sources, get answers from people who have the problem, and decide on a scored report.",
+  alternates: { canonical: `${SITE_URL}/how-it-works` },
 };
 
 const STEPS = [
@@ -26,23 +38,37 @@ const STEPS = [
   {
     n: "02",
     title: "We research whether the problem is real",
-    body: "Real search, not a model guessing from memory. We name the products that already solve this and the gap they leave, and we surface the case against the idea as deliberately as the case for it.",
+    body: "Real search, not a model guessing from memory. We name the products that already solve this and the gap they leave, and surface the case against the idea as deliberately as the case for it.",
     points: [
       "Every claim links to where we found it",
       "What people do instead today, which is usually the real competition",
-      "The strongest counter-evidence, kept in its own section so it cannot be buried",
+      "The strongest counter-evidence, kept where it cannot be buried",
+      "A proposed sharpening of the idea, which you accept or reject",
       "When live search turns up nothing, the report says so rather than inventing sources",
     ],
   },
   {
     n: "03",
     title: "You get answers from real people",
-    body: "Two routes, one report. Gather answers yourself with questions we write and a link you share, or hand the whole thing over and have interviews sourced and run for you.",
+    body: "Two routes, one report. Gather answers yourself with questions we write and a link you share, or hand the whole thing over and have the conversations sourced and run for you.",
     points: [
       "Questions built from your research, editable, in your own words if you prefer",
+      "The communities where your buyers already gather, named with a real thread",
       "A public link that needs no signup to answer",
       "Every response screened for quality before it counts toward anything",
       "Both routes feed the same pool and the same score",
+    ],
+  },
+  {
+    n: "04",
+    title: "You get a score, and the reasoning behind it",
+    body: "Never a bare number. Half of your respondents confirming the problem is the line: clear it and you get a go-ahead, miss it and you get a diagnosis of which part failed.",
+    points: [
+      "The confirmation rate, and how we got to the number",
+      "Patterns that came up repeatedly, and the push-back you heard",
+      "Risk factors named, with the six things that adjust a score",
+      "Every raw response, tagged confirmed, unsure or no, with its source",
+      "Proceed, rework or stop is always your call",
     ],
   },
 ];
@@ -52,103 +78,94 @@ export default function HowItWorksPage() {
     <>
       <MobileCta />
 
-      <section className="pt-16 pb-4 sm:pt-24">
+      <section className="pt-16 pb-4 sm:pt-20">
         <Container>
-          <div className="mx-auto max-w-[640px] text-center">
-            <h1 className="type-display-xl text-primary">
-              How it works
+          <div className="max-w-[820px]">
+            <p className="type-eyebrow text-brand">How it works</p>
+            <h1 className="type-display-2xl mt-6 text-balance text-primary">
+              Four steps, and nothing hidden in any of them.
             </h1>
-            <p className="type-body-l mt-5 text-secondary">
-              Four steps. Nothing hidden: the research, the questions, and
-              every response stay visible to you the whole way through.
+            <p className="type-body-xl mt-7 max-w-[58ch] text-secondary">
+              The research, the questions, and every individual response stay
+              visible to you the whole way through. These are the same four
+              stages the product shows you while a round is running.
             </p>
           </div>
         </Container>
       </section>
 
-      {STEPS.map((step, i) => (
-        <Section
-          key={step.n}
-          bordered
-          tone={i % 2 === 0 ? "sunken" : "page"}
-        >
-          <div className="mx-auto max-w-[720px]">
-            <p className="type-data-s text-tertiary">{step.n}</p>
-            <h2 className="type-display-l mt-2 text-primary">{step.title}</h2>
-            <p className="type-body-l mt-4 text-secondary">{step.body}</p>
-            <ul className="mt-6 space-y-3">
-              {step.points.map((point) => (
-                <li
-                  key={point}
-                  className="type-body-l flex items-start gap-3 text-primary"
-                >
-                  <CheckIcon
-                    size={16}
-                    weight="bold"
-                    className="mt-1.5 shrink-0 text-success"
-                    aria-hidden="true"
-                  />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Section>
-      ))}
+      <Section
+        eyebrow="The round"
+        title="From a paragraph to a decision you can defend"
+        lead="Most of it is free, self-paced, and repeatable as many times as you need."
+      >
+        <div className="mk-grid lg:grid-cols-2">
+          {STEPS.map((step) => (
+            <div key={step.n} className="p-7 lg:p-8">
+              <div className="flex items-baseline gap-4">
+                <span className="type-data-s text-brand">{step.n}</span>
+                <h2 className="type-display-m text-pretty text-primary">
+                  {step.title}
+                </h2>
+              </div>
+              <p className="type-body-m mt-3 text-secondary">{step.body}</p>
 
-      {/* Step 4 earns more room than the others: "can I trust an AI's
-          verdict?" is where skepticism peaks on this page. The honest answer
-          is not a mocked-up report with invented numbers - it is telling
-          someone what a real one contains and letting them go generate their
-          own, which the closing section below sends them to do. */}
-      <Section bordered tone="sunken">
-        <div className="mx-auto max-w-[720px]">
-          <p className="type-data-s text-tertiary">04</p>
-          <h2 className="type-display-l mt-2 text-primary">
-            You get a score, and the reasoning behind it
-          </h2>
-          <p className="type-body-l mt-4 text-secondary">
-            Never a bare number. The confirmation rate, the themes across every
-            response, the risk factors, and the raw responses themselves are
-            all there to check yourself. If the sample is too small to trust
-            yet, the report says so plainly rather than rounding up.
-          </p>
+              <ul className="mt-6 space-y-3 border-t border-line pt-6">
+                {step.points.map((point) => (
+                  <li
+                    key={point}
+                    className="type-body-m flex items-start gap-3 text-primary"
+                  >
+                    <CheckIcon
+                      size={15}
+                      weight="bold"
+                      className="mt-1.5 shrink-0 text-success"
+                      aria-hidden="true"
+                    />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
+      </Section>
 
-        <div className="mx-auto mt-10 max-w-[720px]">
+      <Section
+        tone="sunken"
+        eyebrow="After the score"
+        title="A loop, not a verdict"
+        lead="A weak result is usually specific rather than fatal, and it points somewhere."
+      >
+        <div className="max-w-[70ch] space-y-5">
           <p className="type-body-l text-secondary">
-            The final call is always yours. Proceed, rework, or stop: the
-            product records the decision and the reasoning behind the number,
-            but it does not make the decision for you.
+            If the signal is weak you get a diagnosis of which part failed: the
+            problem statement, the audience, or the problem itself. Sharpen it
+            and run the round again. There is no limit on rounds, and every
+            version you have been through stays readable, including the ones
+            that did not pass.
           </p>
-          <p className="type-body-l mt-4 text-secondary">
-            Validation is a loop, not a verdict. If the signal is weak, sharpen
-            the idea and run it again. There is no limit on rounds, and every
-            version you have been through stays readable.
+          <p className="type-body-l text-secondary">
+            The final call is always yours. You can rework after a go-ahead, or
+            build anyway after a rethink. The product records the decision and
+            the reasoning behind the number, but it does not make the decision
+            for you.
           </p>
         </div>
       </Section>
 
-      <Section bordered className="pb-28 sm:pb-32">
-        <div className="mx-auto max-w-[620px] text-center">
-          <h2 className="type-display-m text-primary">
-            A signal, not a guarantee
-          </h2>
-          <p className="type-body-l mt-4 text-secondary">
-            A high score means the evidence so far points to a real problem
-            people will talk about and pay to solve. It cannot promise the
-            product will succeed, and a low score is not a verdict on you.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button href={signUpUrl} variant="primary">
-              Start with your idea
-            </Button>
-            <Button href="/pricing" variant="secondary">
-              See pricing
-            </Button>
+      <section className="mk-section mk-topline">
+        <Container>
+          <div className="mk-panel p-8 sm:p-14">
+            <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,560px)] lg:gap-20">
+              <h2 className="type-display-hero text-balance text-primary">
+                See it run on your own idea.
+              </h2>
+              <IdeaComposer size="large" starters={[]} />
+            </div>
           </div>
-        </div>
-      </Section>
+        </Container>
+      </section>
     </>
   );
 }

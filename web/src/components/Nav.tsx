@@ -23,10 +23,22 @@ import { cn } from "@/lib/cn";
  * without the full nav competing for space the whole way down.
  */
 
+/**
+ * Nav is a list of what BRAINS does, not of where content lives.
+ *
+ * "Validation" is a service, and it is the first of several: growth, market,
+ * scale and build get their own entries as those ship, each pointing at its
+ * own service page with its own pSEO tree beneath it. Once there is more than
+ * one, this becomes a grouped menu rather than four more flat links, because
+ * a nav that grows with the catalogue stops being scannable at about six.
+ *
+ * Articles never appear here at any point. They are reached from search, the
+ * sitemap, and the cross-links between them.
+ */
 const LINKS = [
   { href: "/how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/validation", label: "Answers" },
+  { href: "/validation", label: "Validation" },
 ];
 
 export function Nav() {

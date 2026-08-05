@@ -98,11 +98,6 @@ export function getRelated(page: ContentPage, limit = 3): RelatedLink[] {
   return links;
 }
 
-/** Sections that earn a place in the contents list. */
-export function getToc(page: ContentPage) {
-  return page.sections.map((s) => ({ id: s.id, label: s.title }));
-}
-
 /** The FAQ block, if the page has one. Used for FAQPage structured data. */
 export function getFaq(page: ContentPage) {
   for (const section of page.sections) {

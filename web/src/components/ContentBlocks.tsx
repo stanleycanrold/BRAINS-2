@@ -5,19 +5,25 @@ import { cn } from "@/lib/cn";
 
 /**
  * Every block type, rendered. The complete visual vocabulary of the pSEO
- * system, in one file, so that changing how a table or a step list looks
- * changes it on every page at once.
+ * system in one file, so changing how a table or a step list looks changes it
+ * on every page at once.
+ *
+ * Each block decides its own width, and that is what makes an edge-to-edge
+ * page work. Prose caps itself at a readable measure no matter how much room
+ * it is given; tables, card grids and comparisons expand to fill it. The
+ * width gets spent on the things that benefit from width, never on stretching
+ * a sentence.
  *
  * There is no escape hatch and no `raw html` block, deliberately. The first
  * page allowed to bring its own markup is the page that starts the drift back
- * towards hundreds of hand-built layouts, and after that nothing can be
+ * towards hundreds of hand-built layouts, after which nothing can be
  * restyled centrally again.
  */
 export function BlockRenderer({ block }: { block: Block }) {
   switch (block.kind) {
     case "prose":
       return (
-        <div className="space-y-4">
+        <div className="max-w-[70ch] space-y-5">
           {block.paragraphs.map((text) => (
             <p key={text} className="type-body-l text-secondary">
               {text}
@@ -28,24 +34,24 @@ export function BlockRenderer({ block }: { block: Block }) {
 
     case "callout":
       return (
-        <p className="type-body-l border-l-2 border-brand pl-5 font-medium text-primary">
+        <p className="mk-panel type-body-xl max-w-[64ch] p-6 font-medium text-primary sm:p-7">
           {block.text}
         </p>
       );
 
     case "steps":
       return (
-        <ol className="space-y-8">
+        <ol className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
           {block.items.map((item, i) => (
-            <li key={item.title} className="flex gap-5">
-              <span className="type-data-s shrink-0 text-tertiary">
+            <li key={item.title} className="flex gap-4">
+              <span className="type-data-s shrink-0 pt-0.5 text-tertiary">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="min-w-0">
                 {item.badge ? (
                   <span
                     className={cn(
-                      "type-caption mb-2 inline-block rounded-full border px-2.5 py-1 uppercase",
+                      "type-eyebrow mb-2.5 inline-block rounded-full border px-2.5 py-1",
                       item.badge.tone === "danger"
                         ? "border-danger-border bg-danger-subtle text-danger"
                         : "border-transparent bg-success-subtle text-success",
@@ -68,14 +74,11 @@ export function BlockRenderer({ block }: { block: Block }) {
       return (
         <div className="grid gap-4 sm:grid-cols-2">
           {block.items.map((item) => (
-            <div
-              key={item.title}
-              className="rounded-[12px] border border-line bg-raised p-5"
-            >
+            <div key={item.title} className="mk-card p-6">
               <h3 className="type-body-l font-medium text-primary">
                 {item.title}
               </h3>
-              <p className="type-body-m mt-2 text-secondary">{item.body}</p>
+              <p className="type-body-m mt-2.5 text-secondary">{item.body}</p>
             </div>
           ))}
         </div>
@@ -83,7 +86,7 @@ export function BlockRenderer({ block }: { block: Block }) {
 
     case "checklist":
       return (
-        <ul className="space-y-3">
+        <ul className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
           {block.items.map((item) => (
             <li
               key={item}
@@ -103,7 +106,7 @@ export function BlockRenderer({ block }: { block: Block }) {
 
     case "compare":
       return (
-        <div className="grid gap-8 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <CompareColumn
             heading={block.positive.heading}
             items={block.positive.items}
@@ -121,43 +124,48 @@ export function BlockRenderer({ block }: { block: Block }) {
       return (
         // Wide tables scroll inside their own box. The page body must never
         // scroll sideways on a phone to accommodate one.
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-line">
-                {block.columns.map((col) => (
-                  <th
-                    key={col}
-                    className="type-caption pr-4 pb-3 text-tertiary uppercase last:pr-0"
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {block.rows.map((row) => (
-                <tr key={row.join("|")} className="border-b border-line">
-                  {row.map((cell, i) => (
-                    <td
-                      key={cell}
-                      className={cn(
-                        "py-4 pr-4 align-top last:pr-0",
-                        i === 0 && "type-body-m font-medium text-primary",
-                        // The measured column is mono and never wraps, so a
-                        // range like "12 to 15" cannot break across lines.
-                        i === 1 &&
-                          "type-data-s whitespace-nowrap text-primary",
-                        i > 1 && "type-body-m text-secondary",
-                      )}
+        <div className="mk-panel overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[620px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-line">
+                  {block.columns.map((col) => (
+                    <th
+                      key={col}
+                      className="type-eyebrow px-6 py-4 text-tertiary"
                     >
-                      {cell}
-                    </td>
+                      {col}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {block.rows.map((row) => (
+                  <tr
+                    key={row.join("|")}
+                    className="border-b border-line last:border-0"
+                  >
+                    {row.map((cell, i) => (
+                      <td
+                        key={cell}
+                        className={cn(
+                          "px-6 py-5 align-top",
+                          i === 0 && "type-body-m font-medium text-primary",
+                          // The measured column is mono and never wraps, so a
+                          // range like "12 to 15" cannot break across lines.
+                          i === 1 &&
+                            "type-data-s whitespace-nowrap text-brand",
+                          i > 1 && "type-body-m text-secondary",
+                        )}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
 
@@ -178,22 +186,32 @@ function CompareColumn({
   const Icon = tone === "positive" ? CheckIcon : XIcon;
 
   return (
-    <div>
-      <h3 className="type-body-l font-medium text-primary">{heading}</h3>
-      <ul className="mt-4 space-y-3">
+    <div className="mk-card p-6">
+      <h3 className="type-body-l flex items-center gap-2.5 font-medium text-primary">
+        <span
+          className={cn(
+            "flex size-6 items-center justify-center rounded-full",
+            tone === "positive"
+              ? "bg-success-subtle text-success"
+              : "bg-danger-subtle text-danger",
+          )}
+        >
+          <Icon size={13} weight="bold" aria-hidden="true" />
+        </span>
+        {heading}
+      </h3>
+      <ul className="mt-5 space-y-3.5">
         {items.map((item) => (
           <li
             key={item}
             className="type-body-m flex items-start gap-3 text-secondary"
           >
-            <Icon
-              size={15}
-              weight="bold"
-              className={cn(
-                "mt-1.5 shrink-0",
-                tone === "positive" ? "text-success" : "text-danger",
-              )}
+            <span
               aria-hidden="true"
+              className={cn(
+                "mt-2 size-1.5 shrink-0 rounded-full",
+                tone === "positive" ? "bg-success" : "bg-danger",
+              )}
             />
             <span>{item}</span>
           </li>

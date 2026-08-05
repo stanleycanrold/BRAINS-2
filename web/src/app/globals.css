@@ -4,10 +4,15 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    BRAINS AI - Marketing site shell rules
 
-   Everything above this line (palette, type roles, radii, shadows) comes from
-   the shared @brains-ai/tokens package and must not diverge from the app.
-   Everything below is specific to this shell: wider max-width, top nav, more
-   decorative license - per the design system's own appendix.
+   Everything in tokens.css (palette, type roles, radii, shadows) is a shared
+   snapshot with the product and must not diverge from it. That shared layer
+   is what makes the two read as one brand.
+
+   Everything below is the marketing layer: sizes, surfaces, and treatments
+   the product has no use for. A 74px headline and a hero glow would be wrong
+   in an instrument panel and are table stakes on a landing page, which is
+   the "more decorative license" the design system's appendix grants this
+   shell. Nothing here overrides a shared token; it only extends.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 html {
@@ -22,6 +27,10 @@ body {
   line-height: 26px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Nothing here is meant to scroll sideways. A full-bleed child that
+     overflows should be clipped rather than turning the whole page into a
+     horizontally scrolling document on a phone. */
+  overflow-x: hidden;
 }
 
 /* Visible keyboard focus everywhere, never a browser default. Matches the
@@ -36,9 +45,246 @@ body {
   outline: none;
 }
 
-/* Motion budget: hover/focus only, 120ms, same as the app. No scroll-triggered
-   reveals, no ambient background motion - restrained even where the shell
-   affords more decorative license (design system §1.6, Part 6). */
+:root {
+  --mk-section: clamp(72px, 8.5vw, 132px);
+  --mk-section-sm: clamp(48px, 5.5vw, 84px);
+
+  --mk-radius-card: 12px;
+  --mk-radius-panel: 20px;
+
+  /* Dark surfaces sit within a few percent of each other, so elevation on its
+     own reads as almost nothing. Rather than fork the shared palette, panels
+     get a top-down wash and a lit top edge: the treatment that separates a
+     premium dark surface from a flat black rectangle. */
+  --mk-panel-wash: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.055) 0%,
+    rgb(255 255 255 / 0.012) 42%,
+    rgb(255 255 255 / 0) 100%
+  );
+  --mk-edge-light: rgb(255 255 255 / 0.1);
+}
+
+@layer components {
+  /* ── Marketing scale ──────────────────────────────────────────────────────
+     The shared scale tops out at 40px, right for a product screen and too
+     small to anchor a landing page: the previous homepage abandoned the system
+     entirely and hardcoded text-7xl to get a usable hero. These roles close
+     that gap so nothing has to escape the system again.
+
+     `body-xl` fills the other hole. The shared scale steps 16px straight to
+     28px, leaving no size for a lead paragraph. */
+
+  .type-display-2xl {
+    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(38px, 6.2vw, 74px);
+    line-height: 1.03;
+    letter-spacing: -0.035em;
+  }
+
+  .type-display-hero {
+    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(32px, 4.6vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .type-body-xl {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 19px;
+    line-height: 31px;
+  }
+
+  /* The eyebrow was hand-assembled on nine sections from three slightly
+     different combinations of the same utilities. One class, one look. */
+  .type-eyebrow {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ── Rhythm and radii ─────────────────────────────────────────────────────
+     Section padding used to be picked per section - py-16, py-20, sm:py-24 and
+     sm:py-28 all appeared - so no two sections breathed alike. Radii were four
+     hand-picked pixel values, one of which (16px) was not a token at all. */
+
+
+  .mk-section {
+    padding-block: var(--mk-section);
+  }
+
+  .mk-section-sm {
+    padding-block: var(--mk-section-sm);
+  }
+
+  /* ── Surfaces ─────────────────────────────────────────────────────────────
+     One card treatment for the whole site: raised surface, top-down wash, lit
+     top edge, hairline border. This replaces `border border-line` repeated
+     fifteen times, which is most of why every page read as a wireframe. */
+
+  .mk-panel {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--border-default);
+    border-radius: var(--mk-radius-panel);
+    background-color: var(--surface-raised);
+    background-image: var(--mk-panel-wash);
+    box-shadow: var(--shadow-raised);
+  }
+
+  .mk-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 8%,
+      var(--mk-edge-light) 50%,
+      transparent 92%
+    );
+    pointer-events: none;
+  }
+
+  .mk-card {
+    position: relative;
+    border: 1px solid var(--border-default);
+    border-radius: var(--mk-radius-card);
+    background-color: var(--surface-raised);
+    background-image: var(--mk-panel-wash);
+    transition:
+      border-color 160ms ease,
+      transform 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  /* ── Hairline grid ────────────────────────────────────────────────────────
+     One bordered container whose cells are separated by 1px of the border
+     colour showing through the gaps, rather than a row of individually
+     bordered cards with space between them.
+
+     The difference matters more than it sounds. Separate cards read as a set of
+     unrelated tiles; a hairline grid reads as one instrument, which is the look
+     this whole site is after. It also removes the doubled 2px seam you get
+     whenever two bordered cards sit next to each other. */
+
+  .mk-grid {
+    display: grid;
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+    border-radius: var(--mk-radius-panel);
+    background-color: var(--border-default);
+  }
+
+  /* Cells paint their own background; the grid's own colour is only ever
+     visible in the 1px gaps between them. */
+  .mk-grid > * {
+    background-color: var(--surface-page);
+  }
+
+  .mk-grid-raised > * {
+    background-color: var(--surface-raised);
+  }
+
+  /* Lift on hover only where the card is actually a link. A static card that
+     rises when the pointer crosses it promises an interaction it does not have. */
+  a.mk-card:hover,
+  button.mk-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised-hover);
+  }
+
+  /* Hero sections previously carried a soft brand-tinted radial bloom behind
+     the headline. It has been removed on purpose: the surfaces here stay flat
+     and neutral, and depth comes from the panel wash and elevation rather than
+     from tinting the background. Do not reintroduce a coloured wash without
+     asking - the plainness is the brief, not an omission. */
+
+  /* A hairline that fades at both ends, instead of a hard rule that cuts the
+     page into stacked boxes. `mk-rule` is the standalone element; `mk-topline`
+     is the same hairline drawn at the top edge of a full-bleed section, where
+     a real border would run wall to wall and box the page in. */
+  .mk-rule {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--border-default) 18%,
+      var(--border-default) 82%,
+      transparent
+    );
+  }
+
+  .mk-topline {
+    position: relative;
+  }
+
+  .mk-topline::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--border-default) 18%,
+      var(--border-default) 82%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* ── Motion ───────────────────────────────────────────────────────────────
+     The budget widens from the product's hover-and-focus-only rule to allow
+     one entrance per element on first paint. Deliberate rather than drift:
+     restrained entrance motion is part of what reads as finished here, and it
+     is still nothing like ambient background animation.
+
+     `both` fill means the element ends at its natural state. Nothing is held
+     invisible by JavaScript waiting for a scroll event, so every word is
+     readable even if the animation never runs. */
+
+  @keyframes mk-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .mk-rise {
+    animation: mk-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .mk-delay-1 {
+    animation-delay: 70ms;
+  }
+  .mk-delay-2 {
+    animation-delay: 140ms;
+  }
+  .mk-delay-3 {
+    animation-delay: 210ms;
+  }
+  .mk-delay-4 {
+    animation-delay: 280ms;
+  }
+}
+
+/* Global reset, deliberately outside the components layer: it must win over
+   every animation and transition on the page regardless of where that came
+   from. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

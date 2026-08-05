@@ -49,5 +49,8 @@ web/.vercel
 *.tsbuildinfo
 next-env.d.ts
 
-# Archive of the unzipped brainscontentintelligence/ docs, which are tracked.
-brainscontentintelligence.zip
+# Reference archives dropped in the workspace root (design references,
+# unzipped doc bundles). Their contents get committed where they are meant to
+# be tracked; the archives themselves never belong in git history, which
+# cannot cleanly forget a binary once it is in.
+*.zip

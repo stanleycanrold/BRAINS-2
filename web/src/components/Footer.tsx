@@ -4,13 +4,26 @@ import { Container } from "./Container";
 import { signUpUrl } from "@/lib/urls";
 
 /**
- * Four columns (UX guide 2.2). "Validate by category" is real internal-link
- * value once the pSEO pages exist; until they do it links to the hub rather
- * than to pages that would 404, since a footer full of dead links is worse
- * than a short one.
+ * The footer is nav, in every sense that matters: hand-maintained site chrome
+ * that has to stay short to stay useful.
+ *
+ * So it carries services and company links only. It deliberately does not
+ * list individual articles - those are reached from search, the sitemap, and
+ * the computed cross-links between them, and a footer that grows an entry per
+ * page stops being scannable long before the content stops growing.
+ *
+ * The previous version linked "How it works" twice across two columns, and
+ * pointed a link labelled "Answers" at the validation page.
  */
 
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
+  {
+    title: "Services",
+    links: [
+      { href: "/validation", label: "Validation" },
+      { href: "/pricing#social-scan", label: "Continued Social Scan" },
+    ],
+  },
   {
     title: "Product",
     links: [
@@ -20,28 +33,12 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     ],
   },
   {
-    title: "Validate",
-    links: [
-      { href: "/validation", label: "All guides" },
-      {
-        href: "/validation/marketplace-startup-idea",
-        label: "Marketplace ideas",
-      },
-    ],
-  },
-  {
     title: "Company",
-    links: [
-      { href: "/about", label: "About" },
-      { href: "/validation", label: "Answers" },
-    ],
+    links: [{ href: "/about", label: "About" }],
   },
   {
     title: "Get started",
-    links: [
-      { href: signUpUrl, label: "Create an account" },
-      { href: "/how-it-works", label: "How it works" },
-    ],
+    links: [{ href: signUpUrl, label: "Create an account" }],
   },
 ];
 
@@ -85,8 +82,11 @@ export function Footer() {
           <p className="type-caption text-tertiary">
             © {new Date().getFullYear()} BRAINS AI
           </p>
+          {/* Terms and privacy belong here once those routes exist. The
+              disclaimer that used to sit in this slot moved to the terms of
+              service, which is where a user actually agrees to it. */}
           <p className="type-caption text-tertiary">
-            A signal, not a guarantee.
+            Validate before you build.
           </p>
         </div>
       </Container>
