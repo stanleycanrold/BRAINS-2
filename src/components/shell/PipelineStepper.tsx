@@ -27,8 +27,11 @@ const STAGE_LABELS: Record<PipelineStage, string> = {
 
 function hrefForStage(ideaId: string, stage: PipelineStage): string {
   switch (stage) {
+    // The idea itself, editable. This pointed at the idea root, which
+    // redirected to whichever stage was current - so the one step that was
+    // always complete was the one step you could not actually go back to.
     case "entry":
-      return `/ideas/${ideaId}`;
+      return `/ideas/${ideaId}/entry`;
     case "research":
       return `/ideas/${ideaId}/research`;
     case "validate":

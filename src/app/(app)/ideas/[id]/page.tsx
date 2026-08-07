@@ -52,7 +52,7 @@ const STAGE_LABELS: Record<PipelineStage, string> = {
 };
 
 const STAGE_BLURB: Record<PipelineStage, string> = {
-  entry: "The idea, in your words",
+  entry: "The idea, in your words. Editable.",
   research: "What the market already says",
   validate: "Questions, people, answers",
   decide: "The score and its reasoning",
@@ -61,6 +61,7 @@ const STAGE_BLURB: Record<PipelineStage, string> = {
 function hrefForStage(ideaId: string, stage: PipelineStage): string {
   switch (stage) {
     case "entry":
+      return `/ideas/${ideaId}/entry`;
     case "research":
       return `/ideas/${ideaId}/research`;
     case "validate":
