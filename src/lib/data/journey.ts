@@ -7,7 +7,7 @@ import {
   type IdeaState,
   type ResearchReport,
 } from "@/lib/domain/types";
-import { countSources, countSourcesAcross } from "@/lib/domain/research-sources";
+import { countSourcesAcross, sources } from "@/lib/domain/research-sources";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -78,8 +78,15 @@ export type JourneyRound = {
     workarounds: { description: string; whyItPersists: string }[];
     /** Who already solves this, and the gap they leave. */
     competitors: { name: string; summary: string; sourceUrl: string }[];
-    /** Distinct URLs cited anywhere in this round's report. */
-    sourceCount: number;
+    /**
+     * The distinct pages this round read, listed rather than only counted.
+     *
+     * A bare "2 sources read" above four competitor cards each carrying a
+     * link reads as a contradiction, because a reader counts links. Listing
+     * them shows why the two numbers differ - three of those links are the
+     * same page - and makes the count checkable instead of asserted.
+     */
+    sources: { url: string; title: string; citations: number }[];
     /** What desk research could not settle. These became the questions. */
     openQuestions: string[];
     /**
@@ -101,6 +108,8 @@ export type JourneyRound = {
   responsesByTrack: { managed: number; selfServe: number };
   responsesByChannel: Record<string, number>;
   confirmationRate: number;
+  /** How the responses split. Always present, even when quotes are withheld. */
+  verdictTally: { yes: number; no: number; unsure: number };
   themes: string[];
   objections: string[];
   /** Things worth the founder's attention that are neither theme nor objection. */
@@ -315,7 +324,7 @@ export async function getPublicJourney(
             })),
             // Same definition the summary and the dashboard use, so the
             // Research tab cannot contradict the number above it.
-            sourceCount: countSources(research),
+            sources: sources(research),
             openQuestions: research.open_questions,
             proposedChanges: research.proposed_changes.map((p) => ({
               text: p.edited_text || p.text,
@@ -340,6 +349,29 @@ export async function getPublicJourney(
         return acc;
       }, {}),
       confirmationRate: state.validation.confirmation_rate,
+      /**
+       * The yes/no/unsure split, ALWAYS present.
+       *
+       * This was being read off `responses`, which is emptied when the
+       * founder has not opted into sharing what people wrote - so a report
+       * showing 11 responses at 64% confirmed sat directly above "said yes 0,
+       * said no 0, unsure 0". The split is the one thing that lets a reader
+       * check the headline adds up, and it was added precisely because a
+       * summary that does not reconcile reads as selective. Withholding it
+       * produced the exact impression it exists to prevent.
+       *
+       * Nothing identifying is in a count. Opting out withholds what people
+       * wrote, not how many of them agreed.
+       */
+      verdictTally: state.validation.responses.reduce(
+        (acc, r) => {
+          if (r.confirmed === "yes") acc.yes += 1;
+          else if (r.confirmed === "no") acc.no += 1;
+          else acc.unsure += 1;
+          return acc;
+        },
+        { yes: 0, no: 0, unsure: 0 },
+      ),
       themes: state.validation.synthesis_summary.themes,
       objections: state.validation.synthesis_summary.objections,
       notablePoints: state.validation.synthesis_summary.notable_points,

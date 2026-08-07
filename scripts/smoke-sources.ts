@@ -11,8 +11,10 @@
  * regression itself.
  */
 import {
+  countCitations,
   countSources,
   countSourcesAcross,
+  sources,
   sourceUrls,
 } from "../src/lib/domain/research-sources";
 import { researchReportSchema } from "../src/lib/domain/types";
@@ -111,6 +113,16 @@ const safespark = report({
 });
 
 expect("the SafeSpark run reads as 2 sources", countSources(safespark), 2);
+expect(
+  "and as 4 findings, so both numbers on the page reconcile",
+  countCitations(safespark),
+  4,
+);
+expect(
+  "with the repeated page saying how many findings lean on it",
+  sources(safespark).find((s) => s.url.includes("g2.com"))?.citations ?? 0,
+  3,
+);
 expect(
   "and the whole-journey count agrees with the single-round count",
   countSourcesAcross([safespark]),

@@ -91,15 +91,17 @@ export function summariseWorkspace(
      * true but not actionable, and the surfaces that want to say so have their
      * own badge for it.
      *
-     * Unscreened responses come first because they are the case where the
-     * figure on screen is wrong in a way nothing else reveals: a pending
-     * response is collected but excluded from the rate, so a founder reading
-     * "45% confirmed" deserves to know three answers are still out.
+     * Unscreened responses come first because the rate on screen could still
+     * move. A pending response DOES count - see computeConfirmationRate,
+     * which excludes only definite rejects, so that the number does not dip
+     * and recover while screening runs. But a reject would remove it, and a
+     * founder about to send this to a client should know the figure is not
+     * yet settled.
      */
     attention:
       pending > 0
         ? {
-            text: `${pending} ${pending === 1 ? "response is" : "responses are"} still being screened and ${pending === 1 ? "does" : "do"} not count toward the rate yet`,
+            text: `${pending} ${pending === 1 ? "response is" : "responses are"} still being screened. ${pending === 1 ? "It counts" : "They count"} toward the rate for now, so the figure can still move.`,
             tone: "caution",
           }
         : status === "gate_review"

@@ -337,6 +337,7 @@ function IdeaTab({ round }: { round: JourneyRound }) {
 
 function ResearchTab({ round }: { round: JourneyRound }) {
   const research = round.research!;
+  const citationCount = research.sources.reduce((n, s) => n + s.citations, 0);
 
   return (
     <div className="space-y-10">
@@ -344,13 +345,17 @@ function ResearchTab({ round }: { round: JourneyRound }) {
         <Badge tone={STRENGTH_TONE[research.problemStrength] ?? "neutral"}>
           {research.problemStrength} signal
         </Badge>
-        {/* The same count the summary shows, computed once server-side. Two
-            places on one page quoting different numbers for the same research
-            is worse than showing neither. */}
-        <span className="type-caption text-tertiary">
-          {research.sourceCount}{" "}
-          {research.sourceCount === 1 ? "source read" : "sources read"}
-        </span>
+        {/* Both numbers, because a reader counting the links below will get
+            the larger one and a bare "2 sources read" would look wrong. They
+            differ when several findings come off the same page, which is
+            exactly the thing worth knowing. */}
+        {research.sources.length > 0 ? (
+          <span className="type-caption text-tertiary">
+            {citationCount} {citationCount === 1 ? "finding" : "findings"} across{" "}
+            {research.sources.length}{" "}
+            {research.sources.length === 1 ? "source" : "sources"}
+          </span>
+        ) : null}
         {research.unsourced ? (
           <Badge tone="caution">No live sources available</Badge>
         ) : null}
@@ -505,6 +510,40 @@ function ResearchTab({ round }: { round: JourneyRound }) {
         </Disclosure>
       ) : null}
 
+      {research.sources.length > 0 ? (
+        <Disclosure
+          title="Every page this round read"
+          count={research.sources.length}
+          summary="The sources behind the findings above, listed once each"
+          storageKey="shared-research-sources"
+        >
+          <ul className="divide-y divide-line rounded-[8px] border border-line">
+            {research.sources.map((source) => (
+              <li
+                key={source.url}
+                className="flex flex-wrap items-baseline justify-between gap-2 p-3"
+              >
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="type-body-m min-w-0 break-all text-brand hover:underline"
+                >
+                  {source.title || source.url}
+                </a>
+                {/* Says plainly when several findings lean on one page, which
+                    is why this list is shorter than the links above it. */}
+                {source.citations > 1 ? (
+                  <span className="type-caption shrink-0 text-tertiary">
+                    {source.citations} findings
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
+      ) : null}
+
       {research.contraryEvidence.length > 0 ? (
         <section>
           <h2 className="type-body-l font-medium text-primary">
@@ -550,10 +589,10 @@ function ValidationTab({
    */
   const quotes = journey.includesResponses ? round.responses : [];
 
-  const tally = round.responses.reduce<Record<string, number>>((acc, r) => {
-    acc[r.confirmed] = (acc[r.confirmed] ?? 0) + 1;
-    return acc;
-  }, {});
+  // Read off the round, not off `responses` - which is empty whenever the
+  // founder has not opted into sharing quotes, and was printing 0/0/0 under a
+  // headline of 11 responses at 64% confirmed.
+  const tally = round.verdictTally;
 
   return (
     /**
@@ -578,9 +617,9 @@ function ValidationTab({
           />
           {/* The split is spelled out so a reader can add it up. A summary
               that does not reconcile with the total reads as selective. */}
-          <Stat label="Said yes" value={String(tally.yes ?? 0)} />
-          <Stat label="Said no" value={String(tally.no ?? 0)} />
-          <Stat label="Unsure" value={String(tally.unsure ?? 0)} />
+          <Stat label="Said yes" value={String(tally.yes)} />
+          <Stat label="Said no" value={String(tally.no)} />
+          <Stat label="Unsure" value={String(tally.unsure)} />
         </dl>
 
         {round.narrative ? (

@@ -21,6 +21,14 @@ import type { ResearchReport } from "@/lib/domain/types";
  * this module, and there is nowhere left for two screens to disagree.
  */
 
+export type ResearchSource = {
+  url: string;
+  /** Best label seen for this page - an evidence title or a competitor name. */
+  title: string;
+  /** How many findings in the report cite this one page. */
+  citations: number;
+};
+
 /**
  * Same page, written two ways, is one source.
  *
@@ -53,23 +61,47 @@ function canonical(url: string): string | null {
  * describing a workaround were both read, and leaving them out was how the
  * shared report reached zero on a run that had read two pages.
  */
-export function sourceUrls(report: ResearchReport | null | undefined): string[] {
+export function sources(
+  report: ResearchReport | null | undefined,
+): ResearchSource[] {
   if (!report) return [];
 
-  const cited = [
-    ...report.evidence.map((e) => e.source_url),
-    ...report.contrary_evidence.map((e) => e.source_url),
-    ...report.competitors.map((c) => c.source_url),
-    ...report.current_workarounds.map((w) => w.source_url),
+  const cited: { url: string; title: string }[] = [
+    ...report.evidence.map((e) => ({ url: e.source_url, title: e.source_title })),
+    ...report.contrary_evidence.map((e) => ({ url: e.source_url, title: "" })),
+    ...report.competitors.map((c) => ({ url: c.source_url, title: c.name })),
+    ...report.current_workarounds.map((w) => ({ url: w.source_url, title: "" })),
   ];
 
-  const seen = new Map<string, string>();
-  for (const raw of cited) {
-    const key = canonical(raw);
-    if (key && !seen.has(key)) seen.set(key, raw.trim());
+  const seen = new Map<string, ResearchSource>();
+  for (const { url, title } of cited) {
+    const key = canonical(url);
+    if (!key) continue;
+
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, { url: url.trim(), title: title.trim(), citations: 1 });
+      continue;
+    }
+    // How many findings lean on this page. A page cited four times is still
+    // one source, but the reader deserves to know the four are not
+    // independent - that is the difference the old count was hiding.
+    existing.citations += 1;
+    if (!existing.title && title.trim()) existing.title = title.trim();
   }
 
   return [...seen.values()];
+}
+
+export function sourceUrls(report: ResearchReport | null | undefined): string[] {
+  return sources(report).map((s) => s.url);
+}
+
+/** How many findings cite something, whether or not the pages are distinct. */
+export function countCitations(
+  report: ResearchReport | null | undefined,
+): number {
+  return sources(report).reduce((n, s) => n + s.citations, 0);
 }
 
 export function countSources(report: ResearchReport | null | undefined): number {
