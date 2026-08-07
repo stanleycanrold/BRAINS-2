@@ -21,13 +21,7 @@ export function originFor(request: Request): string {
   const forwardedHost =
     headers.get("x-forwarded-host") ?? headers.get("host") ?? "";
   if (forwardedHost) {
-    const proto =
-      headers.get("x-forwarded-proto") ??
-      (forwardedHost.startsWith("localhost") ||
-      forwardedHost.startsWith("127.0.0.1")
-        ? "http"
-        : "https");
-    return `${proto}://${forwardedHost}`;
+    return `${protoFor(forwardedHost, headers.get("x-forwarded-proto"))}://${forwardedHost}`;
   }
 
   try {
@@ -35,4 +29,31 @@ export function originFor(request: Request): string {
   } catch {
     return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   }
+}
+
+/**
+ * The same answer for a server component, which has headers but no Request.
+ *
+ * Needed wherever a page has to render an absolute URL the founder will copy
+ * and send somewhere - a share link is useless if it points at the wrong
+ * host. Reading it on the client instead would render an empty string first
+ * and correct it after hydration, which shows a broken link long enough to
+ * be copied.
+ */
+export async function originFromHeaders(): Promise<string> {
+  const { headers } = await import("next/headers");
+  const store = await headers();
+
+  const host = store.get("x-forwarded-host") ?? store.get("host") ?? "";
+  if (!host) return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+  return `${protoFor(host, store.get("x-forwarded-proto"))}://${host}`;
+}
+
+/** Local hosts are plain http; everything else is assumed to be terminated TLS. */
+function protoFor(host: string, forwarded: string | null): string {
+  if (forwarded) return forwarded;
+  return host.startsWith("localhost") || host.startsWith("127.0.0.1")
+    ? "http"
+    : "https";
 }

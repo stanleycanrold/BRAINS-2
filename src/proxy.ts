@@ -17,6 +17,11 @@ export default clerkMiddleware();
  * are strangers to the product and must never be asked to sign in - the share
  * token is their only credential, and the data those routes expose is limited
  * to the questions themselves (see lib/data/questionnaire.ts).
+ *
+ * `/s/:token` is public for the same reason and under the same discipline: it
+ * serves a read-only journey to whoever the founder sent the link to. What it
+ * can expose is fixed by the allow-listed shape `getPublicJourney` builds, not
+ * by what the caller remembers to strip (see lib/data/journey.ts).
  */
 
 export const config = {

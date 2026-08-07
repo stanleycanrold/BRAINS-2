@@ -114,6 +114,38 @@ export function ReportView({
     }
   }
 
+  /**
+   * Start another round on an already-decided version.
+   *
+   * Deliberately not `decide("rework")`. That records the founder's answer to
+   * the gate, and this version's gate has already been answered - reusing it
+   * would log a second decision against it and skew the agreement-rate metric.
+   * `/rounds` forks without touching the gate.
+   */
+  async function startNewRound() {
+    setBusy("new-round");
+    try {
+      const response = await fetch(`/api/ideas/${ideaId}/rounds`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resume_at: "research" }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? "We couldn't start a new round.");
+      }
+      const body = await response.json();
+      router.push(body.next);
+      router.refresh();
+    } catch (err) {
+      setBusy(null);
+      toast(
+        err instanceof Error ? err.message : "We couldn't start a new round.",
+        "danger",
+      );
+    }
+  }
+
   async function decideProposal(
     id: string,
     status: "accepted" | "rejected" | "edited",
@@ -438,11 +470,32 @@ export function ReportView({
           </Button>
         </div>
 
+        {/* A decided version used to end here, with all three buttons
+            disabled and a line telling the founder to go and find the latest
+            version themselves. That closed a loop the product promises is
+            never closed: rework is meant to be unbounded whatever the score,
+            including after a proceed. This is the way back in. */}
         {decided ? (
-          <p className="type-body-m mt-4 text-secondary">
-            You already decided on this version. Open the latest version to keep
-            going.
-          </p>
+          <div className="mt-6 border-t border-line pt-6">
+            <p className="type-body-m text-secondary">
+              You already decided on this round, and this report stays readable
+              for good. Sharpening the idea and going again is the loop
+              working, not a step backwards.
+            </p>
+            <Button
+              variant="secondary"
+              size="large"
+              className="mt-4"
+              loading={busy === "new-round"}
+              disabled={Boolean(busy)}
+              onClick={() => void startNewRound()}
+              iconLeft={
+                <ArrowCounterClockwiseIcon size={18} aria-hidden="true" />
+              }
+            >
+              Start another round
+            </Button>
+          </div>
         ) : null}
       </section>
 

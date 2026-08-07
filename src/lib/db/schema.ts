@@ -149,6 +149,34 @@ export const ideas = pgTable(
     title: text("title").notNull().default("Untitled idea"),
     summary: text("summary").notNull().default(""),
     currentVersionId: uuid("current_version_id"),
+    /**
+     * Opaque token for the public read-only journey at /s/[token].
+     *
+     * Deliberately on the idea rather than on a version, unlike the
+     * questionnaire and panel tokens. Those two are per-round jobs: one link
+     * collects answers for one set of questions. A shared journey is the
+     * opposite - it exists to show every round, how the idea changed between
+     * them, and what each one concluded. Hanging it off a version would share
+     * whichever round happened to be current and strand the rest.
+     *
+     * Null until the founder creates one, and set back to null when they
+     * revoke it, so a link that has been shared too widely can be killed
+     * without deleting anything.
+     */
+    shareToken: text("share_token").unique(),
+    /**
+     * Whether the shared view includes what respondents actually wrote.
+     *
+     * Off by default, and that default is the point. Respondents answered a
+     * questionnaire so one founder could research an idea; a public URL is a
+     * materially different thing to have agreed to. With this off the journey
+     * still shows themes, counts, the score and its reasoning, which is the
+     * persuasive part anyway. Identifying fields - the response source, the
+     * expert behind a paid interview - are never included either way.
+     */
+    shareIncludesResponses: boolean("share_includes_responses")
+      .notNull()
+      .default(false),
     /** Archived rather than deleted when killed (PRD §4.5). */
     archived: boolean("archived").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -158,7 +186,10 @@ export const ideas = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("ideas_user_id_idx").on(t.userId)],
+  (t) => [
+    index("ideas_user_id_idx").on(t.userId),
+    index("ideas_share_token_idx").on(t.shareToken),
+  ],
 );
 
 // ── idea_state_versions - append-only ──────────────────────────────────────

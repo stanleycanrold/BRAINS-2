@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Spinner } from "./Spinner";
 
@@ -107,3 +108,50 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     );
   },
 );
+
+/**
+ * A navigation link wearing a button's clothes.
+ *
+ * Separate from `Button` rather than an `as` prop on it, because the two are
+ * genuinely different elements: this one has an href, is middle-clickable, and
+ * has no disabled or loading state - a link cannot be busy. Collapsing them
+ * into one polymorphic component means every caller can reach props that make
+ * no sense for what it rendered.
+ *
+ * Styling is shared, so a change to the button's shape changes both.
+ */
+export function ButtonLink({
+  variant = "secondary",
+  size = "default",
+  iconLeft,
+  iconRight,
+  fullWidth,
+  className,
+  children,
+  ...props
+}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  href: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  iconLeft?: React.ReactNode;
+  iconRight?: React.ReactNode;
+  fullWidth?: boolean;
+}) {
+  return (
+    <Link
+      className={cn(
+        "relative inline-flex items-center justify-center gap-2 rounded-[6px] font-medium whitespace-nowrap",
+        "transition-colors duration-[120ms] ease-out",
+        VARIANTS[variant],
+        SIZES[size],
+        fullWidth && "w-full",
+        className,
+      )}
+      {...props}
+    >
+      {iconLeft}
+      {children}
+      {iconRight}
+    </Link>
+  );
+}
