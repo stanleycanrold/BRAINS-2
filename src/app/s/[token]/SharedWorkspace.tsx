@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Logo } from "@/components/brand/Logo";
+import { ResponseAnswers } from "@/components/ResponseAnswers";
 import { cn } from "@/lib/cn";
 import type { JourneyRound, PublicJourney } from "@/lib/data/journey";
 
@@ -1037,9 +1038,7 @@ function ResponseTable({
                 Respondent {i + 1}
               </span>
             </div>
-            <p className="type-body-m mt-3 whitespace-pre-wrap text-primary">
-              {response.notes}
-            </p>
+            <ResponseAnswers notes={response.notes} className="mt-4" />
           </li>
         ))}
       </ul>

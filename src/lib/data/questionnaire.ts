@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { screenResponse } from "@/lib/screening";
+import { formatAnswers } from "@/lib/domain/response-notes";
 import {
   computeConfirmationRate,
   ideaStateSchema,
@@ -109,14 +110,16 @@ export async function submitPublicResponse(params: {
   // because the Synthesis Agent reads notes - one shape for every channel
   // means one thing to reason about downstream.
   const byId = new Map(questionnaire.questions.map((q) => [q.id, q]));
-  const notes = params.answers
-    .filter((a) => a.answer.trim())
-    .map((a) => {
-      const question = byId.get(a.questionId);
-      return question ? `${question.text}\n→ ${a.answer.trim()}` : null;
-    })
-    .filter(Boolean)
-    .join("\n\n");
+  const notes = formatAnswers(
+    params.answers
+      .map((a) => {
+        const question = byId.get(a.questionId);
+        return question ? { question: question.text, answer: a.answer } : null;
+      })
+      .filter(
+        (pair): pair is { question: string; answer: string } => pair !== null,
+      ),
+  );
 
   if (!notes) return { ok: false, error: "Answer at least one question." };
 
