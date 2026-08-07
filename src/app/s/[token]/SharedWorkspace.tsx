@@ -402,6 +402,37 @@ function ResearchTab({ round }: { round: JourneyRound }) {
         </section>
       ) : null}
 
+      {research.proposedChanges.length > 0 ? (
+        <Disclosure
+          title="What the engine proposed changing"
+          count={research.proposedChanges.length}
+          summary="Sharper framings drawn from the research, and what was done with each"
+          storageKey="shared-research-proposals"
+          defaultOpen
+        >
+          <ul className="space-y-4">
+            {research.proposedChanges.map((proposal) => (
+              <li
+                key={proposal.text}
+                className="rounded-[8px] border border-line p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="type-body-m min-w-0 font-medium text-primary">
+                    {proposal.text}
+                  </p>
+                  <ProposalStatus status={proposal.status} />
+                </div>
+                {proposal.reasoning ? (
+                  <p className="type-body-m mt-2 text-secondary">
+                    {proposal.reasoning}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
+      ) : null}
+
       {research.contraryEvidence.length > 0 ? (
         <section>
           <h2 className="type-body-l font-medium text-primary">
@@ -579,9 +610,44 @@ function ValidationTab({
         <Disclosure
           title="Who we asked"
           count={round.communities.length}
-          summary="The communities where these people already gather"
+          summary="How the respondents were reached, and where they gather"
           storageKey="shared-validation-communities"
         >
+          {/* Named explicitly, because "who asked" is the part of the service a
+              client is actually buying. A count of communities does not say
+              whether the founder chased these people themselves or whether we
+              sourced, screened and interviewed them. */}
+          {round.responsesByTrack.managed > 0 ? (
+            <div className="mb-5 rounded-[8px] border border-brand/30 bg-brand-subtle p-4">
+              <p className="type-body-m font-medium text-primary">
+                {round.responsesByTrack.managed} of {round.responseCount}{" "}
+                {round.responsesByTrack.managed === 1
+                  ? "respondent was"
+                  : "respondents were"}{" "}
+                sourced and interviewed by the BRAINS team
+              </p>
+              <p className="type-body-m mt-1 text-secondary">
+                Fast Track: we find people matching the audience the research
+                identified, run the conversations, and screen every answer
+                before it counts.
+                {round.responsesByTrack.selfServe > 0
+                  ? ` The remaining ${round.responsesByTrack.selfServe} came from the founder's own outreach.`
+                  : ""}
+              </p>
+            </div>
+          ) : (
+            <div className="mb-5 rounded-[8px] border border-line p-4">
+              <p className="type-body-m font-medium text-primary">
+                All {round.responseCount} responses came from the
+                founder&rsquo;s own outreach
+              </p>
+              <p className="type-body-m mt-1 text-secondary">
+                On Fast Track, the BRAINS team sources respondents matching the
+                audience, runs the interviews, and screens every answer.
+              </p>
+            </div>
+          )}
+
           <ul className="divide-y divide-line rounded-[8px] border border-line">
             {round.communities.map((community) => (
               <li key={community.name} className="p-4">
@@ -672,6 +738,37 @@ function VerdictTab({ round }: { round: JourneyRound }) {
           <p className="type-body-m max-w-[70ch] text-secondary">
             {score.reasoning}
           </p>
+        </Disclosure>
+      ) : null}
+
+      {score.improvements.length > 0 ? (
+        <Disclosure
+          title="What the engine recommends next"
+          count={score.improvements.length}
+          summary="Specific changes drawn from the responses, not generic advice"
+          storageKey="shared-verdict-improvements"
+          defaultOpen
+        >
+          <ul className="space-y-4">
+            {score.improvements.map((item) => (
+              <li
+                key={item.text}
+                className="rounded-[8px] border border-line p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="type-body-m min-w-0 font-medium text-primary">
+                    {item.text}
+                  </p>
+                  <ProposalStatus status={item.status} />
+                </div>
+                {item.reasoning ? (
+                  <p className="type-body-m mt-2 text-secondary">
+                    {item.reasoning}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
         </Disclosure>
       ) : null}
 
@@ -773,6 +870,29 @@ function HistoryTab({ journey }: { journey: PublicJourney }) {
         ))}
       </ol>
     </div>
+  );
+}
+
+/** What the founder did with an engine suggestion. */
+function ProposalStatus({ status }: { status: string }) {
+  if (status === "accepted" || status === "edited") {
+    return (
+      <Badge tone="success" className="shrink-0">
+        {status === "edited" ? "Accepted, edited" : "Accepted"}
+      </Badge>
+    );
+  }
+  if (status === "rejected") {
+    return (
+      <Badge tone="neutral" className="shrink-0">
+        Declined
+      </Badge>
+    );
+  }
+  return (
+    <Badge tone="caution" className="shrink-0">
+      Open
+    </Badge>
   );
 }
 

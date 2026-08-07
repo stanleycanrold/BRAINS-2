@@ -59,10 +59,24 @@ export type JourneyRound = {
     evidence: { claim: string; sourceUrl: string; sourceTitle: string }[];
     contraryEvidence: { claim: string; sourceUrl: string }[];
     workarounds: { description: string; whyItPersists: string }[];
+    /**
+     * What the engine proposed sharpening after reading the market, and what
+     * the founder did with each. Showing this is the difference between a
+     * report that summarises and one that visibly did work.
+     */
+    proposedChanges: { text: string; reasoning: string; status: string }[];
     unsourced: boolean;
   } | null;
   questions: string[];
   responseCount: number;
+  /**
+   * Split by how each response was gathered. A client evaluating the engine
+   * wants to know which answers we sourced and ran versus which the founder
+   * collected themselves - it is the clearest statement of what the paid
+   * service actually does.
+   */
+  responsesByTrack: { managed: number; selfServe: number };
+  responsesByChannel: Record<string, number>;
   confirmationRate: number;
   themes: string[];
   objections: string[];
@@ -74,6 +88,8 @@ export type JourneyRound = {
     signal: string;
     reasoning: string;
     riskFactors: { label: string; detail: string; severity: string }[];
+    /** What the engine recommended doing next, and the founder's call on it. */
+    improvements: { text: string; reasoning: string; status: string }[];
   } | null;
   createdAt: string;
 };
@@ -258,11 +274,28 @@ export async function getPublicJourney(
               description: w.description,
               whyItPersists: w.why_it_persists,
             })),
+            proposedChanges: research.proposed_changes.map((p) => ({
+              text: p.edited_text || p.text,
+              reasoning: p.reasoning,
+              status: p.status,
+            })),
             unsourced: research.unsourced,
           }
         : null,
       questions: state.validation.questionnaire.questions.map((q) => q.text),
       responseCount: state.validation.responses.length,
+      responsesByTrack: {
+        managed: state.validation.responses.filter((r) => r.track === "fast")
+          .length,
+        selfServe: state.validation.responses.filter((r) => r.track !== "fast")
+          .length,
+      },
+      responsesByChannel: state.validation.responses.reduce<
+        Record<string, number>
+      >((acc, r) => {
+        acc[r.channel] = (acc[r.channel] ?? 0) + 1;
+        return acc;
+      }, {}),
       confirmationRate: state.validation.confirmation_rate,
       themes: state.validation.synthesis_summary.themes,
       objections: state.validation.synthesis_summary.objections,
@@ -284,6 +317,11 @@ export async function getPublicJourney(
               label: r.label,
               detail: r.detail,
               severity: r.severity,
+            })),
+            improvements: gate.improvement_proposal.map((p) => ({
+              text: p.edited_text || p.text,
+              reasoning: p.reasoning,
+              status: p.status,
             })),
           }
         : null,

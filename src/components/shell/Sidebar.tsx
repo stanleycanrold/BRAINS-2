@@ -217,15 +217,21 @@ export function Sidebar({
             </Link>
           </Tooltip>
 
-          <NavItem
-            href="/dashboard"
-            icon={<SquaresFourIcon size={ICON} aria-hidden="true" />}
-            label="Dashboard"
-            labelOnly={labelOnly}
-            collapsed={collapsed}
-            active={pathname === "/dashboard"}
-            onNavigate={onMobileClose}
-          />
+          {/* Hidden inside a workspace. The portfolio of every idea is the
+              opposite of what you want while working in one, and the workspace
+              has its own Overview immediately below. "All ideas" in the
+              switcher is the way back out. */}
+          {workspace ? null : (
+            <NavItem
+              href="/dashboard"
+              icon={<SquaresFourIcon size={ICON} aria-hidden="true" />}
+              label="Dashboard"
+              labelOnly={labelOnly}
+              collapsed={collapsed}
+              active={pathname === "/dashboard"}
+              onNavigate={onMobileClose}
+            />
+          )}
         </div>
 
         {/* ── Scoped nav ─────────────────────────────────────────────────

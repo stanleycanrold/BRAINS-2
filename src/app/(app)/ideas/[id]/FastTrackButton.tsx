@@ -84,6 +84,53 @@ export function FastTrackButton({
   if (!state.research_report) return null;
 
   /**
+   * Once the founder has decided, this stops being a Fast Track control.
+   *
+   * It was still showing "Validation in progress" on an idea that had already
+   * reached a verdict, because the label was driven by the order's state and a
+   * delivered order stays delivered forever. The round is over; saying it is
+   * in progress is simply wrong, and it is the first thing anyone reads in the
+   * top right.
+   */
+  const decision = state.decision_gate?.user_decision;
+  if (decision) {
+    const done = {
+      proceed: {
+        label: "Validated · ready to build",
+        tone: "done" as const,
+        icon: <CheckCircleIcon size={15} weight="fill" aria-hidden="true" />,
+      },
+      rework: {
+        label: "Reworking",
+        tone: "caution" as const,
+        icon: <ClockIcon size={15} aria-hidden="true" />,
+      },
+      kill: {
+        label: "Validation closed",
+        tone: "done" as const,
+        icon: <CheckCircleIcon size={15} weight="fill" aria-hidden="true" />,
+      },
+    }[decision];
+
+    return (
+      <button
+        type="button"
+        onClick={() => router.push(`/ideas/${ideaId}/report`)}
+        className={cn(
+          "type-body-m inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3",
+          "transition-colors duration-[120ms]",
+          done.tone === "caution"
+            ? "border-caution/40 bg-caution-subtle text-primary hover:border-caution/70"
+            : "border-line bg-raised text-secondary hover:text-primary",
+        )}
+      >
+        {done.icon}
+        <span className="hidden truncate sm:inline">{done.label}</span>
+      </button>
+    );
+  }
+
+  /**
    * The three buying stages all point at checkout, so they only exist while
    * checkout does. `rates === null` is the moment before the fetch lands: the
    * button waits rather than flashing an offer it might have to withdraw.
