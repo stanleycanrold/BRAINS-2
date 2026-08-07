@@ -168,11 +168,33 @@ export async function listVersions(ideaId: string, userId: string) {
     .orderBy(schema.ideaStateVersions.versionNumber);
 }
 
-export async function listIdeas(userId: string): Promise<IdeaWithState[]> {
+/**
+ * The founder's workspaces, newest activity first.
+ *
+ * Archived workspaces are left out by default, and that default is the whole
+ * point of the option. Killing an idea, or folding a duplicate back into the
+ * original, archives rather than deletes it - the report stays readable
+ * forever at its own URL. But every list here also went on showing it, so
+ * merging two copies of the same idea left the founder looking at two
+ * identically-titled rows with no way to tell which one held the responses.
+ * An archive that still appears everywhere is not an archive.
+ *
+ * `includeArchived` is for the places that are counting rather than choosing:
+ * billing has to total up work that was paid for whether or not the idea
+ * survived.
+ */
+export async function listIdeas(
+  userId: string,
+  options: { includeArchived?: boolean } = {},
+): Promise<IdeaWithState[]> {
   const ideas = await db
     .select()
     .from(schema.ideas)
-    .where(eq(schema.ideas.userId, userId))
+    .where(
+      options.includeArchived
+        ? eq(schema.ideas.userId, userId)
+        : and(eq(schema.ideas.userId, userId), eq(schema.ideas.archived, false)),
+    )
     .orderBy(desc(schema.ideas.updatedAt));
 
   if (ideas.length === 0) return [];

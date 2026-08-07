@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Textarea, Input } from "@/components/ui/Field";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { useToast } from "@/components/ui/Toast";
+import { ResponseAnswerList } from "@/components/ResponseMatrix";
 import { cn } from "@/lib/cn";
 import type { Confirmed } from "@/lib/domain/types";
 
@@ -292,9 +293,10 @@ export function OrderWorkspace({
                   ) : null}
                 </div>
 
-                <p className="type-body-m mt-2.5 whitespace-pre-wrap text-primary">
-                  {r.notes}
-                </p>
+                {/* Split into its questions rather than printed raw. A
+                    screener deciding whether an answer is real has to see
+                    which question it was answering. */}
+                <ResponseAnswerList notes={r.notes} className="mt-2.5" />
 
                 {r.qualityReasoning ? (
                   <p className="type-body-m mt-2.5 flex items-start gap-2 border-t border-line pt-2.5 text-secondary">

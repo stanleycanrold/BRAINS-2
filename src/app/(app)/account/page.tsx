@@ -12,7 +12,9 @@ export const metadata: Metadata = { title: "Billing & account" };
 /** B12 - Account & Billing (design system §4.12). */
 export default async function AccountPage() {
   const user = await requireUser();
-  const ideas = await listIdeas(user.id);
+  // Archived included: this page totals up what was worked on and charged
+  // for, and killing an idea does not undo the spend.
+  const ideas = await listIdeas(user.id, { includeArchived: true });
   const ops = await isOpsUser();
 
   const decided = ideas.filter((i) => i.state.decision_gate?.signal).length;

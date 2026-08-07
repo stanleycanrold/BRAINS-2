@@ -16,6 +16,7 @@ import {
 } from "@/lib/validation-stage";
 import { paymentsEnabled } from "@/lib/stripe";
 import { FastTrackInline, LoopReminder } from "@/components/FastTrackTeaser";
+import { summariseWorkspace } from "@/lib/domain/workspace-summary";
 
 export const metadata: Metadata = { title: "Your Ideas" };
 
@@ -152,6 +153,7 @@ function IdeaCard({
   const hasScore = Boolean(gate?.signal);
   const stage = stageForStatus(idea.status);
   const roundStage = validationStage(idea.state);
+  const summary = summariseWorkspace(idea.status, idea.state);
 
   return (
     <article
@@ -207,6 +209,25 @@ function IdeaCard({
         })}
       </div>
 
+      {/* Where it actually stands, in a sentence and a few numbers. A status
+          badge reading "Validating" does not say whether eleven people have
+          replied or nobody has, which is the only thing a founder opens the
+          dashboard to find out. */}
+      <p className="type-body-m mt-4 text-primary">{summary.headline}</p>
+
+      {summary.stats.length > 0 ? (
+        <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
+          {summary.stats.map((stat) => (
+            <div key={stat.label} className="flex items-baseline gap-1.5">
+              <dt className="type-caption text-tertiary">{stat.label}</dt>
+              <dd className="type-body-m font-medium text-primary">
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={idea.status} />
@@ -227,6 +248,19 @@ function IdeaCard({
           {formatDistanceToNow(idea.updatedAt, { addSuffix: true })}
         </span>
       </div>
+
+      {summary.attention ? (
+        <p
+          className={[
+            "type-caption mt-3 rounded-[6px] px-2.5 py-2",
+            summary.attention.tone === "caution"
+              ? "bg-caution-subtle text-primary"
+              : "bg-brand-subtle text-brand",
+          ].join(" ")}
+        >
+          {summary.attention.text}
+        </p>
+      ) : null}
 
       <p className="type-body-m mt-3 flex items-center gap-1.5 border-t border-line pt-3 text-brand">
         {NEXT_STEP[idea.status]}

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
-import { ResponseMatrix } from "@/components/ResponseMatrix";
+import { ResponseMatrix, toMatrixRows } from "@/components/ResponseMatrix";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Textarea } from "@/components/ui/Field";
 import { ProposalCard } from "@/components/ProposalCard";
@@ -364,20 +364,7 @@ export function ReportView({
             said about one of them meant reading all of it. */}
         <ResponseMatrix
           className="mt-4"
-          responses={visibleResponses.map((r) => ({
-            key: r.id,
-            confirmed: r.confirmed,
-            notes: r.notes,
-            meta: [CHANNEL_LABELS[r.channel], r.source].filter(
-              (item): item is string => Boolean(item),
-            ),
-            flag:
-              r.review_status === "approved"
-                ? undefined
-                : r.review_status === "rejected"
-                  ? { text: "Rejected by screening", tone: "danger" as const }
-                  : { text: "Awaiting screening", tone: "neutral" as const },
-          }))}
+          responses={toMatrixRows(visibleResponses, { showSource: true })}
         />
       </section>
 

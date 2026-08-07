@@ -21,6 +21,7 @@ import {
   type IdeaStatus,
   type PipelineStage,
 } from "@/lib/domain/types";
+import { summariseWorkspace } from "@/lib/domain/workspace-summary";
 import { IdeaTopBar } from "./IdeaTopBar";
 import { SharePanel } from "./SharePanel";
 
@@ -117,6 +118,7 @@ export default async function IdeaOverviewPage({
     originFromHeaders(),
   ]);
 
+  const summary = summariseWorkspace(idea.status, idea.state);
   const reached = stageForStatus(idea.status);
   const reachedIndex = PIPELINE_STAGES.indexOf(reached);
   const gate = idea.state.decision_gate;
@@ -147,6 +149,38 @@ export default async function IdeaOverviewPage({
         {idea.summary ? (
           <p className="type-body-l mt-2 max-w-[70ch] text-secondary">
             {idea.summary}
+          </p>
+        ) : null}
+
+        {/* The same summary the dashboard card shows, from the same function,
+            so opening a workspace never contradicts the card you clicked. */}
+        <p className="type-body-l mt-5 text-primary">{summary.headline}</p>
+
+        {summary.stats.length > 0 ? (
+          <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line sm:grid-cols-4">
+            {summary.stats.map((stat) => (
+              <div key={stat.label} className="bg-page p-4">
+                <dt className="type-caption text-tertiary uppercase">
+                  {stat.label}
+                </dt>
+                <dd className="type-body-l mt-1 font-medium text-primary">
+                  {stat.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+
+        {summary.attention ? (
+          <p
+            className={[
+              "type-body-m mt-4 rounded-[8px] border p-3",
+              summary.attention.tone === "caution"
+                ? "border-caution/40 bg-caution-subtle text-primary"
+                : "border-brand/30 bg-brand-subtle text-brand",
+            ].join(" ")}
+          >
+            {summary.attention.text}
           </p>
         ) : null}
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@/components/ui/Badge";
 import { parseAnswers } from "@/lib/domain/response-notes";
+import { CHANNEL_LABELS, type ValidationResponse } from "@/lib/domain/types";
 import { cn } from "@/lib/cn";
 
 /**
@@ -28,6 +29,84 @@ import { cn } from "@/lib/cn";
  * for scanning, and the full text is one click away for the two or three
  * answers that turn out to matter.
  */
+
+/**
+ * One response, read on its own.
+ *
+ * The grid is for comparing many; this is for the screens whose job is to act
+ * on one at a time - the ops review queue reads a single write-up and decides
+ * whether it counts, and a column in a grid is the wrong shape for that.
+ * Same module so the two cannot disagree about how an answer is written down.
+ *
+ * Falls back to the raw text when the note is not in question/answer shape,
+ * which is normal for a Fast Track interview: those are typed up as prose by
+ * whoever ran the call. Rendering nothing would silently drop the most
+ * expensive responses in the pool.
+ */
+export function ResponseAnswerList({
+  notes,
+  className,
+}: {
+  notes: string;
+  className?: string;
+}) {
+  const answers = parseAnswers(notes);
+
+  if (answers.length === 0) {
+    return (
+      <p className={cn("type-body-m whitespace-pre-wrap text-primary", className)}>
+        {notes}
+      </p>
+    );
+  }
+
+  return (
+    <dl className={cn("divide-y divide-line", className)}>
+      {answers.map((entry, i) => (
+        <div key={`${entry.question}-${i}`} className="py-3 first:pt-0 last:pb-0">
+          <dt className="type-caption text-tertiary">{entry.question}</dt>
+          <dd className="type-body-m mt-1.5 whitespace-pre-wrap text-primary">
+            {entry.answer}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * The one adapter from a stored response to a row in this grid.
+ *
+ * Four screens were each doing this mapping by hand - the report, the shared
+ * link, the validation log and the ops order desk - and each had drifted into
+ * showing a different subset with different wording for the same three
+ * screening states. Adding a field meant finding four places, and forgetting
+ * one meant a founder and a client reading the same response differently.
+ *
+ * `showSource` exists because who a respondent was is the founder's to see and
+ * not a shared link's: the public journey shape drops it, and this guarantees
+ * a surface cannot reintroduce it by mapping the field itself.
+ */
+export function toMatrixRows(
+  responses: readonly ValidationResponse[],
+  options: { showSource?: boolean } = {},
+): MatrixResponse[] {
+  return responses.map((response) => ({
+    key: response.id,
+    confirmed: response.confirmed,
+    notes: response.notes,
+    meta: [
+      CHANNEL_LABELS[response.channel],
+      options.showSource ? response.source : "",
+    ].filter((item): item is string => Boolean(item)),
+    flag:
+      response.review_status === "approved"
+        ? undefined
+        : response.review_status === "rejected"
+          ? { text: "Rejected by screening", tone: "danger" as const }
+          : { text: "Awaiting screening", tone: "neutral" as const },
+  }));
+}
 
 export type MatrixResponse = {
   /** Stable identity for React. */

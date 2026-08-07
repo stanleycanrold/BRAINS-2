@@ -19,6 +19,7 @@ import { useToast } from "@/components/ui/Toast";
 import { IdeaTopBar } from "../../IdeaTopBar";
 import { ValidationInProgress } from "@/components/ValidationInProgress";
 import { QuestionsTab } from "@/components/QuestionsTab";
+import { ResponseMatrix, toMatrixRows } from "@/components/ResponseMatrix";
 import { cn } from "@/lib/cn";
 import {
   CHANNEL_LABELS,
@@ -589,83 +590,20 @@ function ResponsesTab({
 }
 
 /**
- * One response, readable.
+ * Logged responses, in the same grid the report and the shared link use.
  *
- * Notes are the point - the synthesis reads them and so does the founder - so
- * they get the full width rather than the narrowest cell of a table.
+ * This screen had its own list - verdict, channel, then the whole note as a
+ * paragraph - which was fine for the three responses it was designed against
+ * and unreadable at eleven. More to the point it was a fourth rendering of
+ * the same rows, so the wording of the screening states differed from the
+ * report's and the ops desk's for no reason anyone chose.
  */
 function ResponseList({
   responses,
 }: {
   responses: IdeaState["validation"]["responses"];
 }) {
-  return (
-    <ul className="space-y-2.5">
-      {responses.map((r) => (
-        <li
-          key={r.id}
-          className={cn(
-            "rounded-[10px] border border-line bg-page p-4",
-            r.review_status === "rejected" && "opacity-60",
-          )}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              tone={
-                r.confirmed === "yes"
-                  ? "success"
-                  : r.confirmed === "no"
-                    ? "danger"
-                    : "caution"
-              }
-              dot
-            >
-              {r.confirmed === "yes"
-                ? "Yes"
-                : r.confirmed === "no"
-                  ? "No"
-                  : "Unsure"}
-            </Badge>
-            <span className="type-body-m text-tertiary">
-              {CHANNEL_LABELS[r.channel]}
-            </span>
-            {r.source ? (
-              <>
-                <span className="text-tertiary" aria-hidden="true">
-                  ·
-                </span>
-                <span className="type-body-m min-w-0 truncate text-secondary">
-                  {r.source}
-                </span>
-              </>
-            ) : null}
-
-            {/* Only ever shown when it changes what counts. */}
-            {r.review_status === "rejected" ? (
-              <span className="type-caption rounded-full bg-danger-subtle px-2 py-0.5 text-danger">
-                not counted
-              </span>
-            ) : null}
-            {r.review_status === "pending" ? (
-              <span className="type-caption rounded-full bg-wash-hover px-2 py-0.5 text-tertiary">
-                checking
-              </span>
-            ) : null}
-          </div>
-
-          {r.notes ? (
-            <p className="type-body-m mt-2 whitespace-pre-wrap text-primary">
-              {r.notes}
-            </p>
-          ) : (
-            <p className="type-body-m mt-2 text-tertiary">
-              No notes written down.
-            </p>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
+  return <ResponseMatrix responses={toMatrixRows(responses, { showSource: true })} />;
 }
 
 
