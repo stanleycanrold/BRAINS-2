@@ -64,11 +64,36 @@ export type JourneyRound = {
   createdAt: string;
 };
 
+/**
+ * The bottom line, computed once so the page can lead with it.
+ *
+ * A shared journey is read by somebody deciding whether to care - a
+ * co-founder, an advisor, a client - and the conventional research-report
+ * advice applies exactly: put the conclusion first and let the evidence
+ * support it, rather than making the reader assemble a verdict from a
+ * chronology. Everything here is derived from the rounds, never stored, so it
+ * cannot drift from what the rounds actually say.
+ */
+export type JourneyHeadline = {
+  score: number | null;
+  signal: string | null;
+  verdict: string;
+  confirmationRate: number;
+  /** Across every round, which is the honest denominator for "we asked N people". */
+  totalResponses: number;
+  totalSources: number;
+  roundCount: number;
+  /** The strongest findings from the most recent round that has any. */
+  keyFindings: string[];
+  openConcerns: string[];
+};
+
 export type PublicJourney = {
   title: string;
   summary: string;
   currentStatus: IdeaState["status"];
   includesResponses: boolean;
+  headline: JourneyHeadline;
   rounds: JourneyRound[];
   startedAt: string;
   updatedAt: string;
@@ -248,8 +273,46 @@ export async function getPublicJourney(
     summary: idea.summary,
     currentStatus: rounds[rounds.length - 1].status,
     includesResponses: includeResponses,
+    headline: summarise(rounds),
     rounds,
     startedAt: idea.createdAt.toISOString(),
     updatedAt: idea.updatedAt.toISOString(),
+  };
+}
+
+/**
+ * Reduces the rounds to the one paragraph a reader needs before anything else.
+ *
+ * `scored` is the latest round that actually reached a verdict, which is not
+ * always the last round: opening a new round resets its evidence, so the most
+ * recent round is frequently empty and reading the headline off it would show
+ * a live idea as having concluded nothing.
+ */
+function summarise(rounds: JourneyRound[]): JourneyHeadline {
+  const scored = [...rounds].reverse().find((r) => r.score !== null);
+  const withFindings = [...rounds].reverse().find((r) => r.themes.length > 0);
+  const withConcerns = [...rounds]
+    .reverse()
+    .find((r) => r.objections.length > 0 || (r.score?.riskFactors.length ?? 0) > 0);
+
+  const totalResponses = rounds.reduce((n, r) => n + r.responseCount, 0);
+  const totalSources = rounds.reduce(
+    (n, r) => n + (r.research?.evidence.length ?? 0),
+    0,
+  );
+
+  return {
+    score: scored?.score?.value ?? null,
+    signal: scored?.score?.signal ?? null,
+    verdict: scored?.score?.reasoning ?? "",
+    confirmationRate: scored?.confirmationRate ?? 0,
+    totalResponses,
+    totalSources,
+    roundCount: rounds.length,
+    keyFindings: withFindings?.themes.slice(0, 4) ?? [],
+    openConcerns: [
+      ...(withConcerns?.objections ?? []),
+      ...(withConcerns?.score?.riskFactors.map((r) => r.label) ?? []),
+    ].slice(0, 4),
   };
 }
