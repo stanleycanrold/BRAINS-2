@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
 import type { JourneyRound, PublicJourney } from "@/lib/data/journey";
@@ -446,8 +447,13 @@ function ValidationTab({
      * thing. These are the four questions a sceptic asks in order: what came
      * back, what did they say, who did you ask, and what did you ask them.
      */
-    <div className="space-y-12">
-      <Section index={1} title="What came back">
+    <div className="space-y-3">
+      <Disclosure
+        title="What came back"
+        summary={`${round.responseCount} responses, ${Math.round(round.confirmationRate * 100)}% confirmed the problem`}
+        storageKey="shared-validation-results"
+        defaultOpen
+      >
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
           <Stat label="Responses" value={String(round.responseCount)} />
           <Stat
@@ -508,10 +514,15 @@ function ValidationTab({
             ) : null}
           </div>
         ) : null}
-      </Section>
+      </Disclosure>
 
       {quotes.length > 0 ? (
-        <Section index={2} title="In their words">
+        <Disclosure
+          title="In their words"
+          count={quotes.length}
+          summary="What individual respondents actually said"
+          storageKey="shared-validation-quotes"
+        >
           <div className="space-y-3">
             {quotes.map((response, i) => (
               <Card key={`${response.confirmed}-${i}`} className="p-5">
@@ -543,14 +554,15 @@ function ValidationTab({
               </Card>
             ))}
           </div>
-        </Section>
+        </Disclosure>
       ) : null}
 
       {round.communities.length > 0 ? (
-        <Section
-          index={quotes.length > 0 ? 3 : 2}
+        <Disclosure
           title="Who we asked"
-          lead="The communities the research identified, where these people already gather."
+          count={round.communities.length}
+          summary="The communities where these people already gather"
+          storageKey="shared-validation-communities"
         >
           <ul className="divide-y divide-line rounded-[8px] border border-line">
             {round.communities.map((community) => (
@@ -571,16 +583,15 @@ function ValidationTab({
               </li>
             ))}
           </ul>
-        </Section>
+        </Disclosure>
       ) : null}
 
       {round.questions.length > 0 ? (
-        <Section
-          index={
-            2 + (quotes.length > 0 ? 1 : 0) + (round.communities.length > 0 ? 1 : 0)
-          }
+        <Disclosure
           title="What we asked them"
-          lead="Written from the research, and phrased so the answers mean something. Every question asks about what happened, never what someone would hypothetically do."
+          count={round.questions.length}
+          summary="Non-leading questions, written from the research"
+          storageKey="shared-validation-questions"
         >
           <ol className="space-y-3">
             {round.questions.map((question, i) => (
@@ -592,37 +603,9 @@ function ValidationTab({
               </li>
             ))}
           </ol>
-        </Section>
+        </Disclosure>
       ) : null}
     </div>
-  );
-}
-
-/** A numbered section, so the tab reads as a report rather than a sequence. */
-function Section({
-  index,
-  title,
-  lead,
-  children,
-}: {
-  index: number;
-  title: string;
-  lead?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section>
-      <div className="flex items-baseline gap-3">
-        <span className="type-data-s text-tertiary">
-          {String(index).padStart(2, "0")}
-        </span>
-        <h2 className="type-display-m text-primary">{title}</h2>
-      </div>
-      {lead ? (
-        <p className="type-body-m mt-2 max-w-[70ch] text-secondary">{lead}</p>
-      ) : null}
-      <div className="mt-5">{children}</div>
-    </section>
   );
 }
 
@@ -633,7 +616,7 @@ function VerdictTab({ round }: { round: JourneyRound }) {
   const isGo = score.signal === "go_ahead";
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-3">
       <Card elevation="raised" className="p-6 sm:p-8">
         <div className="flex flex-wrap items-baseline gap-4">
           <span className="type-data-l text-primary">{score.value}</span>
@@ -662,22 +645,26 @@ function VerdictTab({ round }: { round: JourneyRound }) {
       </Card>
 
       {score.reasoning ? (
-        <section>
-          <h2 className="type-body-l font-medium text-primary">
-            How we got to that number
-          </h2>
-          <p className="type-body-m mt-3 max-w-[70ch] text-secondary">
+        <Disclosure
+          title="How we got to that number"
+          summary="The reasoning behind the score"
+          storageKey="shared-verdict-reasoning"
+          defaultOpen
+        >
+          <p className="type-body-m max-w-[70ch] text-secondary">
             {score.reasoning}
           </p>
-        </section>
+        </Disclosure>
       ) : null}
 
       {score.riskFactors.length > 0 ? (
-        <section>
-          <h2 className="type-body-l font-medium text-primary">
-            Reasons to hold this loosely
-          </h2>
-          <ul className="mt-4 space-y-3">
+        <Disclosure
+          title="Reasons to hold this loosely"
+          count={score.riskFactors.length}
+          summary="What weakens this score, named"
+          storageKey="shared-verdict-risks"
+        >
+          <ul className="space-y-3">
             {score.riskFactors.map((risk) => (
               <li
                 key={risk.label}
@@ -707,7 +694,7 @@ function VerdictTab({ round }: { round: JourneyRound }) {
               </li>
             ))}
           </ul>
-        </section>
+        </Disclosure>
       ) : null}
     </div>
   );
