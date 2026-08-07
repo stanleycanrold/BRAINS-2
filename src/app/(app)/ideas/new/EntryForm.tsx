@@ -123,6 +123,11 @@ export function EntryForm({
   const [location, setLocation] = React.useState("");
   const [productLink, setProductLink] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
+  const [duplicate, setDuplicate] = React.useState<{
+    id: string;
+    title: string;
+    similarity: number;
+  } | null>(null);
 
   // A link is only worth asking for when there is something to look at.
   const wantsLink = stage !== "idea_only";
@@ -262,7 +267,7 @@ export function EntryForm({
   const step = steps[stepIndexSafe];
   const isLastStep = stepIndexSafe === steps.length - 1;
 
-  async function create() {
+  async function create(allowDuplicate = false) {
     if (!audience.trim()) {
       toast("Tell us who this is for, even roughly.", "danger");
       return;
@@ -279,8 +284,22 @@ export function EntryForm({
           location_focus: location.trim(),
           product_link: wantsLink ? productLink.trim() || null : null,
           attachments,
+          allow_duplicate: allowDuplicate,
         }),
       });
+
+      /**
+       * Not an error - the server recognised this as an idea they already
+       * have. Almost always an edit that came in through the wrong door, so
+       * the offer is to open the existing one rather than to explain a
+       * failure.
+       */
+      if (response.status === 409) {
+        const body = await response.json();
+        setSubmitting(false);
+        setDuplicate(body.duplicate);
+        return;
+      }
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
@@ -302,6 +321,43 @@ export function EntryForm({
 
   return (
     <>
+      <Modal
+        open={Boolean(duplicate)}
+        onClose={() => setDuplicate(null)}
+        title="You already have this idea"
+        description={
+          duplicate
+            ? `This is ${duplicate.similarity}% the same as "${duplicate.title}". Editing an idea in its own workspace keeps the research and every response together - starting a new one splits them across two.`
+            : ""
+        }
+        footer={
+          <ModalActions onCancel={() => setDuplicate(null)}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setDuplicate(null);
+                void create(true);
+              }}
+            >
+              Create separately anyway
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (duplicate) router.push(`/ideas/${duplicate.id}/entry`);
+              }}
+            >
+              Edit the existing one
+            </Button>
+          </ModalActions>
+        }
+      >
+        <p className="type-body-m text-secondary">
+          If you meant to change the wording, open the existing idea and edit
+          it there. Its research, questions and answers all stay attached.
+        </p>
+      </Modal>
+
       <IdeaComposer
         examples={EXAMPLES}
         value={description}

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
-import { createIdea } from "@/lib/data/ideas";
+import { createIdea, listIdeas } from "@/lib/data/ideas";
 import { describeIdeaProblem } from "@/lib/domain/limits";
 import { stageAtEntrySchema } from "@/lib/domain/types";
+import {
+  descriptionSimilarity,
+  DUPLICATE_THRESHOLD,
+} from "@/lib/domain/similarity";
 
 export const runtime = "nodejs";
 
@@ -13,6 +17,8 @@ const bodySchema = z.object({
   stage_at_entry: stageAtEntrySchema,
   product_link: z.string().nullable().default(null),
   location_focus: z.string().max(200).default(""),
+  /** Set once the founder has been shown a near-duplicate and chosen anyway. */
+  allow_duplicate: z.boolean().default(false),
   attachments: z
     .array(
       z.object({
@@ -47,6 +53,42 @@ export async function POST(request: Request) {
     const problem = describeIdeaProblem(parsed.data.description);
     if (problem) {
       return NextResponse.json({ error: problem }, { status: 400 });
+    }
+
+    /**
+     * Catch an edit that came in as a new idea.
+     *
+     * Editing the wording and resubmitting through the entry screen produces a
+     * second workspace holding the same idea, and the responses then split
+     * across the two with nothing saying so. This is a prompt rather than a
+     * refusal: it names the existing idea and lets the founder open it, or
+     * carry on and create a separate one.
+     */
+    if (!parsed.data.allow_duplicate) {
+      const existing = await listIdeas(user.id);
+      const match = existing
+        .filter((candidate) => !candidate.archived)
+        .map((candidate) => ({
+          candidate,
+          score: descriptionSimilarity(
+            parsed.data.description,
+            candidate.state.raw_submission.description,
+          ),
+        }))
+        .sort((a, b) => b.score - a.score)[0];
+
+      if (match && match.score >= DUPLICATE_THRESHOLD) {
+        return NextResponse.json(
+          {
+            duplicate: {
+              id: match.candidate.id,
+              title: match.candidate.title,
+              similarity: Math.round(match.score * 100),
+            },
+          },
+          { status: 409 },
+        );
+      }
     }
 
     const idea = await createIdea({
