@@ -6,6 +6,7 @@ import {
   type PipelineStage,
 } from "@/lib/domain/types";
 import { countSources } from "@/lib/domain/research-sources";
+import { approvedOnly, awaitingReview } from "@/lib/domain/response-visibility";
 import { validationStage } from "@/lib/validation-stage";
 
 /**
@@ -40,11 +41,12 @@ export function summariseWorkspace(
   status: IdeaStatus,
   state: IdeaState,
 ): WorkspaceSummary {
-  const responses = state.validation.responses;
-  const counted = responses.filter((r) => r.review_status !== "rejected");
-  const pending = responses.filter((r) => r.review_status === "pending").length;
-  const confirmed = counted.filter((r) => r.confirmed === "yes").length;
-  const rate = computeConfirmationRate(responses);
+  // Approved only, throughout. Every number a founder is shown is over the
+  // responses a founder can see. See lib/domain/response-visibility.
+  const responses = approvedOnly(state.validation.responses);
+  const pending = awaitingReview(state.validation.responses).length;
+  const confirmed = responses.filter((r) => r.confirmed === "yes").length;
+  const rate = computeConfirmationRate(state.validation.responses);
 
   const research = state.research_report;
   const gate = state.decision_gate;
@@ -78,7 +80,7 @@ export function summariseWorkspace(
     headline: headlineFor(status, {
       responseCount: responses.length,
       confirmed,
-      counted: counted.length,
+      counted: responses.length,
       hasResearch: research != null,
       hasQuestions: questions > 0,
       round,
@@ -86,22 +88,19 @@ export function summariseWorkspace(
     }),
     stats,
     /**
-     * Only two things earn this line: a number that is not yet what it looks
-     * like, and a result waiting to be read. That a paid round is running is
-     * true but not actionable, and the surfaces that want to say so have their
-     * own badge for it.
+     * More responses are in the pipeline than the founder can see, or a
+     * result is waiting to be read.
      *
-     * Unscreened responses come first because the rate on screen could still
-     * move. A pending response DOES count - see computeConfirmationRate,
-     * which excludes only definite rejects, so that the number does not dip
-     * and recover while screening runs. But a reject would remove it, and a
-     * founder about to send this to a client should know the figure is not
-     * yet settled.
+     * The pending line says a number is coming, not what is in it. Responses
+     * under review are not shown, do not count and are not described - but
+     * staying silent about them would be its own kind of dishonest, because a
+     * founder who knows they sent the link to twelve people and sees nine is
+     * owed an explanation that is not "some of your answers vanished".
      */
     attention:
       pending > 0
         ? {
-            text: `${pending} ${pending === 1 ? "response is" : "responses are"} still being screened. ${pending === 1 ? "It counts" : "They count"} toward the rate for now, so the figure can still move.`,
+            text: `${pending} more ${pending === 1 ? "response is" : "responses are"} with our reviewers. ${pending === 1 ? "It joins" : "They join"} your results once checked.`,
             tone: "caution",
           }
         : status === "gate_review"

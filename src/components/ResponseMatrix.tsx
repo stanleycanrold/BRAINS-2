@@ -86,10 +86,16 @@ export function ResponseAnswerList({
  * `showSource` exists because who a respondent was is the founder's to see and
  * not a shared link's: the public journey shape drops it, and this guarantees
  * a surface cannot reintroduce it by mapping the field itself.
+ *
+ * `showReviewStatus` is off by default and belongs to ops alone. A founder is
+ * shown approved responses and nothing else, so on their screens the status
+ * is both invariant and none of their business - a badge reading "Approved"
+ * on every row is noise that leaks an internal workflow. Where the status
+ * varies, the reviewer needs it on every row.
  */
 export function toMatrixRows(
   responses: readonly ValidationResponse[],
-  options: { showSource?: boolean } = {},
+  options: { showSource?: boolean; showReviewStatus?: boolean } = {},
 ): MatrixResponse[] {
   return responses.map((response) => ({
     key: response.id,
@@ -100,11 +106,11 @@ export function toMatrixRows(
       options.showSource ? response.source : "",
     ].filter((item): item is string => Boolean(item)),
     flag:
-      response.review_status === "approved"
+      !options.showReviewStatus || response.review_status === "approved"
         ? undefined
         : response.review_status === "rejected"
-          ? { text: "Rejected by screening", tone: "danger" as const }
-          : { text: "Awaiting screening", tone: "neutral" as const },
+          ? { text: "Rejected", tone: "danger" as const }
+          : { text: "Awaiting review", tone: "neutral" as const },
   }));
 }
 

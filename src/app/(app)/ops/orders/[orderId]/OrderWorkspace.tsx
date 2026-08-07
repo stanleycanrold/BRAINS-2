@@ -15,6 +15,8 @@ import { Textarea, Input } from "@/components/ui/Field";
 import { RadioCardGroup } from "@/components/ui/Checkbox";
 import { useToast } from "@/components/ui/Toast";
 import { ResponseAnswerList } from "@/components/ResponseMatrix";
+// Ops sees every state; the founder-facing screens never do. The rule lives
+// in lib/domain/response-visibility.
 import { cn } from "@/lib/cn";
 import type { Confirmed } from "@/lib/domain/types";
 

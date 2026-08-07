@@ -16,6 +16,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/Badge";
 import {
+  computeConfirmationRate,
   PIPELINE_STAGES,
   stageForStatus,
   type IdeaStatus,
@@ -283,7 +284,7 @@ export default async function IdeaOverviewPage({
               <span className="type-data-l text-primary">{gate.score}</span>
               <span className="type-body-m text-tertiary">/ 100</span>
               <span className="type-body-m text-secondary">
-                {Math.round(idea.state.validation.confirmation_rate * 100)}% of{" "}
+                {Math.round(computeConfirmationRate(idea.state.validation.responses) * 100)}% of{" "}
                 {idea.state.validation.responses.length} confirmed the problem
               </span>
             </div>

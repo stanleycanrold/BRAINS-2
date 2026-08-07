@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { ResponseMatrix, toMatrixRows } from "@/components/ResponseMatrix";
+import { approvedOnly } from "@/lib/domain/response-visibility";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Textarea } from "@/components/ui/Field";
 import { ProposalCard } from "@/components/ProposalCard";
@@ -23,6 +24,7 @@ import { PipelineStepper } from "@/components/shell/PipelineStepper";
 import { cn } from "@/lib/cn";
 import {
   CHANNEL_LABELS,
+  computeConfirmationRate,
   type Channel,
   type IdeaState,
   type RiskFactor,
@@ -72,7 +74,10 @@ export function ReportView({
 
   const gate = state.decision_gate;
   const summary = state.validation.synthesis_summary;
-  const responses = state.validation.responses;
+  // Approved only. A response that has not cleared review is not the
+  // founder's evidence yet, and a rejected one never will be - both are the
+  // evaluator's to see. See lib/domain/response-visibility.
+  const responses = approvedOnly(state.validation.responses);
 
   const isRethink = gate?.signal === "rethink";
   const decided = Boolean(gate?.user_decision);
@@ -211,7 +216,7 @@ export function ReportView({
 
             <p className="type-body-l mt-2 text-secondary">
               <span className="type-data-m text-primary">
-                {Math.round(state.validation.confirmation_rate * 100)}%
+                {Math.round(computeConfirmationRate(state.validation.responses) * 100)}%
               </span>{" "}
               of {responses.length}{" "}
               {responses.length === 1 ? "person" : "people"} confirmed they have

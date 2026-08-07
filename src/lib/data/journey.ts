@@ -3,11 +3,13 @@ import { randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
+  computeConfirmationRate,
   ideaStateSchema,
   type IdeaState,
   type ResearchReport,
 } from "@/lib/domain/types";
 import { countSourcesAcross, sources } from "@/lib/domain/research-sources";
+import { approvedOnly } from "@/lib/domain/response-visibility";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -115,7 +117,10 @@ export type JourneyRound = {
   /** Things worth the founder's attention that are neither theme nor objection. */
   notablePoints: string[];
   narrative: string;
-  /** Present only when the founder opted in. Never carries a source. */
+  /**
+   * Present only when the founder opted in. Never carries a source, and never
+   * an unapproved response - a client sees the evidence that passed review.
+   */
   responses: { confirmed: string; notes: string }[];
   score: {
     value: number;
@@ -280,6 +285,7 @@ export async function getPublicJourney(
     const state = ideaStateSchema.parse(version.stateJson);
     const research = state.research_report;
     reports.push(research);
+    const approved = approvedOnly(state.validation.responses);
     const gate = state.decision_gate;
     const changedFromPrevious = diffRound(previous, state);
     previous = state;
@@ -335,20 +341,33 @@ export async function getPublicJourney(
           }
         : null,
       questions: state.validation.questionnaire.questions.map((q) => q.text),
-      responseCount: state.validation.responses.length,
+      // Every count and quote below is over APPROVED responses only. A
+      // client reading a shared report must see a total that matches the
+      // responses listed under it, and an unreviewed answer is not evidence
+      // yet. See lib/domain/response-visibility.
+      responseCount: approved.length,
       responsesByTrack: {
-        managed: state.validation.responses.filter((r) => r.track === "fast")
+        managed: approved.filter((r) => r.track === "fast")
           .length,
-        selfServe: state.validation.responses.filter((r) => r.track !== "fast")
+        selfServe: approved.filter((r) => r.track !== "fast")
           .length,
       },
-      responsesByChannel: state.validation.responses.reduce<
+      responsesByChannel: approved.reduce<
         Record<string, number>
       >((acc, r) => {
         acc[r.channel] = (acc[r.channel] ?? 0) + 1;
         return acc;
       }, {}),
-      confirmationRate: state.validation.confirmation_rate,
+      /**
+       * Recomputed, not read off the stored field.
+       *
+       * `confirmation_rate` is written whenever a response lands, so it is a
+       * derived number with its own lifetime - and when the rule for what
+       * counts changed to approved-only, every blob written under the old
+       * rule became a figure that no visible set of responses added up to.
+       * Deriving it here means the rate cannot outlive the rule that made it.
+       */
+      confirmationRate: computeConfirmationRate(state.validation.responses),
       /**
        * The yes/no/unsure split, ALWAYS present.
        *
@@ -363,7 +382,7 @@ export async function getPublicJourney(
        * Nothing identifying is in a count. Opting out withholds what people
        * wrote, not how many of them agreed.
        */
-      verdictTally: state.validation.responses.reduce(
+      verdictTally: approved.reduce(
         (acc, r) => {
           if (r.confirmed === "yes") acc.yes += 1;
           else if (r.confirmed === "no") acc.no += 1;
@@ -379,7 +398,7 @@ export async function getPublicJourney(
       // Mapped field by field rather than spread, so a field added to a
       // response later cannot appear on a public page by accident.
       responses: includeResponses
-        ? state.validation.responses.map((r) => ({
+        ? approved.map((r) => ({
             confirmed: r.confirmed,
             notes: r.notes,
           }))
