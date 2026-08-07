@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { ResponseMatrix, toMatrixRows } from "@/components/ResponseMatrix";
-import { approvedOnly } from "@/lib/domain/response-visibility";
+import { founderVisible } from "@/lib/domain/response-visibility";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Textarea } from "@/components/ui/Field";
 import { ProposalCard } from "@/components/ProposalCard";
@@ -74,10 +74,9 @@ export function ReportView({
 
   const gate = state.decision_gate;
   const summary = state.validation.synthesis_summary;
-  // Approved only. A response that has not cleared review is not the
-  // founder's evidence yet, and a rejected one never will be - both are the
-  // evaluator's to see. See lib/domain/response-visibility.
-  const responses = approvedOnly(state.validation.responses);
+  // Rejected responses are never here; pending ones are, while nobody is
+  // working the review queue. See lib/domain/response-visibility.
+  const responses = founderVisible(state.validation.responses);
 
   const isRethink = gate?.signal === "rethink";
   const decided = Boolean(gate?.user_decision);

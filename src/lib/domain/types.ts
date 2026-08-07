@@ -1,4 +1,7 @@
 import { z } from "zod";
+// Value import, but not a cycle: response-visibility imports only the TYPE
+// back from here, which erases at compile time.
+import { founderVisible } from "@/lib/domain/response-visibility";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -550,26 +553,16 @@ export function emptyIdeaState(params: {
 /**
  * The confirmation rate, over responses that are allowed to count.
  *
- * Approved only. A response from a tester counts once an evaluator has passed
- * it and not before - which is the same rule that decides whether the founder
- * can see it at all, so the rate always reconciles with the responses shown
- * beside it.
- *
- * This used to include pending ones, so that a rate would not visibly dip and
- * recover during the few seconds screening takes. That was the right trade
- * while the founder could see every response regardless of state. It is the
- * wrong one now: a number moved by answers the founder is not shown cannot be
- * checked against anything, and two SafeSpark responses sat pending for hours
- * after a screening run failed, silently holding the rate at a figure no
- * visible set of responses added up to.
- *
- * Responses the founder logs themselves are stored approved, so their own
- * numbers never lag.
+ * The denominator is exactly the set of responses the founder can see - see
+ * founderVisible, which owns the rule. That is deliberate and not merely
+ * convenient: a rate computed over answers that are not on the page cannot be
+ * checked against anything, which is how a report came to show 11 responses
+ * at 64% while listing a set that added up to neither number.
  */
 export function computeConfirmationRate(
   responses: readonly ValidationResponse[],
 ): number {
-  const counted = responses.filter((r) => r.review_status === "approved");
+  const counted = founderVisible(responses);
   if (counted.length === 0) return 0;
   const confirmed = counted.filter((r) => r.confirmed === "yes").length;
   return confirmed / counted.length;

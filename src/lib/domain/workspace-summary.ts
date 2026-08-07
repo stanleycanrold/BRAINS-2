@@ -6,7 +6,11 @@ import {
   type PipelineStage,
 } from "@/lib/domain/types";
 import { countSources } from "@/lib/domain/research-sources";
-import { approvedOnly, awaitingReview } from "@/lib/domain/response-visibility";
+import {
+  awaitingReview,
+  founderVisible,
+  HOLD_PENDING_FOR_REVIEW,
+} from "@/lib/domain/response-visibility";
 import { validationStage } from "@/lib/validation-stage";
 
 /**
@@ -41,9 +45,10 @@ export function summariseWorkspace(
   status: IdeaStatus,
   state: IdeaState,
 ): WorkspaceSummary {
-  // Approved only, throughout. Every number a founder is shown is over the
-  // responses a founder can see. See lib/domain/response-visibility.
-  const responses = approvedOnly(state.validation.responses);
+  // Every number a founder is shown is over the responses a founder can
+  // see - rejected ones never, pending ones depending on whether the review
+  // queue is staffed. See lib/domain/response-visibility.
+  const responses = founderVisible(state.validation.responses);
   const pending = awaitingReview(state.validation.responses).length;
   const confirmed = responses.filter((r) => r.confirmed === "yes").length;
   const rate = computeConfirmationRate(state.validation.responses);
@@ -88,17 +93,15 @@ export function summariseWorkspace(
     }),
     stats,
     /**
-     * More responses are in the pipeline than the founder can see, or a
-     * result is waiting to be read.
+     * Responses the founder cannot see yet, or a result waiting to be read.
      *
-     * The pending line says a number is coming, not what is in it. Responses
-     * under review are not shown, do not count and are not described - but
-     * staying silent about them would be its own kind of dishonest, because a
-     * founder who knows they sent the link to twelve people and sees nine is
-     * owed an explanation that is not "some of your answers vanished".
+     * Only says anything about pending responses when they are actually being
+     * held back. While HOLD_PENDING_FOR_REVIEW is off they are already in the
+     * counts above, and announcing them would describe a queue that is not
+     * affecting anything the founder is looking at.
      */
     attention:
-      pending > 0
+      HOLD_PENDING_FOR_REVIEW && pending > 0
         ? {
             text: `${pending} more ${pending === 1 ? "response is" : "responses are"} with our reviewers. ${pending === 1 ? "It joins" : "They join"} your results once checked.`,
             tone: "caution",

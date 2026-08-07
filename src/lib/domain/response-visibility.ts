@@ -1,39 +1,49 @@
 import type { ValidationResponse } from "@/lib/domain/types";
 
 /**
- * Who is allowed to see a response that has not been approved.
+ * Which responses a founder is entitled to see, and which count.
  *
- * A response arrives from a tester and is screened before it reaches the
- * founder. Until an evaluator has approved it, it is not part of the founder's
- * evidence: they do not see it, it does not appear in their report, it does
- * not move their confirmation rate, and it is never in a shared link.
+ * Two rules, and only one of them is conditional.
  *
- * The founder was previously shown everything with a badge saying which state
- * each response was in. That put an internal workflow in front of the person
- * paying for the result, and worse, it put rejected answers in front of them -
- * a generated or nonsense submission, displayed as feedback, with a small grey
- * label as the only thing distinguishing it. Reading which responses were
- * thrown out and why is the evaluator's job.
+ * Rejected responses are never shown to a founder, ever. A generated or
+ * nonsense submission displayed as feedback with a small grey label as the
+ * only thing marking it is worse than not showing it: it is noise presented
+ * as evidence. Which responses were thrown out, and why, is the evaluator's
+ * business, and every one of them stays readable in full at /ops/review.
  *
- * Nothing is deleted by this. Every response, in every state, stays readable
- * in full on the ops side, which is the only place a review status is shown at
- * all.
+ * Pending responses depend on whether anyone is actually reviewing. The
+ * strict rule - a response counts once a human has passed it - is the right
+ * one, and it is what HOLD_PENDING_FOR_REVIEW turns on. But it is only honest
+ * when the queue is staffed: with nobody working it, holding a response back
+ * does not mean "not yet verified", it means "lost". Two SafeSpark answers
+ * sat pending for hours after a screening run failed silently, and under the
+ * strict rule the founder would simply have had nine responses where eleven
+ * came in, with no way to find out.
+ *
+ * So while this is false, a collected response is shown and counted, and the
+ * reviewer's job is to remove the bad ones rather than to admit the good
+ * ones. Flip it the day someone is working the queue - it is the only change
+ * needed, because every surface reads through here.
  */
+export const HOLD_PENDING_FOR_REVIEW = false;
 
-/** The responses a founder is entitled to see. */
-export function approvedOnly(
+/** The responses a founder is entitled to see, and that move their numbers. */
+export function founderVisible(
   responses: readonly ValidationResponse[],
 ): ValidationResponse[] {
-  return responses.filter((r) => r.review_status === "approved");
+  return responses.filter((r) =>
+    HOLD_PENDING_FOR_REVIEW
+      ? r.review_status === "approved"
+      : r.review_status !== "rejected",
+  );
 }
 
 /**
  * Responses collected but not yet decided on.
  *
- * Not for founder surfaces - this exists so the ops queue can be sized and so
- * a response cannot sit unscreened forever without anyone noticing. Hiding
- * pending responses from the founder means the only remaining place they can
- * be seen is the reviewer's queue, which makes that queue load-bearing.
+ * For ops, not for founder surfaces. Sizes the review queue, and is the only
+ * way to notice a response nobody has looked at - which matters most when
+ * HOLD_PENDING_FOR_REVIEW is on and pending means invisible.
  */
 export function awaitingReview(
   responses: readonly ValidationResponse[],

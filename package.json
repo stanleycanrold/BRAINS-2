@@ -22,6 +22,7 @@
     "smoke:links": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-links.ts",
     "smoke:limits": "tsx scripts/smoke-limits.ts",
     "smoke:sources": "tsx scripts/smoke-sources.ts",
+    "smoke:visibility": "tsx scripts/smoke-visibility.ts",
     "smoke:pricing": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-pricing-copy.ts"
   },
   "dependencies": {

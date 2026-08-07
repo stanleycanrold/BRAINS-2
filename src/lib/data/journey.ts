@@ -9,7 +9,7 @@ import {
   type ResearchReport,
 } from "@/lib/domain/types";
 import { countSourcesAcross, sources } from "@/lib/domain/research-sources";
-import { approvedOnly } from "@/lib/domain/response-visibility";
+import { founderVisible } from "@/lib/domain/response-visibility";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -285,7 +285,7 @@ export async function getPublicJourney(
     const state = ideaStateSchema.parse(version.stateJson);
     const research = state.research_report;
     reports.push(research);
-    const approved = approvedOnly(state.validation.responses);
+    const approved = founderVisible(state.validation.responses);
     const gate = state.decision_gate;
     const changedFromPrevious = diffRound(previous, state);
     previous = state;
@@ -341,10 +341,10 @@ export async function getPublicJourney(
           }
         : null,
       questions: state.validation.questionnaire.questions.map((q) => q.text),
-      // Every count and quote below is over APPROVED responses only. A
-      // client reading a shared report must see a total that matches the
-      // responses listed under it, and an unreviewed answer is not evidence
-      // yet. See lib/domain/response-visibility.
+      // Every count and quote below is over the same set the founder sees,
+      // so a client reading a shared report gets a total that matches the
+      // responses listed under it. Rejected ones are in neither.
+      // See lib/domain/response-visibility.
       responseCount: approved.length,
       responsesByTrack: {
         managed: approved.filter((r) => r.track === "fast")

@@ -20,7 +20,7 @@ import { IdeaTopBar } from "../../IdeaTopBar";
 import { ValidationInProgress } from "@/components/ValidationInProgress";
 import { QuestionsTab } from "@/components/QuestionsTab";
 import { ResponseMatrix, toMatrixRows } from "@/components/ResponseMatrix";
-import { approvedOnly } from "@/lib/domain/response-visibility";
+import { founderVisible } from "@/lib/domain/response-visibility";
 import { cn } from "@/lib/cn";
 import {
   CHANNEL_LABELS,
@@ -81,9 +81,9 @@ export function NormalTrack({
   const [analysing, setAnalysing] = React.useState(false);
   const [confirmEarly, setConfirmEarly] = React.useState(false);
 
-  // Approved only, so the running rate below matches the responses listed on
-  // the tab. See lib/domain/response-visibility.
-  const responses = approvedOnly(state.validation.responses);
+  // The same set the rate below is computed over, so the two always agree.
+  // See lib/domain/response-visibility.
+  const responses = founderVisible(state.validation.responses);
   const total = responses.length;
   const confirmed = responses.filter((r) => r.confirmed === "yes").length;
   const rate = total > 0 ? Math.round((confirmed / total) * 100) : 0;
@@ -374,7 +374,7 @@ function ResponsesTab({
   const [source, setSource] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
-  const responses = approvedOnly(state.validation.responses);
+  const responses = founderVisible(state.validation.responses);
 
   function reset() {
     setConfirmedValue(null);
