@@ -15,6 +15,34 @@
       "when": 1785234443838,
       "tag": "0001_questionnaire_share",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785246900372,
+      "tag": "0002_panel_token",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785252408771,
+      "tag": "0003_location_preference",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785265706519,
+      "tag": "0004_response_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786091575327,
+      "tag": "0005_workspace_share",
+      "breakpoints": true
     }
   ]
 }
