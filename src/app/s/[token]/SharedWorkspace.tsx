@@ -1,0 +1,738 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import {
+  ArrowSquareOutIcon,
+  CheckIcon,
+  QuotesIcon,
+  WarningIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { Logo } from "@/components/brand/Logo";
+import { cn } from "@/lib/cn";
+import type { JourneyRound, PublicJourney } from "@/lib/data/journey";
+
+/**
+ * A shared workspace, read-only.
+ *
+ * The first version was one long report. Nobody reads a wall, and a client
+ * sent a link scrolls once and forms an opinion - so a page that requires
+ * reading to the bottom before it makes sense has already lost. This is the
+ * same set of screens the founder works in, presented as tabs: a summary that
+ * answers the question on its own, and the stages behind it for anyone who
+ * wants to check the work.
+ *
+ * Read-only is enforced by what this component is given, not by a flag. It
+ * receives the narrowed `PublicJourney` shape - built field by field in
+ * lib/data/journey.ts, with no founder identity, no response source and no
+ * expert names - and there is no mutation path in here to disable. A
+ * `readOnly` boolean on the founder's own components would have been one
+ * forgotten conditional away from publishing somebody else's words.
+ *
+ * Tabs hold state client-side rather than in the URL, so switching is instant
+ * on a page that already has every tab's data. The trade is that a tab cannot
+ * be deep-linked, which matters less here than it would in the app: whoever
+ * opens this was sent the link, not searching for a section of it.
+ */
+
+type TabId = "summary" | "idea" | "research" | "validation" | "verdict" | "history";
+
+const STRENGTH_TONE: Record<string, "success" | "caution" | "danger"> = {
+  strong: "success",
+  moderate: "caution",
+  weak: "danger",
+};
+
+export function SharedWorkspace({ journey }: { journey: PublicJourney }) {
+  const [tab, setTab] = React.useState<TabId>("summary");
+
+  // The latest round that actually got somewhere. A freshly opened round has
+  // no research and no responses, so reading the tabs off the last round would
+  // show a live idea as empty.
+  const scored = [...journey.rounds].reverse().find((r) => r.score !== null);
+  const researched =
+    [...journey.rounds].reverse().find((r) => r.research !== null) ?? null;
+  const validated =
+    [...journey.rounds].reverse().find((r) => r.responseCount > 0) ?? null;
+  const latest = journey.rounds[journey.rounds.length - 1];
+
+  const tabs: { id: TabId; label: string; available: boolean }[] = [
+    { id: "summary", label: "Summary", available: true },
+    { id: "idea", label: "The idea", available: true },
+    { id: "research", label: "Research", available: Boolean(researched) },
+    { id: "validation", label: "Validation", available: Boolean(validated) },
+    { id: "verdict", label: "Verdict", available: Boolean(scored) },
+    {
+      id: "history",
+      label: "History",
+      available: journey.rounds.length > 1,
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-page">
+      <header className="border-b border-line">
+        <div className="mx-auto flex h-14 max-w-[1000px] items-center justify-between px-5">
+          <Logo />
+          <span className="type-caption text-tertiary">
+            Shared, read-only
+          </span>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-[1000px] px-5 pt-10">
+        <p className="type-caption text-brand uppercase">Validation workspace</p>
+        <h1 className="type-display-l mt-3 text-primary">{journey.title}</h1>
+        {journey.summary ? (
+          <p className="type-body-l mt-2 max-w-[70ch] text-secondary">
+            {journey.summary}
+          </p>
+        ) : null}
+
+        <div
+          role="tablist"
+          aria-label="Workspace sections"
+          className="mt-8 flex gap-1 overflow-x-auto border-b border-line"
+        >
+          {tabs
+            .filter((t) => t.available)
+            .map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={tab === t.id}
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  "type-body-m -mb-px shrink-0 border-b-2 px-4 py-3 transition-colors duration-[120ms]",
+                  tab === t.id
+                    ? "border-brand font-medium text-primary"
+                    : "border-transparent text-secondary hover:text-primary",
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-[1000px] px-5 py-10 pb-20">
+        {tab === "summary" ? (
+          <SummaryTab journey={journey} onNavigate={setTab} />
+        ) : null}
+        {tab === "idea" ? <IdeaTab round={latest} /> : null}
+        {tab === "research" && researched ? (
+          <ResearchTab round={researched} />
+        ) : null}
+        {tab === "validation" && validated ? (
+          <ValidationTab round={validated} journey={journey} />
+        ) : null}
+        {tab === "verdict" && scored ? <VerdictTab round={scored} /> : null}
+        {tab === "history" ? <HistoryTab journey={journey} /> : null}
+
+        <footer className="mt-16 border-t border-line pt-8">
+          <p className="type-body-m text-secondary">
+            Researched with{" "}
+            <Link href="/" className="text-brand hover:underline">
+              BRAINS AI
+            </Link>
+            . Every claim links to where it was found.
+          </p>
+          {!journey.includesResponses ? (
+            <p className="type-caption mt-2 text-tertiary">
+              Individual responses are not included in this shared view.
+            </p>
+          ) : null}
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+/* ── Summary ─────────────────────────────────────────────────────────────
+   Answers the question on its own. Somebody who reads only this tab should
+   leave knowing the verdict, how strongly it is held, and what is unresolved. */
+
+function SummaryTab({
+  journey,
+  onNavigate,
+}: {
+  journey: PublicJourney;
+  onNavigate: (tab: TabId) => void;
+}) {
+  const { headline } = journey;
+  const isGo = headline.signal === "go_ahead";
+
+  return (
+    <div className="space-y-10">
+      {headline.signal ? (
+        <Card elevation="raised" className="p-6 sm:p-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-10">
+            <div className="shrink-0">
+              <div className="flex items-baseline gap-2">
+                <span className="type-data-l text-primary">
+                  {headline.score}
+                </span>
+                <span className="type-body-m text-tertiary">/ 100</span>
+              </div>
+              <div
+                role="img"
+                aria-label={`Score ${headline.score} out of 100`}
+                className="mt-3 h-1.5 w-full min-w-[160px] overflow-hidden rounded-full bg-inset"
+              >
+                <div
+                  className={cn(
+                    "h-full rounded-full",
+                    isGo ? "bg-success" : "bg-caution",
+                  )}
+                  style={{ width: `${headline.score ?? 0}%` }}
+                />
+              </div>
+              <div className="mt-4">
+                <Badge tone={isGo ? "success" : "caution"} dot>
+                  {isGo ? "Go ahead" : "Rethink"}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <p className="type-body-l text-primary">
+                <span className="font-medium">
+                  {Math.round(headline.confirmationRate * 100)}%
+                </span>{" "}
+                of {headline.totalResponses}{" "}
+                {headline.totalResponses === 1 ? "person" : "people"} confirmed
+                they have this problem.
+              </p>
+              {headline.verdict ? (
+                <p className="type-body-m mt-3 text-secondary">
+                  {headline.verdict}
+                </p>
+              ) : null}
+              <button
+                onClick={() => onNavigate("verdict")}
+                className="type-body-m mt-4 font-medium text-brand hover:underline"
+              >
+                See the full verdict
+              </button>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-6">
+          <p className="type-body-l text-secondary">
+            This idea is still being validated. There is no scored verdict yet.
+          </p>
+        </Card>
+      )}
+
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line sm:grid-cols-4">
+        <Stat label="People asked" value={String(headline.totalResponses)} />
+        <Stat label="Sources read" value={String(headline.totalSources)} />
+        <Stat label="Rounds run" value={String(headline.roundCount)} />
+        <Stat
+          label="Period"
+          value={`${formatShort(journey.startedAt)} – ${formatShort(journey.updatedAt)}`}
+        />
+      </dl>
+
+      {headline.keyFindings.length > 0 || headline.openConcerns.length > 0 ? (
+        <div className="grid gap-8 sm:grid-cols-2">
+          {headline.keyFindings.length > 0 ? (
+            <div>
+              <p className="type-caption text-tertiary uppercase">
+                Came up repeatedly
+              </p>
+              <ul className="mt-3 space-y-2.5">
+                {headline.keyFindings.map((finding) => (
+                  <li key={finding} className="flex items-start gap-2.5">
+                    <CheckIcon
+                      size={15}
+                      weight="bold"
+                      className="mt-1 shrink-0 text-success"
+                      aria-hidden="true"
+                    />
+                    <span className="type-body-m text-primary">{finding}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {headline.openConcerns.length > 0 ? (
+            <div>
+              <p className="type-caption text-tertiary uppercase">Still open</p>
+              <ul className="mt-3 space-y-2.5">
+                {headline.openConcerns.map((concern) => (
+                  <li key={concern} className="flex items-start gap-2.5">
+                    <WarningIcon
+                      size={15}
+                      className="mt-1 shrink-0 text-caution"
+                      aria-hidden="true"
+                    />
+                    <span className="type-body-m text-primary">{concern}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── The idea ──────────────────────────────────────────────────────────── */
+
+function IdeaTab({ round }: { round: JourneyRound }) {
+  return (
+    <div className="space-y-6">
+      <Card className="p-6">
+        <p className="type-caption text-tertiary uppercase">In their words</p>
+        <p className="type-body-l mt-3 whitespace-pre-wrap text-primary">
+          {round.description || "No description recorded."}
+        </p>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="p-5">
+          <p className="type-caption text-tertiary uppercase">Who it is for</p>
+          <p className="type-body-m mt-2 text-primary">
+            {round.icp || round.targetAudience || "Not specified"}
+          </p>
+        </Card>
+        <Card className="p-5">
+          <p className="type-caption text-tertiary uppercase">Market</p>
+          <p className="type-body-m mt-2 text-primary">
+            {round.locationFocus || "Anywhere"}
+          </p>
+        </Card>
+      </div>
+
+      {round.problemStatement ? (
+        <Card className="p-6">
+          <p className="type-caption text-tertiary uppercase">
+            The problem, as we understood it
+          </p>
+          <p className="type-body-l mt-3 text-primary">
+            {round.problemStatement}
+          </p>
+        </Card>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── Research ──────────────────────────────────────────────────────────── */
+
+function ResearchTab({ round }: { round: JourneyRound }) {
+  const research = round.research!;
+
+  return (
+    <div className="space-y-10">
+      <div className="flex flex-wrap items-center gap-3">
+        <Badge tone={STRENGTH_TONE[research.problemStrength] ?? "neutral"}>
+          {research.problemStrength} signal
+        </Badge>
+        {research.unsourced ? (
+          <Badge tone="caution">No live sources available</Badge>
+        ) : null}
+      </div>
+
+      {research.reasoning ? (
+        <p className="type-body-l max-w-[70ch] text-secondary">
+          {research.reasoning}
+        </p>
+      ) : null}
+
+      {research.evidence.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            What the evidence says
+          </h2>
+          <ul className="mt-4 space-y-4">
+            {research.evidence.map((item) => (
+              <li key={item.claim} className="flex items-start gap-3">
+                <CheckIcon
+                  size={15}
+                  weight="bold"
+                  className="mt-1.5 shrink-0 text-success"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <p className="type-body-m text-primary">{item.claim}</p>
+                  {item.sourceUrl ? (
+                    <a
+                      href={item.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="type-caption mt-1 inline-flex items-center gap-1.5 text-brand hover:underline"
+                    >
+                      {item.sourceTitle || item.sourceUrl}
+                      <ArrowSquareOutIcon size={11} aria-hidden="true" />
+                    </a>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {research.workarounds.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            What people do instead today
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {research.workarounds.map((item) => (
+              <li key={item.description}>
+                <p className="type-body-m text-primary">{item.description}</p>
+                {item.whyItPersists ? (
+                  <p className="type-caption mt-0.5 text-tertiary">
+                    {item.whyItPersists}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {research.contraryEvidence.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            The case against
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {research.contraryEvidence.map((item) => (
+              <li key={item.claim} className="flex items-start gap-2.5">
+                <XIcon
+                  size={15}
+                  weight="bold"
+                  className="mt-1 shrink-0 text-caution"
+                  aria-hidden="true"
+                />
+                <p className="type-body-m text-secondary">{item.claim}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── Validation ────────────────────────────────────────────────────────── */
+
+function ValidationTab({
+  round,
+  journey,
+}: {
+  round: JourneyRound;
+  journey: PublicJourney;
+}) {
+  const quotes = journey.includesResponses
+    ? round.responses.filter((r) => r.notes.trim().length > 40).slice(0, 8)
+    : [];
+
+  return (
+    <div className="space-y-10">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
+        <Stat label="Responses" value={String(round.responseCount)} />
+        <Stat
+          label="Confirmed the problem"
+          value={`${Math.round(round.confirmationRate * 100)}%`}
+        />
+      </dl>
+
+      {round.narrative ? (
+        <p className="type-body-l max-w-[70ch] text-secondary">
+          {round.narrative}
+        </p>
+      ) : null}
+
+      <div className="grid gap-8 sm:grid-cols-2">
+        {round.themes.length > 0 ? (
+          <div>
+            <p className="type-caption text-tertiary uppercase">
+              Patterns that came up repeatedly
+            </p>
+            <ul className="mt-3 space-y-2.5">
+              {round.themes.map((theme) => (
+                <li key={theme} className="type-body-m text-primary">
+                  {theme}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {round.objections.length > 0 ? (
+          <div>
+            <p className="type-caption text-tertiary uppercase">
+              Push-back we heard
+            </p>
+            <ul className="mt-3 space-y-2.5">
+              {round.objections.map((objection) => (
+                <li key={objection} className="type-body-m text-primary">
+                  {objection}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+
+      {round.communities.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            Where these people were found
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {round.communities.map((community) => (
+              <li key={community.name}>
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="type-body-m text-primary">
+                    {community.name}
+                  </span>
+                  {community.platform ? (
+                    <span className="type-caption text-tertiary">
+                      {community.platform}
+                    </span>
+                  ) : null}
+                </div>
+                {community.whyRelevant ? (
+                  <p className="type-caption mt-0.5 text-tertiary">
+                    {community.whyRelevant}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {round.questions.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            What they were asked
+          </h2>
+          <ol className="mt-4 space-y-3">
+            {round.questions.map((question, i) => (
+              <li key={question} className="flex gap-4">
+                <span className="type-data-s shrink-0 text-tertiary">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="type-body-m text-primary">{question}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      {quotes.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            In their words
+          </h2>
+          <div className="mt-4 space-y-3">
+            {quotes.map((response, i) => (
+              <Card key={`${response.confirmed}-${i}`} className="p-5">
+                <QuotesIcon
+                  size={15}
+                  weight="fill"
+                  className="text-brand"
+                  aria-hidden="true"
+                />
+                <blockquote className="type-body-m mt-3 text-primary">
+                  {response.notes}
+                </blockquote>
+                <Badge
+                  tone={
+                    response.confirmed === "yes"
+                      ? "success"
+                      : response.confirmed === "unsure"
+                        ? "caution"
+                        : "neutral"
+                  }
+                  className="mt-4"
+                >
+                  {response.confirmed === "yes"
+                    ? "Confirmed the problem"
+                    : response.confirmed === "unsure"
+                      ? "Unsure"
+                      : "Did not confirm"}
+                </Badge>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── Verdict ───────────────────────────────────────────────────────────── */
+
+function VerdictTab({ round }: { round: JourneyRound }) {
+  const score = round.score!;
+  const isGo = score.signal === "go_ahead";
+
+  return (
+    <div className="space-y-10">
+      <Card elevation="raised" className="p-6 sm:p-8">
+        <div className="flex flex-wrap items-baseline gap-4">
+          <span className="type-data-l text-primary">{score.value}</span>
+          <span className="type-body-m text-tertiary">/ 100</span>
+          <Badge tone={isGo ? "success" : "caution"} dot>
+            {isGo ? "Go ahead" : "Rethink"}
+          </Badge>
+        </div>
+        <div
+          role="img"
+          aria-label={`Score ${score.value} out of 100`}
+          className="mt-5 h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-inset"
+        >
+          <div
+            className={cn(
+              "h-full rounded-full",
+              isGo ? "bg-success" : "bg-caution",
+            )}
+            style={{ width: `${score.value}%` }}
+          />
+        </div>
+        <p className="type-body-m mt-5 max-w-[70ch] text-secondary">
+          {Math.round(round.confirmationRate * 100)}% of {round.responseCount}{" "}
+          people confirmed the problem. Half confirming is the line.
+        </p>
+      </Card>
+
+      {score.reasoning ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            How we got to that number
+          </h2>
+          <p className="type-body-m mt-3 max-w-[70ch] text-secondary">
+            {score.reasoning}
+          </p>
+        </section>
+      ) : null}
+
+      {score.riskFactors.length > 0 ? (
+        <section>
+          <h2 className="type-body-l font-medium text-primary">
+            Reasons to hold this loosely
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {score.riskFactors.map((risk) => (
+              <li
+                key={risk.label}
+                className={cn(
+                  "flex items-start gap-3 rounded-[8px] border p-4",
+                  risk.severity === "high"
+                    ? "border-danger-border bg-danger-subtle"
+                    : "border-line",
+                )}
+              >
+                <WarningIcon
+                  size={16}
+                  className={cn(
+                    "mt-0.5 shrink-0",
+                    risk.severity === "high" ? "text-danger" : "text-caution",
+                  )}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className="type-body-m font-medium text-primary">
+                    {risk.label}
+                  </p>
+                  <p className="type-body-m mt-0.5 text-secondary">
+                    {risk.detail}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+/* ── History ───────────────────────────────────────────────────────────── */
+
+function HistoryTab({ journey }: { journey: PublicJourney }) {
+  return (
+    <div>
+      <p className="type-body-m max-w-[70ch] text-secondary">
+        Every round is kept. Nothing here was rewritten after the fact.
+      </p>
+
+      <ol className="mt-6">
+        {journey.rounds.map((round, i) => (
+          <li
+            key={round.versionNumber}
+            className={cn("border-line py-5", i > 0 && "border-t")}
+          >
+            <div className="flex flex-wrap items-baseline gap-3">
+              <span className="type-data-s text-tertiary">
+                Round {round.versionNumber}
+              </span>
+              {round.score ? (
+                <Badge
+                  tone={round.score.signal === "go_ahead" ? "success" : "caution"}
+                >
+                  {round.score.value} / 100
+                </Badge>
+              ) : (
+                <Badge tone="neutral">No verdict</Badge>
+              )}
+              <span className="type-caption text-tertiary">
+                {formatShort(round.createdAt)}
+              </span>
+            </div>
+
+            <p className="type-body-m mt-2 text-primary">
+              {round.problemStatement || round.note || "Round opened"}
+            </p>
+
+            {round.changedFromPrevious.length > 0 ? (
+              <ul className="mt-3 space-y-1.5">
+                {round.changedFromPrevious.map((change) => (
+                  <li key={change.field} className="type-caption">
+                    <span className="text-tertiary">{change.field}: </span>
+                    <span className="text-secondary line-through decoration-tertiary/60">
+                      {change.from || "(empty)"}
+                    </span>
+                    <span className="text-tertiary"> → </span>
+                    <span className="text-primary">{change.to}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-page p-4">
+      <dt className="type-caption text-tertiary uppercase">{label}</dt>
+      <dd className="type-body-l mt-1 font-medium text-primary">{value}</dd>
+    </div>
+  );
+}
+
+function formatShort(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}

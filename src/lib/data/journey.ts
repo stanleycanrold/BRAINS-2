@@ -34,8 +34,22 @@ export type JourneyRound = {
   versionNumber: number;
   note: string;
   status: IdeaState["status"];
+  /** The founder's own words. Theirs to share, so included in full. */
+  description: string;
+  targetAudience: string;
+  locationFocus: string;
   problemStatement: string;
   icp: string;
+  /**
+   * Where the research said these people gather. Public communities with
+   * public URLs, so nothing here identifies an individual.
+   */
+  communities: {
+    name: string;
+    platform: string;
+    url: string;
+    whyRelevant: string;
+  }[];
   /** What changed from the previous round, computed rather than stored. */
   changedFromPrevious: { field: string; from: string; to: string }[];
   research: {
@@ -215,8 +229,17 @@ export async function getPublicJourney(
       versionNumber: version.versionNumber,
       note: version.versionNote,
       status: state.status,
+      description: state.raw_submission.description,
+      targetAudience: state.raw_submission.target_audience,
+      locationFocus: state.raw_submission.location_focus,
       problemStatement: state.structured.problem_statement,
       icp: state.structured.icp,
+      communities: state.validation.communities.map((c) => ({
+        name: c.name,
+        platform: c.platform,
+        url: c.url,
+        whyRelevant: c.why_relevant,
+      })),
       changedFromPrevious,
       research: research
         ? {

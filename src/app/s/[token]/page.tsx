@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicJourney } from "@/lib/data/journey";
-import { JourneyView } from "./JourneyView";
+import { SharedWorkspace } from "./SharedWorkspace";
 
 /**
  * The public journey. No account, no session, read-only.
@@ -35,5 +35,5 @@ export default async function PublicJourneyPage({
   const journey = await getPublicJourney(token);
   if (!journey) notFound();
 
-  return <JourneyView journey={journey} />;
+  return <SharedWorkspace journey={journey} />;
 }
