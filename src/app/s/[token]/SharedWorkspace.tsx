@@ -435,9 +435,22 @@ function ValidationTab({
   round: JourneyRound;
   journey: PublicJourney;
 }) {
-  const quotes = journey.includesResponses
-    ? round.responses.filter((r) => r.notes.trim().length > 40).slice(0, 8)
-    : [];
+  /**
+   * Every response, unfiltered and uncapped.
+   *
+   * This used to drop notes under 40 characters and then cut the list at
+   * eight. Both were wrong. The cap silently hid responses from a founder who
+   * knew exactly how many they had collected, and the length filter is a
+   * quiet bias: a dismissive answer is short, so filtering by length removes
+   * disproportionately many of the people who said no. Deciding what counts
+   * is the screening agent's job, in the open, not a display rule.
+   */
+  const quotes = journey.includesResponses ? round.responses : [];
+
+  const tally = round.responses.reduce<Record<string, number>>((acc, r) => {
+    acc[r.confirmed] = (acc[r.confirmed] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     /**
@@ -454,12 +467,17 @@ function ValidationTab({
         storageKey="shared-validation-results"
         defaultOpen
       >
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line sm:grid-cols-5">
           <Stat label="Responses" value={String(round.responseCount)} />
           <Stat
-            label="Confirmed the problem"
+            label="Confirmed"
             value={`${Math.round(round.confirmationRate * 100)}%`}
           />
+          {/* The split is spelled out so a reader can add it up. A summary
+              that does not reconcile with the total reads as selective. */}
+          <Stat label="Said yes" value={String(tally.yes ?? 0)} />
+          <Stat label="Said no" value={String(tally.no ?? 0)} />
+          <Stat label="Unsure" value={String(tally.unsure ?? 0)} />
         </dl>
 
         {round.narrative ? (
@@ -520,7 +538,7 @@ function ValidationTab({
         <Disclosure
           title="In their words"
           count={quotes.length}
-          summary="What individual respondents actually said"
+          summary="Every response, in full"
           storageKey="shared-validation-quotes"
         >
           <div className="space-y-3">

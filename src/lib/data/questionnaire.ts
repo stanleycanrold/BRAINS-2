@@ -1,4 +1,5 @@
 import "server-only";
+import { after } from "next/server";
 import { eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { screenResponse } from "@/lib/screening";
@@ -170,9 +171,23 @@ export async function submitPublicResponse(params: {
     .set({ stateJson: next, updatedAt: new Date() })
     .where(eq(schema.ideaStateVersions.id, version.id));
 
-  // Screening runs after the response is safely stored, so a model outage
-  // can never cost us an answer somebody took the time to write.
-  void screenResponse({ responseId: stored.id, versionId: version.id });
+  /**
+   * Screening runs after the response is safely stored, so a model outage can
+   * never cost us an answer somebody took the time to write.
+   *
+   * `after` rather than a floating promise. `void screenResponse(...)` looked
+   * equivalent and worked locally, but on serverless the platform tears the
+   * invocation down as soon as the response is returned - so the model call
+   * was being killed mid-flight and the response left `pending` forever.
+   * Every response on a real deployment was silently unscreened, which is
+   * both a quality hole and a thing the founder cannot see.
+   *
+   * `after` keeps the invocation alive until the callback settles, which is
+   * exactly the guarantee this needs.
+   */
+  after(async () => {
+    await screenResponse({ responseId: stored.id, versionId: version.id });
+  });
 
   return { ok: true };
 }
