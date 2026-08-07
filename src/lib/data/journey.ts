@@ -27,6 +27,18 @@ import { ideaStateSchema, type IdeaState } from "@/lib/domain/types";
  * Response text itself is opt-in per idea and off by default. Respondents
  * answered so one founder could research an idea; a public page is a
  * different thing to have agreed to.
+ *
+ * THE RULE, because this drifted three times before it was written down:
+ * everything the founder sees in their own report belongs here too, minus the
+ * three exclusions above and minus anything interactive. Adding a field to the
+ * research report, the synthesis or the decision gate means adding it here in
+ * the same change. A shared report that quietly omits the competitors or the
+ * engine's suggestions is not a smaller report - it is a weaker case, and it
+ * is the surface a client judges the product on.
+ *
+ * Deliberately excluded, and the only things excluded: the founder's identity,
+ * a response's `source`, the expert behind a paid interview, and every control
+ * that would mutate something.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -59,6 +71,10 @@ export type JourneyRound = {
     evidence: { claim: string; sourceUrl: string; sourceTitle: string }[];
     contraryEvidence: { claim: string; sourceUrl: string }[];
     workarounds: { description: string; whyItPersists: string }[];
+    /** Who already solves this, and the gap they leave. */
+    competitors: { name: string; summary: string; sourceUrl: string }[];
+    /** What desk research could not settle. These became the questions. */
+    openQuestions: string[];
     /**
      * What the engine proposed sharpening after reading the market, and what
      * the founder did with each. Showing this is the difference between a
@@ -80,6 +96,8 @@ export type JourneyRound = {
   confirmationRate: number;
   themes: string[];
   objections: string[];
+  /** Things worth the founder's attention that are neither theme nor objection. */
+  notablePoints: string[];
   narrative: string;
   /** Present only when the founder opted in. Never carries a source. */
   responses: { confirmed: string; notes: string }[];
@@ -90,6 +108,11 @@ export type JourneyRound = {
     riskFactors: { label: string; detail: string; severity: string }[];
     /** What the engine recommended doing next, and the founder's call on it. */
     improvements: { text: string; reasoning: string; status: string }[];
+    /**
+     * Which part failed, on a round that missed the threshold. Absent on a
+     * go-ahead, where the agent records it as not_applicable.
+     */
+    diagnostic: { verdict: string; explanation: string } | null;
   } | null;
   createdAt: string;
 };
@@ -274,6 +297,12 @@ export async function getPublicJourney(
               description: w.description,
               whyItPersists: w.why_it_persists,
             })),
+            competitors: research.competitors.map((c) => ({
+              name: c.name,
+              summary: c.summary,
+              sourceUrl: c.source_url,
+            })),
+            openQuestions: research.open_questions,
             proposedChanges: research.proposed_changes.map((p) => ({
               text: p.edited_text || p.text,
               reasoning: p.reasoning,
@@ -299,6 +328,7 @@ export async function getPublicJourney(
       confirmationRate: state.validation.confirmation_rate,
       themes: state.validation.synthesis_summary.themes,
       objections: state.validation.synthesis_summary.objections,
+      notablePoints: state.validation.synthesis_summary.notable_points,
       narrative: state.validation.synthesis_summary.narrative,
       // Mapped field by field rather than spread, so a field added to a
       // response later cannot appear on a public page by accident.
@@ -323,6 +353,13 @@ export async function getPublicJourney(
               reasoning: p.reasoning,
               status: p.status,
             })),
+            diagnostic:
+              gate.diagnostic && gate.diagnostic.verdict !== "not_applicable"
+                ? {
+                    verdict: gate.diagnostic.verdict,
+                    explanation: gate.diagnostic.explanation,
+                  }
+                : null,
           }
         : null,
       createdAt: version.createdAt.toISOString(),

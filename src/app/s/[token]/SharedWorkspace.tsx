@@ -41,6 +41,13 @@ import type { JourneyRound, PublicJourney } from "@/lib/data/journey";
 
 type TabId = "summary" | "idea" | "research" | "validation" | "verdict" | "history";
 
+/** Matches the labels the founder sees on their own report. */
+const DIAGNOSTIC_LABEL: Record<string, string> = {
+  wrong_problem_statement: "The problem statement was the issue",
+  wrong_audience: "We were asking the wrong people",
+  genuinely_weak_problem: "The problem itself is weak",
+};
+
 const STRENGTH_TONE: Record<string, "success" | "caution" | "danger"> = {
   strong: "success",
   moderate: "caution",
@@ -402,6 +409,64 @@ function ResearchTab({ round }: { round: JourneyRound }) {
         </section>
       ) : null}
 
+      {research.competitors.length > 0 ? (
+        <Disclosure
+          title="Who already solves this"
+          count={research.competitors.length}
+          summary="The products in this space, and what each leaves open"
+          storageKey="shared-research-competitors"
+          defaultOpen
+        >
+          <ul className="space-y-3">
+            {research.competitors.map((competitor) => (
+              <li
+                key={competitor.name}
+                className="rounded-[8px] border border-line p-4"
+              >
+                <p className="type-body-m font-medium text-primary">
+                  {competitor.name}
+                </p>
+                <p className="type-body-m mt-1.5 text-secondary">
+                  {competitor.summary}
+                </p>
+                {competitor.sourceUrl ? (
+                  <a
+                    href={competitor.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="type-caption mt-2 inline-flex items-center gap-1.5 text-brand hover:underline"
+                  >
+                    {competitor.sourceUrl}
+                    <ArrowSquareOutIcon size={11} aria-hidden="true" />
+                  </a>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
+      ) : null}
+
+      {research.openQuestions.length > 0 ? (
+        <Disclosure
+          title="What desk research could not settle"
+          count={research.openQuestions.length}
+          summary="The gaps that decided what people were asked"
+          storageKey="shared-research-open"
+        >
+          <ul className="space-y-2.5">
+            {research.openQuestions.map((question) => (
+              <li key={question} className="flex items-start gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className="mt-2 size-1.5 shrink-0 rounded-full bg-tertiary"
+                />
+                <span className="type-body-m text-primary">{question}</span>
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
+      ) : null}
+
       {research.proposedChanges.length > 0 ? (
         <Disclosure
           title="What the engine proposed changing"
@@ -515,6 +580,21 @@ function ValidationTab({
           <p className="type-body-l mt-5 max-w-[70ch] text-secondary">
             {round.narrative}
           </p>
+        ) : null}
+
+        {round.notablePoints.length > 0 ? (
+          <div className="mt-6 rounded-[8px] border border-line p-4">
+            <p className="type-caption text-tertiary uppercase">
+              Worth your attention
+            </p>
+            <ul className="mt-3 space-y-2.5">
+              {round.notablePoints.map((point) => (
+                <li key={point} className="type-body-m text-primary">
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         {round.themes.length > 0 || round.objections.length > 0 ? (
@@ -739,6 +819,23 @@ function VerdictTab({ round }: { round: JourneyRound }) {
             {score.reasoning}
           </p>
         </Disclosure>
+      ) : null}
+
+      {score.diagnostic ? (
+        <div className="rounded-[8px] border border-caution/40 bg-caution-subtle p-5">
+          <p className="type-caption text-tertiary uppercase">
+            What went wrong
+          </p>
+          <p className="type-body-l mt-2 font-medium text-primary">
+            {DIAGNOSTIC_LABEL[score.diagnostic.verdict] ??
+              score.diagnostic.verdict}
+          </p>
+          {score.diagnostic.explanation ? (
+            <p className="type-body-m mt-2 max-w-[70ch] text-secondary">
+              {score.diagnostic.explanation}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {score.improvements.length > 0 ? (
