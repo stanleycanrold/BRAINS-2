@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
-import { ResponseAnswers } from "@/components/ResponseAnswers";
+import { ResponseMatrix } from "@/components/ResponseMatrix";
 import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Textarea } from "@/components/ui/Field";
 import { ProposalCard } from "@/components/ProposalCard";
@@ -357,61 +357,28 @@ export function ReportView({
           </div>
         </div>
 
-        {/* Cards rather than a table.
-            Seven question/answer pairs do not fit in a table cell: the notes
-            column wrapped into a paragraph of run-together text and a reader
-            had to work out by eye where each question ended. One response per
-            card, one question per row inside it. */}
-        <ul className="mt-4 space-y-2">
-          {visibleResponses.map((r) => (
-            <li
-              key={r.id}
-              className={cn(
-                "rounded-[8px] border border-l-[3px] border-line bg-raised p-4",
-                r.confirmed === "yes" && "border-l-success",
-                r.confirmed === "unsure" && "border-l-caution",
-                r.confirmed === "no" && "border-l-danger",
-              )}
-            >
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Badge
-                  tone={
-                    r.confirmed === "yes"
-                      ? "success"
-                      : r.confirmed === "no"
-                        ? "danger"
-                        : "caution"
-                  }
-                  dot
-                >
-                  {r.confirmed === "yes"
-                    ? "Confirmed"
-                    : r.confirmed === "no"
-                      ? "Did not confirm"
-                      : "Unsure"}
-                </Badge>
-                <span className="type-caption text-tertiary">
-                  {CHANNEL_LABELS[r.channel]}
-                </span>
-                {r.source ? (
-                  <span className="type-caption text-tertiary">{r.source}</span>
-                ) : null}
-                {r.review_status !== "approved" ? (
-                  <Badge
-                    tone={r.review_status === "rejected" ? "danger" : "neutral"}
-                  >
-                    {r.review_status === "rejected"
-                      ? "Rejected by screening"
-                      : "Awaiting screening"}
-                  </Badge>
-                ) : null}
-              </div>
-
-              <ResponseAnswers notes={r.notes} className="mt-4" />
-            </li>
-          ))}
-        </ul>
-
+        {/* The same grid the shared link shows, so the two cannot drift.
+            Questions across the top rather than repeated inside every
+            response: seven questions and eleven respondents printed the same
+            seven sentences seventy-seven times, and comparing what everyone
+            said about one of them meant reading all of it. */}
+        <ResponseMatrix
+          className="mt-4"
+          responses={visibleResponses.map((r) => ({
+            key: r.id,
+            confirmed: r.confirmed,
+            notes: r.notes,
+            meta: [CHANNEL_LABELS[r.channel], r.source].filter(
+              (item): item is string => Boolean(item),
+            ),
+            flag:
+              r.review_status === "approved"
+                ? undefined
+                : r.review_status === "rejected"
+                  ? { text: "Rejected by screening", tone: "danger" as const }
+                  : { text: "Awaiting screening", tone: "neutral" as const },
+          }))}
+        />
       </section>
 
       {/* ── Improvement proposals ────────────────────────────────────── */}
