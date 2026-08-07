@@ -33,32 +33,112 @@ import {
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-/** Fetches a product page for the Product Context Agent (PRD §6.0). */
-async function fetchPageText(url: string): Promise<string | null> {
-  try {
-    const normalized = url.startsWith("http") ? url : `https://${url}`;
-    const response = await fetch(normalized, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; BRAINS-AI/1.0; +https://nexabrains.io)",
-      },
-      signal: AbortSignal.timeout(12_000),
-    });
-    if (!response.ok) return null;
+type PageFetch =
+  | { ok: true; text: string }
+  | { ok: false; reason: string };
 
-    const html = await response.text();
-    // Crude but sufficient: strip scripts/styles/tags and collapse whitespace.
-    return html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 8000);
-  } catch {
-    return null;
+/** Pulls one attribute out of a meta tag, whichever order the attrs are in. */
+function metaContent(html: string, key: string): string {
+  const pattern = new RegExp(
+    `<meta[^>]+(?:name|property)=["']${key}["'][^>]*>`,
+    "i",
+  );
+  const tag = html.match(pattern)?.[0];
+  return tag?.match(/content=["']([^"']*)["']/i)?.[1]?.trim() ?? "";
+}
+
+/**
+ * Fetches a product page for the Product Context Agent (PRD §6.0).
+ *
+ * Returns a reason on failure rather than null. The previous version swallowed
+ * every error and returned nothing, so a link that could not be read was
+ * indistinguishable from no link at all - the founder was told nothing and we
+ * logged nothing, which is exactly the shape of bug that gets reported as "it
+ * just doesn't work".
+ *
+ * The head is read separately from the body, and that is the substantive fix.
+ * Stripping tags from a modern JavaScript-rendered page yields an empty shell:
+ * the old 120-character floor rejected most React and Next sites, which is
+ * most product sites. Title, description and Open Graph tags are in the served
+ * HTML whatever the framework, and for a landing page they are usually the
+ * clearest statement of what the product is on the whole page.
+ */
+async function fetchPageText(url: string): Promise<PageFetch> {
+  const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+  let response: Response;
+  try {
+    response = await fetch(normalized, {
+      headers: {
+        // A real browser UA. Some hosts serve a challenge page or a 403 to
+        // anything self-identifying as a bot, and we are reading a page the
+        // founder owns and pointed us at.
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "en-GB,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch (err) {
+    const reason =
+      err instanceof Error && err.name === "TimeoutError"
+        ? "The site took too long to respond."
+        : "We couldn't reach that address.";
+    console.warn(`[product-context] fetch failed for ${normalized}:`, err);
+    return { ok: false, reason };
   }
+
+  if (!response.ok) {
+    console.warn(
+      `[product-context] ${normalized} returned ${response.status}`,
+    );
+    return {
+      ok: false,
+      reason:
+        response.status === 403 || response.status === 401
+          ? "The site blocked our request."
+          : `The site returned an error (${response.status}).`,
+    };
+  }
+
+  const html = await response.text();
+
+  const head = [
+    html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() ?? "",
+    metaContent(html, "description"),
+    metaContent(html, "og:title"),
+    metaContent(html, "og:description"),
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const body = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const text = [head, body].filter(Boolean).join("\n\n").slice(0, 8000);
+
+  // Only reject when there is genuinely nothing. With the head included this
+  // now trips for pages that really are empty rather than for pages that
+  // simply render client-side.
+  if (text.length < 60) {
+    console.warn(`[product-context] ${normalized} yielded no readable text`);
+    return {
+      ok: false,
+      reason:
+        "We reached the page but found no readable text on it. It may render entirely in the browser.",
+    };
+  }
+
+  return { ok: true, text };
 }
 
 /**
@@ -77,12 +157,29 @@ export async function runResearchPipeline(params: {
   // ── 6.0 Product Context Agent ────────────────────────────────────────────
   const link = state.raw_submission.product_link;
   if (link) {
-    const pageText = await fetchPageText(link);
-    if (pageText && pageText.length > 120) {
+    const page = await fetchPageText(link);
+
+    if (!page.ok) {
+      // Recorded, not swallowed. A failed fetch is still not an error state -
+      // the run continues and the UI falls back to manual entry - but the
+      // founder is told, because otherwise the product context is quietly
+      // missing from everything downstream and nothing says why.
+      state = await updateCurrentState(versionId, (s) => ({
+        ...s,
+        structured: {
+          ...s.structured,
+          existing_product_context: {
+            ...s.structured.existing_product_context,
+            fetch_succeeded: false,
+            fetch_note: page.reason,
+          },
+        },
+      }));
+    } else {
       try {
         const context = await runAgent(
           productContextAgent,
-          { url: link, pageText },
+          { url: link, pageText: page.text },
           ctx,
         );
         state = await updateCurrentState(versionId, (s) => ({
@@ -92,16 +189,26 @@ export async function runResearchPipeline(params: {
             existing_product_context: {
               ...context,
               fetch_succeeded: true,
+              fetch_note: "",
               user_confirmed: false,
             },
           },
         }));
       } catch (err) {
         console.error("[orchestrator] product context failed", err);
+        state = await updateCurrentState(versionId, (s) => ({
+          ...s,
+          structured: {
+            ...s.structured,
+            existing_product_context: {
+              ...s.structured.existing_product_context,
+              fetch_succeeded: false,
+              fetch_note: "We read the page but couldn't make sense of it.",
+            },
+          },
+        }));
       }
     }
-    // A failed fetch is not an error state - the UI falls back to manual
-    // entry, framed as normal (PRD §4.1, design system §4.2).
   }
 
   // ── 6.1 Extraction Agent ─────────────────────────────────────────────────

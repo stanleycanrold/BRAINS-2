@@ -439,106 +439,80 @@ function ValidationTab({
     : [];
 
   return (
-    <div className="space-y-10">
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
-        <Stat label="Responses" value={String(round.responseCount)} />
-        <Stat
-          label="Confirmed the problem"
-          value={`${Math.round(round.confirmationRate * 100)}%`}
-        />
-      </dl>
+    /**
+     * Grouped into four numbered sections rather than run as one sequence.
+     * Flat, a reader could not tell where the results ended and the method
+     * began - the quotes and the question list looked like the same kind of
+     * thing. These are the four questions a sceptic asks in order: what came
+     * back, what did they say, who did you ask, and what did you ask them.
+     */
+    <div className="space-y-12">
+      <Section index={1} title="What came back">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
+          <Stat label="Responses" value={String(round.responseCount)} />
+          <Stat
+            label="Confirmed the problem"
+            value={`${Math.round(round.confirmationRate * 100)}%`}
+          />
+        </dl>
 
-      {round.narrative ? (
-        <p className="type-body-l max-w-[70ch] text-secondary">
-          {round.narrative}
-        </p>
-      ) : null}
-
-      <div className="grid gap-8 sm:grid-cols-2">
-        {round.themes.length > 0 ? (
-          <div>
-            <p className="type-caption text-tertiary uppercase">
-              Patterns that came up repeatedly
-            </p>
-            <ul className="mt-3 space-y-2.5">
-              {round.themes.map((theme) => (
-                <li key={theme} className="type-body-m text-primary">
-                  {theme}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {round.narrative ? (
+          <p className="type-body-l mt-5 max-w-[70ch] text-secondary">
+            {round.narrative}
+          </p>
         ) : null}
 
-        {round.objections.length > 0 ? (
-          <div>
-            <p className="type-caption text-tertiary uppercase">
-              Push-back we heard
-            </p>
-            <ul className="mt-3 space-y-2.5">
-              {round.objections.map((objection) => (
-                <li key={objection} className="type-body-m text-primary">
-                  {objection}
-                </li>
-              ))}
-            </ul>
+        {round.themes.length > 0 || round.objections.length > 0 ? (
+          <div className="mt-6 grid gap-8 sm:grid-cols-2">
+            {round.themes.length > 0 ? (
+              <div>
+                <p className="type-caption text-tertiary uppercase">
+                  Came up repeatedly
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {round.themes.map((theme) => (
+                    <li key={theme} className="flex items-start gap-2.5">
+                      <CheckIcon
+                        size={15}
+                        weight="bold"
+                        className="mt-1 shrink-0 text-success"
+                        aria-hidden="true"
+                      />
+                      <span className="type-body-m text-primary">{theme}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {round.objections.length > 0 ? (
+              <div>
+                <p className="type-caption text-tertiary uppercase">
+                  Push-back we heard
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {round.objections.map((objection) => (
+                    <li key={objection} className="flex items-start gap-2.5">
+                      <WarningIcon
+                        size={15}
+                        className="mt-1 shrink-0 text-caution"
+                        aria-hidden="true"
+                      />
+                      <span className="type-body-m text-primary">
+                        {objection}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         ) : null}
-      </div>
-
-      {round.communities.length > 0 ? (
-        <section>
-          <h2 className="type-body-l font-medium text-primary">
-            Where these people were found
-          </h2>
-          <ul className="mt-4 space-y-3">
-            {round.communities.map((community) => (
-              <li key={community.name}>
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="type-body-m text-primary">
-                    {community.name}
-                  </span>
-                  {community.platform ? (
-                    <span className="type-caption text-tertiary">
-                      {community.platform}
-                    </span>
-                  ) : null}
-                </div>
-                {community.whyRelevant ? (
-                  <p className="type-caption mt-0.5 text-tertiary">
-                    {community.whyRelevant}
-                  </p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {round.questions.length > 0 ? (
-        <section>
-          <h2 className="type-body-l font-medium text-primary">
-            What they were asked
-          </h2>
-          <ol className="mt-4 space-y-3">
-            {round.questions.map((question, i) => (
-              <li key={question} className="flex gap-4">
-                <span className="type-data-s shrink-0 text-tertiary">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="type-body-m text-primary">{question}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
+      </Section>
 
       {quotes.length > 0 ? (
-        <section>
-          <h2 className="type-body-l font-medium text-primary">
-            In their words
-          </h2>
-          <div className="mt-4 space-y-3">
+        <Section index={2} title="In their words">
+          <div className="space-y-3">
             {quotes.map((response, i) => (
               <Card key={`${response.confirmed}-${i}`} className="p-5">
                 <QuotesIcon
@@ -569,9 +543,86 @@ function ValidationTab({
               </Card>
             ))}
           </div>
-        </section>
+        </Section>
+      ) : null}
+
+      {round.communities.length > 0 ? (
+        <Section
+          index={quotes.length > 0 ? 3 : 2}
+          title="Who we asked"
+          lead="The communities the research identified, where these people already gather."
+        >
+          <ul className="divide-y divide-line rounded-[8px] border border-line">
+            {round.communities.map((community) => (
+              <li key={community.name} className="p-4">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="type-body-m font-medium text-primary">
+                    {community.name}
+                  </span>
+                  {community.platform ? (
+                    <Badge tone="neutral">{community.platform}</Badge>
+                  ) : null}
+                </div>
+                {community.whyRelevant ? (
+                  <p className="type-caption mt-1.5 text-tertiary">
+                    {community.whyRelevant}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
+
+      {round.questions.length > 0 ? (
+        <Section
+          index={
+            2 + (quotes.length > 0 ? 1 : 0) + (round.communities.length > 0 ? 1 : 0)
+          }
+          title="What we asked them"
+          lead="Written from the research, and phrased so the answers mean something. Every question asks about what happened, never what someone would hypothetically do."
+        >
+          <ol className="space-y-3">
+            {round.questions.map((question, i) => (
+              <li key={question} className="flex gap-4">
+                <span className="type-data-s shrink-0 text-tertiary">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="type-body-m text-primary">{question}</span>
+              </li>
+            ))}
+          </ol>
+        </Section>
       ) : null}
     </div>
+  );
+}
+
+/** A numbered section, so the tab reads as a report rather than a sequence. */
+function Section({
+  index,
+  title,
+  lead,
+  children,
+}: {
+  index: number;
+  title: string;
+  lead?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <div className="flex items-baseline gap-3">
+        <span className="type-data-s text-tertiary">
+          {String(index).padStart(2, "0")}
+        </span>
+        <h2 className="type-display-m text-primary">{title}</h2>
+      </div>
+      {lead ? (
+        <p className="type-body-m mt-2 max-w-[70ch] text-secondary">{lead}</p>
+      ) : null}
+      <div className="mt-5">{children}</div>
+    </section>
   );
 }
 

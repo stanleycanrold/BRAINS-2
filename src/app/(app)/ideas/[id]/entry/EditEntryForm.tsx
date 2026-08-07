@@ -64,6 +64,7 @@ export function EditEntryForm({
   const { toast } = useToast();
 
   const raw = initialState.raw_submission;
+  const productContext = initialState.structured.existing_product_context;
   const [description, setDescription] = React.useState(raw.description);
   const [audience, setAudience] = React.useState(raw.target_audience);
   const [location, setLocation] = React.useState(raw.location_focus);
@@ -194,7 +195,11 @@ export function EditEntryForm({
           className="mt-5"
           label="Product link"
           htmlFor="product-link"
-          hint="Optional. If it is already live we read your ratings and reviews first."
+          hint={
+            productContext.fetch_succeeded
+              ? "We read this page and used it as context for the research."
+              : "Optional. If it is already live we read the page and use it as context."
+          }
         >
           <Input
             id="product-link"
@@ -203,6 +208,43 @@ export function EditEntryForm({
             placeholder="https://"
           />
         </FormField>
+
+        {/* A link we could not read used to look identical to no link at all.
+            Saying so is the difference between a founder knowing the research
+            ran without their product context and quietly wondering why it
+            missed the obvious. */}
+        {productContext.fetch_note ? (
+          <p className="type-caption mt-2 flex items-start gap-2 text-caution">
+            <WarningIcon
+              size={14}
+              className="mt-0.5 shrink-0"
+              aria-hidden="true"
+            />
+            <span>
+              {productContext.fetch_note} The research ran without it. Fix the
+              link and re-run if that matters.
+            </span>
+          </p>
+        ) : null}
+
+        {productContext.fetch_succeeded && productContext.summary ? (
+          <div className="mt-4 rounded-[8px] border border-line bg-page p-4">
+            <p className="type-caption text-tertiary uppercase">
+              What we read from it
+            </p>
+            <p className="type-body-m mt-2 text-secondary">
+              {productContext.summary}
+            </p>
+            {productContext.rating !== null ? (
+              <p className="type-caption mt-2 text-tertiary">
+                {productContext.rating} stars
+                {productContext.review_count !== null
+                  ? ` from ${productContext.review_count} reviews`
+                  : ""}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </Card>
 
       <Card className="p-5 sm:p-6">

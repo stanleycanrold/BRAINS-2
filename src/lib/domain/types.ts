@@ -140,6 +140,15 @@ export const existingProductContextSchema = z.object({
   notable_review_themes: z.array(z.string()).default([]),
   /** False when the link couldn't be fetched - UI falls back to manual entry. */
   fetch_succeeded: z.boolean().default(false),
+  /**
+   * Why a fetch failed, in words the founder can act on. Empty when no link
+   * was given or when it worked.
+   *
+   * Without this a link we could not read was indistinguishable from no link
+   * at all: the founder saw nothing either way and had no reason to suspect
+   * the product context was missing from everything downstream.
+   */
+  fetch_note: z.string().default(""),
   /** True once the founder has reviewed/edited the auto-fetched summary. */
   user_confirmed: z.boolean().default(false),
 });
@@ -159,6 +168,7 @@ export const structuredSchema = z.object({
     review_count: null,
     notable_review_themes: [],
     fetch_succeeded: false,
+    fetch_note: "",
     user_confirmed: false,
   }),
 });
