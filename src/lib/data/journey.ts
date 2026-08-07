@@ -2,7 +2,12 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-import { ideaStateSchema, type IdeaState } from "@/lib/domain/types";
+import {
+  ideaStateSchema,
+  type IdeaState,
+  type ResearchReport,
+} from "@/lib/domain/types";
+import { countSources, countSourcesAcross } from "@/lib/domain/research-sources";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -73,6 +78,8 @@ export type JourneyRound = {
     workarounds: { description: string; whyItPersists: string }[];
     /** Who already solves this, and the gap they leave. */
     competitors: { name: string; summary: string; sourceUrl: string }[];
+    /** Distinct URLs cited anywhere in this round's report. */
+    sourceCount: number;
     /** What desk research could not settle. These became the questions. */
     openQuestions: string[];
     /**
@@ -256,10 +263,14 @@ export async function getPublicJourney(
 
   const includeResponses = idea.shareIncludesResponses;
   let previous: IdeaState | null = null;
+  /** Kept alongside the shaped rounds so the headline can count sources from
+      the same reports the founder's own screens count from. */
+  const reports: (ResearchReport | null)[] = [];
 
   const rounds: JourneyRound[] = versions.map((version) => {
     const state = ideaStateSchema.parse(version.stateJson);
     const research = state.research_report;
+    reports.push(research);
     const gate = state.decision_gate;
     const changedFromPrevious = diffRound(previous, state);
     previous = state;
@@ -302,6 +313,9 @@ export async function getPublicJourney(
               summary: c.summary,
               sourceUrl: c.source_url,
             })),
+            // Same definition the summary and the dashboard use, so the
+            // Research tab cannot contradict the number above it.
+            sourceCount: countSources(research),
             openQuestions: research.open_questions,
             proposedChanges: research.proposed_changes.map((p) => ({
               text: p.edited_text || p.text,
@@ -371,7 +385,7 @@ export async function getPublicJourney(
     summary: idea.summary,
     currentStatus: rounds[rounds.length - 1].status,
     includesResponses: includeResponses,
-    headline: summarise(rounds),
+    headline: summarise(rounds, reports),
     rounds,
     startedAt: idea.createdAt.toISOString(),
     updatedAt: idea.updatedAt.toISOString(),
@@ -386,7 +400,10 @@ export async function getPublicJourney(
  * recent round is frequently empty and reading the headline off it would show
  * a live idea as having concluded nothing.
  */
-function summarise(rounds: JourneyRound[]): JourneyHeadline {
+function summarise(
+  rounds: JourneyRound[],
+  reports: (ResearchReport | null)[],
+): JourneyHeadline {
   const scored = [...rounds].reverse().find((r) => r.score !== null);
   const withFindings = [...rounds].reverse().find((r) => r.themes.length > 0);
   const withConcerns = [...rounds]
@@ -394,10 +411,14 @@ function summarise(rounds: JourneyRound[]): JourneyHeadline {
     .find((r) => r.objections.length > 0 || (r.score?.riskFactors.length ?? 0) > 0);
 
   const totalResponses = rounds.reduce((n, r) => n + r.responseCount, 0);
-  const totalSources = rounds.reduce(
-    (n, r) => n + (r.research?.evidence.length ?? 0),
-    0,
-  );
+  /**
+   * Distinct URLs across every round, from the one definition in
+   * research-sources. This counted evidence items and nothing else, so a run
+   * that read two pages and drew four competitor entries out of them reported
+   * zero sources here while the dashboard reported four. Summing per-round
+   * counts would have been wrong too: a rework re-reads the same pages.
+   */
+  const totalSources = countSourcesAcross(reports);
 
   return {
     score: scored?.score?.value ?? null,

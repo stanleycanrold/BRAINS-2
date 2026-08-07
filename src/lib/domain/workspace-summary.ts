@@ -5,6 +5,7 @@ import {
   type IdeaStatus,
   type PipelineStage,
 } from "@/lib/domain/types";
+import { countSources } from "@/lib/domain/research-sources";
 import { validationStage } from "@/lib/validation-stage";
 
 /**
@@ -52,10 +53,11 @@ export function summariseWorkspace(
 
   const stats: WorkspaceStat[] = [];
   if (research) {
-    stats.push({
-      label: "Sources read",
-      value: String(research.evidence.length + research.competitors.length),
-    });
+    // Distinct URLs, from the one definition. This used to add up evidence
+    // items and competitor entries, which counted four claims drawn from one
+    // page as four sources - and disagreed with the shared report, which was
+    // counting evidence alone and reaching zero on the same run.
+    stats.push({ label: "Sources read", value: String(countSources(research)) });
   }
   if (questions > 0) {
     stats.push({ label: "Questions asked", value: String(questions) });

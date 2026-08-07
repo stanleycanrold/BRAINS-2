@@ -344,6 +344,13 @@ function ResearchTab({ round }: { round: JourneyRound }) {
         <Badge tone={STRENGTH_TONE[research.problemStrength] ?? "neutral"}>
           {research.problemStrength} signal
         </Badge>
+        {/* The same count the summary shows, computed once server-side. Two
+            places on one page quoting different numbers for the same research
+            is worse than showing neither. */}
+        <span className="type-caption text-tertiary">
+          {research.sourceCount}{" "}
+          {research.sourceCount === 1 ? "source read" : "sources read"}
+        </span>
         {research.unsourced ? (
           <Badge tone="caution">No live sources available</Badge>
         ) : null}
