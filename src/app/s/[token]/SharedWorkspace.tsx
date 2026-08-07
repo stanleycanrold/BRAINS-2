@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ArrowSquareOutIcon,
   CheckIcon,
-  QuotesIcon,
   WarningIcon,
   XIcon,
 } from "@phosphor-icons/react/dist/ssr";
@@ -649,40 +648,10 @@ function ValidationTab({
         <Disclosure
           title="In their words"
           count={quotes.length}
-          summary="Every response, in full"
+          summary="Every response, filterable by what they said"
           storageKey="shared-validation-quotes"
         >
-          <div className="space-y-3">
-            {quotes.map((response, i) => (
-              <Card key={`${response.confirmed}-${i}`} className="p-5">
-                <QuotesIcon
-                  size={15}
-                  weight="fill"
-                  className="text-brand"
-                  aria-hidden="true"
-                />
-                <blockquote className="type-body-m mt-3 text-primary">
-                  {response.notes}
-                </blockquote>
-                <Badge
-                  tone={
-                    response.confirmed === "yes"
-                      ? "success"
-                      : response.confirmed === "unsure"
-                        ? "caution"
-                        : "neutral"
-                  }
-                  className="mt-4"
-                >
-                  {response.confirmed === "yes"
-                    ? "Confirmed the problem"
-                    : response.confirmed === "unsure"
-                      ? "Unsure"
-                      : "Did not confirm"}
-                </Badge>
-              </Card>
-            ))}
-          </div>
+          <ResponseTable responses={quotes} />
         </Disclosure>
       ) : null}
 
@@ -966,6 +935,120 @@ function HistoryTab({ journey }: { journey: PublicJourney }) {
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+/**
+ * Responses as a filterable table rather than a stack of quote cards.
+ *
+ * Eleven cards in a column is a scroll, not a finding: a reader cannot see the
+ * shape of the feedback, and picking out the people who said no means reading
+ * all of it. Segmenting by verdict answers the question a sceptic actually
+ * has - "what did the ones who disagreed say?" - in one click, and the counts
+ * on each control double as the breakdown.
+ *
+ * Colour is never the only signal. Each row carries the verdict in words as
+ * well as a tinted edge, so the table survives being read by somebody who
+ * cannot distinguish the tints, or printed in black and white.
+ */
+function ResponseTable({
+  responses,
+}: {
+  responses: { confirmed: string; notes: string }[];
+}) {
+  const [filter, setFilter] = React.useState<"all" | "yes" | "unsure" | "no">(
+    "all",
+  );
+
+  const counts = {
+    all: responses.length,
+    yes: responses.filter((r) => r.confirmed === "yes").length,
+    unsure: responses.filter((r) => r.confirmed === "unsure").length,
+    no: responses.filter((r) => r.confirmed === "no").length,
+  };
+
+  const segments = [
+    { id: "all" as const, label: "All" },
+    { id: "yes" as const, label: "Confirmed" },
+    { id: "unsure" as const, label: "Unsure" },
+    { id: "no" as const, label: "Did not confirm" },
+  ].filter((segment) => segment.id === "all" || counts[segment.id] > 0);
+
+  const visible =
+    filter === "all"
+      ? responses
+      : responses.filter((r) => r.confirmed === filter);
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {segments.map((segment) => (
+          <button
+            key={segment.id}
+            type="button"
+            onClick={() => setFilter(segment.id)}
+            aria-pressed={filter === segment.id}
+            className={cn(
+              "type-body-m inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5",
+              "transition-colors duration-[120ms]",
+              filter === segment.id
+                ? "border-brand bg-brand-subtle text-brand"
+                : "border-line text-secondary hover:border-line-strong hover:text-primary",
+            )}
+          >
+            {segment.label}
+            <span className="type-data-s opacity-70">
+              {counts[segment.id]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <ul className="mt-5 space-y-2">
+        {visible.map((response, i) => (
+          <li
+            key={`${response.confirmed}-${i}`}
+            className={cn(
+              "rounded-[8px] border border-l-[3px] border-line bg-raised p-4",
+              response.confirmed === "yes" && "border-l-success",
+              response.confirmed === "unsure" && "border-l-caution",
+              response.confirmed === "no" && "border-l-danger",
+            )}
+          >
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Badge
+                tone={
+                  response.confirmed === "yes"
+                    ? "success"
+                    : response.confirmed === "unsure"
+                      ? "caution"
+                      : "danger"
+                }
+                dot
+              >
+                {response.confirmed === "yes"
+                  ? "Confirmed the problem"
+                  : response.confirmed === "unsure"
+                    ? "Unsure"
+                    : "Did not confirm"}
+              </Badge>
+              <span className="type-caption text-tertiary">
+                Respondent {i + 1}
+              </span>
+            </div>
+            <p className="type-body-m mt-3 whitespace-pre-wrap text-primary">
+              {response.notes}
+            </p>
+          </li>
+        ))}
+      </ul>
+
+      {visible.length === 0 ? (
+        <p className="type-body-m mt-5 text-tertiary">
+          Nobody answered that way.
+        </p>
+      ) : null}
     </div>
   );
 }
