@@ -22,7 +22,13 @@ import { cn } from "@/lib/cn";
 import { Logo } from "@/components/brand/Logo";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useTheme } from "@/components/ThemeProvider";
-import type { IdeaStatus } from "@/lib/domain/types";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import {
+  STATUS_DOT,
+  WORKSPACE_SECTIONS,
+  type SidebarIdea,
+} from "./workspace";
+import { stageForStatus, PIPELINE_STAGES } from "@/lib/domain/types";
 
 /**
  * Design system §2.1–2.2 - persistent left sidebar, not top navigation.
@@ -56,24 +62,7 @@ const ROW =
   "flex h-9 w-full items-center gap-2.5 rounded-[8px] px-2.5 md:justify-center md:px-0";
 const SLOT = "flex w-[18px] shrink-0 items-center justify-center";
 
-export type SidebarIdea = {
-  id: string;
-  title: string;
-  status: IdeaStatus;
-  score: number | null;
-};
-
-/** Status is carried by colour AND text, never colour alone (§Part 5). */
-const STATUS_DOT: Record<IdeaStatus, string> = {
-  draft: "bg-line-strong",
-  researching: "bg-line-strong",
-  validating_normal: "bg-brand",
-  validating_fast: "bg-brand",
-  gate_review: "bg-caution",
-  needs_rework: "bg-caution",
-  passed: "bg-success",
-  killed: "bg-danger",
-};
+export type { SidebarIdea } from "./workspace";
 
 export function Sidebar({
   ideas,
@@ -91,6 +80,30 @@ export function Sidebar({
   isOps?: boolean;
 }) {
   const pathname = usePathname();
+
+  /**
+   * Which workspace we are inside, read off the path rather than passed in.
+   * Every screen under /ideas/:id belongs to one, and the layout that renders
+   * this sidebar does not know which - the route does.
+   */
+  const currentId = pathname.match(/^\/ideas\/([^/]+)/)?.[1] ?? null;
+  const isNewIdea = currentId === "new";
+  const workspaceId = isNewIdea ? null : currentId;
+  const workspace = ideas.find((i) => i.id === workspaceId) ?? null;
+
+  // A section is reachable once the idea has got that far, matching the rule
+  // the pipeline stepper follows: nothing you have reached closes behind you.
+  const reachedIndex = workspace
+    ? PIPELINE_STAGES.indexOf(stageForStatus(workspace.status))
+    : -1;
+  const sectionReachable: Record<string, boolean> = {
+    "": true,
+    "/entry": true,
+    "/research": reachedIndex >= 1,
+    "/validation": reachedIndex >= 2,
+    "/report": reachedIndex >= 3,
+    "/versions": true,
+  };
 
   // The rail is narrow at tablet regardless of preference, and at desktop only
   // when collapsed. Expressed in CSS so there's no resize listener, no flash,
@@ -168,9 +181,18 @@ export function Sidebar({
           </RailButton>
         </div>
 
+        {/* ── Workspace switcher ─────────────────────────────────────── */}
+        <div className="shrink-0 px-3 pb-2 md:px-2 lg:px-3">
+          <WorkspaceSwitcher
+            ideas={ideas}
+            currentId={workspaceId}
+            collapsed={collapsed}
+            onNavigate={onMobileClose}
+          />
+        </div>
+
         {/* ── Primary actions ────────────────────────────────────────── */}
         <div className="shrink-0 space-y-0.5 px-3 pb-2 md:px-2 lg:px-3">
-          {/* The single most visually prominent element in the sidebar (§2.2) */}
           <Tooltip content={collapsed ? "New idea" : ""} side="right">
             <Link
               href="/ideas/new"
@@ -178,9 +200,6 @@ export function Sidebar({
               title="New idea"
               className={cn(
                 ROW,
-                // Primary by position and by the brand-coloured mark, not by a
-                // filled slab. A saturated block here shouts over the ideas
-                // list, which is what the founder is actually navigating.
                 "type-body-m font-medium text-primary",
                 "transition-colors duration-[120ms] hover:bg-wash-hover",
                 !collapsed && "lg:justify-start lg:px-2.5",
@@ -209,48 +228,98 @@ export function Sidebar({
           />
         </div>
 
-        {/* ── Ideas - hidden in the rail rather than truncated ───────── */}
+        {/* ── Scoped nav ─────────────────────────────────────────────────
+            Inside a workspace this is that workspace's sections. Outside one
+            it falls back to the list of ideas, which is the only place a flat
+            list of everything still makes sense. Showing both at once was the
+            old behaviour and it meant the nav never told you where you were. */}
         <nav
           className={cn(
             "min-h-0 flex-1 overflow-y-auto px-3 pb-2",
             collapsed ? "md:hidden" : "md:hidden lg:block",
           )}
-          aria-label="Your ideas"
+          aria-label={workspace ? "Workspace sections" : "Your ideas"}
         >
-          <SectionLabel>Ideas</SectionLabel>
-
-          {active.length === 0 ? (
-            <p className="type-body-m px-2 py-1 text-tertiary">
-              Nothing here yet.
-            </p>
-          ) : (
-            <ul className="space-y-px">
-              {active.map((idea) => (
-                <IdeaLink
-                  key={idea.id}
-                  idea={idea}
-                  active={pathname.startsWith(`/ideas/${idea.id}`)}
-                  onNavigate={onMobileClose}
-                />
-              ))}
-            </ul>
-          )}
-
-          {archived.length > 0 ? (
+          {workspace ? (
             <>
-              <SectionLabel className="mt-5">Archived</SectionLabel>
+              <SectionLabel>Workspace</SectionLabel>
               <ul className="space-y-px">
-                {archived.map((idea) => (
-                  <IdeaLink
-                    key={idea.id}
-                    idea={idea}
-                    active={pathname.startsWith(`/ideas/${idea.id}`)}
-                    onNavigate={onMobileClose}
-                  />
-                ))}
+                {WORKSPACE_SECTIONS.map((section) => {
+                  const href = `/ideas/${workspace.id}${section.slug}`;
+                  const reachable = sectionReachable[section.slug] ?? true;
+                  const isActive =
+                    section.slug === ""
+                      ? pathname === `/ideas/${workspace.id}`
+                      : pathname.startsWith(href);
+
+                  return (
+                    <li key={section.slug}>
+                      {reachable ? (
+                        <Link
+                          href={href}
+                          onClick={onMobileClose}
+                          aria-current={isActive ? "page" : undefined}
+                          className={cn(
+                            "type-body-m flex h-8 items-center rounded-[6px] px-2.5",
+                            "transition-colors duration-[120ms]",
+                            isActive
+                              ? "bg-wash-hover font-medium text-primary"
+                              : "text-secondary hover:bg-wash-hover hover:text-primary",
+                          )}
+                        >
+                          {section.label}
+                        </Link>
+                      ) : (
+                        <span
+                          className="type-body-m flex h-8 items-center rounded-[6px] px-2.5 text-tertiary opacity-50"
+                          title="Not reached yet"
+                        >
+                          {section.label}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </>
-          ) : null}
+          ) : (
+            <>
+              <SectionLabel>Ideas</SectionLabel>
+
+              {active.length === 0 ? (
+                <p className="type-body-m px-2 py-1 text-tertiary">
+                  Nothing here yet.
+                </p>
+              ) : (
+                <ul className="space-y-px">
+                  {active.map((idea) => (
+                    <IdeaLink
+                      key={idea.id}
+                      idea={idea}
+                      active={pathname.startsWith(`/ideas/${idea.id}`)}
+                      onNavigate={onMobileClose}
+                    />
+                  ))}
+                </ul>
+              )}
+
+              {archived.length > 0 ? (
+                <>
+                  <SectionLabel className="mt-5">Archived</SectionLabel>
+                  <ul className="space-y-px">
+                    {archived.map((idea) => (
+                      <IdeaLink
+                        key={idea.id}
+                        idea={idea}
+                        active={pathname.startsWith(`/ideas/${idea.id}`)}
+                        onNavigate={onMobileClose}
+                      />
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </>
+          )}
         </nav>
 
         {/* Keeps the account block pinned to the bottom in the narrow rail,
