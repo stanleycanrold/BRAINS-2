@@ -16,6 +16,7 @@ import {
 } from "@/lib/domain/types";
 import { OpsTopBar } from "../../OpsTopBar";
 import { OrderWorkspace } from "./OrderWorkspace";
+import { originFromHeaders } from "@/lib/app-url";
 
 export const metadata: Metadata = { title: "Order" };
 
@@ -55,6 +56,19 @@ export default async function OpsOrderPage({
 
   const state = ideaStateSchema.parse(version.stateJson);
   const questionnaire = state.validation.questionnaire;
+
+  /**
+   * The link sourced respondents answer on.
+   *
+   * It existed but was only rendered inside the founder's normal-track
+   * Questions tab - a screen nobody on a paid round ever opens. The team
+   * fulfilling the order, who are the only people who need to send it out,
+   * had no way to see it at all.
+   */
+  const origin = await originFromHeaders();
+  const panelUrl = questionnaire.panel_share_token
+    ? `${origin}/q/${questionnaire.panel_share_token}`
+    : null;
 
   const responses = await db
     .select()
@@ -163,6 +177,7 @@ export default async function OpsOrderPage({
         orderId={order.id}
         versionId={order.ideaStateVersionId}
         nRequested={order.nRequested}
+        panelUrl={panelUrl}
         responses={fromThisOrder.map((r) => ({
           id: r.id,
           notes: r.notes,

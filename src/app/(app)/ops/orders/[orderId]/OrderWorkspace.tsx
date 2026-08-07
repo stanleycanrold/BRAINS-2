@@ -66,11 +66,14 @@ export function OrderWorkspace({
   orderId,
   versionId,
   nRequested,
+  panelUrl,
   responses,
 }: {
   orderId: string;
   versionId: string;
   nRequested: number;
+  /** Where sourced respondents answer. Null until the round is paid. */
+  panelUrl: string | null;
   responses: Response[];
 }) {
   const router = useRouter();
@@ -81,6 +84,18 @@ export function OrderWorkspace({
   const [confirmed, setConfirmed] = React.useState<Confirmed | null>(null);
   const [saving, setSaving] = React.useState(false);
   const [busyId, setBusyId] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
+
+  async function copyPanelLink() {
+    if (!panelUrl) return;
+    try {
+      await navigator.clipboard.writeText(panelUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast("Copy failed. Select the link and copy it manually.", "danger");
+    }
+  }
 
   const approved = responses.filter((r) => r.reviewStatus === "approved");
   const pending = responses.filter((r) => r.reviewStatus === "pending");
@@ -130,6 +145,32 @@ export function OrderWorkspace({
 
   return (
     <>
+      {/* Two ways to get an answer in, and the team needs both. Typing up a
+          call goes in below; sending the link lets a sourced respondent answer
+          in their own time. Answers arriving on this link are attributed to
+          the paid round rather than to the founder's own outreach, which is
+          the whole reason it is a separate token. */}
+      {panelUrl ? (
+        <Card elevation="raised" className="mt-4 p-5">
+          <h2 className="type-display-m text-primary">
+            Link for sourced respondents
+          </h2>
+          <p className="type-body-m mt-1 max-w-prose text-secondary">
+            Send this to anyone you have sourced for this order. Answers that
+            arrive on it count as paid interviews, separately from the
+            founder&rsquo;s own outreach.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <code className="type-data-s min-w-0 flex-1 truncate rounded-[6px] border border-line bg-page px-3 py-2 text-secondary">
+              {panelUrl}
+            </code>
+            <Button variant="secondary" onClick={() => void copyPanelLink()}>
+              {copied ? "Copied" : "Copy link"}
+            </Button>
+          </div>
+        </Card>
+      ) : null}
+
       <Card elevation="raised" className="mt-4 p-5">
         <h2 className="type-display-m text-primary">Log an interview</h2>
         <p className="type-body-m mt-1 max-w-prose text-secondary">
