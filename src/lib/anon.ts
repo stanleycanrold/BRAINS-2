@@ -32,6 +32,13 @@ import { ideaStateSchema } from "@/lib/domain/types";
 
 const ANON_CLERK_ID = "system:anonymous";
 
+/**
+ * Tokens are idea ids. Checked before any query, because Postgres raises on a
+ * malformed uuid rather than returning no rows, which would turn a mistyped
+ * link into a 500 instead of a redirect.
+ */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 let cachedId: string | null = null;
 
 /** The system owner for pre-signup runs. Created on first use. */
@@ -92,12 +99,66 @@ export async function createAnonIdea(params: {
 }
 
 /**
+ * Hands a pre-signup run to the account that just signed up.
+ *
+ * This is the whole reason anonymous runs are real rows rather than a cache.
+ * Without it a visitor watches the research finish, reads the brief, creates
+ * an account, and then watches the identical pass run a second time while the
+ * sourced report they were just reading is discarded. That is the worst
+ * possible moment to waste ninety seconds and a paid run, because it is the
+ * one where they have decided to trust us.
+ *
+ * A single UPDATE, because the record was built by the same pipeline and in
+ * the same shape as any other idea. Nothing is copied and no state is
+ * rebuilt: only the owner changes.
+ *
+ * Returns the idea id when it now belongs to this user, null when the token
+ * matches nothing claimable. Both outcomes are ordinary. A token that has
+ * already been claimed by someone else is indistinguishable from a made-up
+ * one, on purpose: answering differently would confirm that a given id exists
+ * to anyone willing to guess.
+ */
+export async function claimAnonIdea(
+  token: string,
+  userId: string,
+): Promise<string | null> {
+  if (!UUID.test(token)) return null;
+
+  const anonId = await anonUserId();
+
+  const [claimed] = await db
+    .update(schema.ideas)
+    .set({ userId })
+    // Scoped to the anonymous owner, so this can never take an idea that
+    // already belongs to a real founder.
+    .where(and(eq(schema.ideas.id, token), eq(schema.ideas.userId, anonId)))
+    .returning({ id: schema.ideas.id });
+
+  if (claimed) return claimed.id;
+
+  /**
+   * Already theirs. Reloading the claim URL, or arriving on it twice through
+   * a back button, should land on the brief rather than on an error: the
+   * outcome the visitor wanted has already happened.
+   */
+  const [owned] = await db
+    .select({ id: schema.ideas.id })
+    .from(schema.ideas)
+    .where(and(eq(schema.ideas.id, token), eq(schema.ideas.userId, userId)))
+    .limit(1);
+
+  return owned?.id ?? null;
+}
+
+/**
  * Loads an anonymous idea by token, scoped to the system owner.
  *
  * The scope is the security boundary of this entire feature. Do not add a
  * lookup that omits it.
  */
 export async function getAnonIdea(token: string): Promise<IdeaWithState | null> {
+  if (!UUID.test(token)) return null;
+
   const userId = await anonUserId();
 
   const rows = await db

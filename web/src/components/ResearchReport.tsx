@@ -8,7 +8,7 @@ import {
   WarningIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
-import { signUpWithDraft } from "@/lib/urls";
+import { signUpWithBrief } from "@/lib/urls";
 import { SIGNALS, type SignalTone } from "@shared/signals";
 
 export type Evidence = { claim: string; source_url: string; source_title: string };
@@ -125,18 +125,19 @@ export function ResearchReport({
   report,
   structured,
   title,
-  draft,
+  token,
 }: {
   report: Report;
   structured: Structured;
   title: string;
-  draft: string;
+  /** The run's own id. Signing up transfers it rather than repeating it. */
+  token: string;
 }) {
   const [active, setActive] = React.useState(0);
   const signal = SIGNALS[report.problem_strength];
   const tone = TONE[signal.tone];
   const sources = new Set(report.evidence.map((e) => e.source_url)).size;
-  const signUp = signUpWithDraft(draft);
+  const signUp = signUpWithBrief(token);
 
   const tabs: Tab[] = [
     /**

@@ -68,9 +68,25 @@ export const researchStatusUrl = researchUrl;
 /**
  * Sign up carrying whatever the visitor already typed, so the app can put it
  * straight back in front of them instead of asking twice.
+ *
+ * For a composer that has not run anything. If a research pass has already
+ * happened, use `signUpWithBrief` instead: handing over the text would make
+ * the app run the identical pass a second time and throw away the brief the
+ * visitor is looking at.
  */
 export function signUpWithDraft(draft: string): string {
   const trimmed = draft.trim();
   if (!trimmed) return signUpUrl;
   return `${signUpUrl}?draft=${encodeURIComponent(trimmed)}`;
+}
+
+/**
+ * Sign up carrying a finished research run, by token.
+ *
+ * The run already exists as a real record owned by a system account, so
+ * signing up transfers it rather than repeating it. The visitor lands back on
+ * the same brief, now theirs, with the proposals live.
+ */
+export function signUpWithBrief(token: string): string {
+  return `${signUpUrl}?claim=${encodeURIComponent(token)}`;
 }

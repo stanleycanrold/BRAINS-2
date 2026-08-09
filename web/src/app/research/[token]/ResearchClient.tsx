@@ -147,7 +147,7 @@ export function ResearchClient({ token }: { token: string }) {
         report={data.report}
         structured={data.structured}
         title={data.title}
-        draft={data.description}
+        token={token}
       />
     );
   }
