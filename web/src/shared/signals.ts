@@ -7,6 +7,20 @@
  * which is a plain module with no React, no CSS and no dependencies of any
  * kind - deliberately, so that adding a third surface later costs nothing.
  *
+ * ─── Why this sits inside `web/` ──────────────────────────────────────────
+ *
+ * It looks backwards, and it is deliberate. Vercel builds the marketing site
+ * with Root Directory set to `web`, so nothing above that folder exists at
+ * build time. A `shared/` directory at the repo root type-checked locally and
+ * then failed the deploy with "Can't resolve '@shared/signals'", which is the
+ * second time this repo has been bitten by a dependency reaching outside
+ * `web/` - see docs/DEPLOYING.md for the first.
+ *
+ * So the constrained project owns the file, and the app reaches across to it
+ * through its own `@shared/*` alias. The app builds from the repo root and
+ * has the whole tree available, so it can afford the dependency that the
+ * marketing site cannot.
+ *
  * These strings had already been copied between the two once. The failure
  * that causes is specific and expensive: a visitor reads one wording before
  * signing up, sees a different wording after, and the only conclusion

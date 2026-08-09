@@ -48,6 +48,25 @@ The tokens now live at `web/src/app/tokens.css`, imported by relative path.
 They are still a manual snapshot of the app's own `globals.css`, exactly as
 the shared package was, so nothing was lost except a build failure.
 
+**This has now happened twice, so it is worth stating as a rule: nothing under
+`web/` may import anything above `web/`.** The second time was a `shared/`
+directory at the repo root, holding the research signal wording used by both
+this site and the app. It type-checked locally, because locally the whole repo
+is on disk, and then failed the deploy with
+`Module not found: Can't resolve '@shared/signals'` — Root Directory is `web`,
+so the repo root does not exist during that build.
+
+The fix was to invert the ownership rather than duplicate the file: the shared
+modules live at `web/src/shared/`, and the **app** reaches across to them
+through its own `@shared/*` alias. The app builds from the repo root and has
+the whole tree available, so it can afford a dependency this site cannot. If
+you add another shared module, put it there for the same reason.
+
+A local `npm run build` inside `web/` will not catch a violation of this rule,
+because the files it should not be able to see are present. The cheap check is
+to confirm every entry under `paths` in `web/tsconfig.json` resolves inside
+`web/`, and that no import escapes it.
+
 ### 2. Environment variables
 
 **Settings → Environment Variables.** Both are public (`NEXT_PUBLIC_`), so
