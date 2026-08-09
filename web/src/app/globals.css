@@ -151,17 +151,19 @@ body {
     box-shadow: var(--shadow-raised);
   }
 
-  /* The same surface, filling its container to the edge.
-     A panel's border, radius and shadow all exist to separate it from the
-     page behind it. A surface that IS the page has nothing to separate from,
-     and keeping them produces a rounded card floating inside a viewport-sized
-     hole - visible margins on all four sides and a seam under the nav. Used
-     by the research brief, which occupies the whole screen. */
-  .mk-panel-flush {
+  /* A panel that fills the viewport, which turns out to mean: not a panel.
+     Border, radius, shadow and the raised surface all exist to lift a card
+     off the page behind it. Fill the screen and there is no page behind it
+     to lift off, so the border and radius leave a rounded card floating in a
+     viewport-sized hole, and `--surface-raised` makes the whole screen a
+     shade lighter than every other page on the site for no reason anyone
+     could name.
+     What remains is the page surface, with the cards inside it raised in the
+     ordinary way. Elevation is relative, and this is the ground. */
+  .mk-screen {
     position: relative;
     isolation: isolate;
-    background-color: var(--surface-raised);
-    background-image: var(--mk-panel-wash);
+    background-color: var(--surface-page);
   }
 
   .mk-panel::before {

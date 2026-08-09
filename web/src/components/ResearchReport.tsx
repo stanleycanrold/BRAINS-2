@@ -368,7 +368,7 @@ export function ResearchReport({
 
   return (
     <div className="flex h-[calc(100dvh-var(--nav-h))] flex-col">
-      <div className="mk-panel-flush flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="mk-screen flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* Fixed header. The idea, the verdict and the way forward stay on
             screen no matter which section is open. */}
         <header className="flex shrink-0 flex-col gap-4 border-b border-line px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-7">

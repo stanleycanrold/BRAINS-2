@@ -233,7 +233,7 @@ function Pair({ term, value }: { term: string; value: string }) {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-[calc(100dvh-var(--nav-h))] flex-col">
-      <div className="mk-panel-flush flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="mk-screen flex min-h-0 flex-1 flex-col overflow-hidden">
         <header className="flex shrink-0 items-center justify-between gap-4 border-b border-line px-5 py-4 lg:px-7">
           <div className="min-w-0">
             <p className="type-eyebrow text-tertiary">Your research brief</p>

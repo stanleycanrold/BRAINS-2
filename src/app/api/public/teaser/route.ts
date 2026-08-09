@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runAgent } from "@/lib/agents/runtime";
 import { teaserAgent } from "@/lib/agents/catalog/teaser";
-import { checkAndCount, identify, verifyTurnstile } from "@/lib/public-limits";
+import { checkAndCount, identityKeys, verifyTurnstile } from "@/lib/public-limits";
 import { publicCors } from "@/lib/public-cors";
 
 /**
@@ -80,15 +80,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const identity = identify({
-    ip,
-    fingerprint: typeof body.fingerprint === "string" ? body.fingerprint : null,
-    // From the body, not a cookie. See `public-cors` for why nothing
-    // cookie-based survives the origin boundary here.
-    session: typeof body.visitor === "string" ? body.visitor : null,
-  });
-
-  const limit = await checkAndCount(identity);
+  const limit = await checkAndCount(
+    identityKeys({
+      ip,
+      fingerprint: typeof body.fingerprint === "string" ? body.fingerprint : null,
+      // From the body, not a cookie. See `public-cors` for why nothing
+      // cookie-based survives the origin boundary here.
+      visitor: typeof body.visitor === "string" ? body.visitor : null,
+    }),
+  );
   if (!limit.ok) {
     return NextResponse.json(
       {

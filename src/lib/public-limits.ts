@@ -6,12 +6,12 @@ import "server-only";
  *
  * A free, unauthenticated AI endpoint is a well-known cost vector: bots,
  * scrapers and competitors probing the prompt will find it before real users
- * arrive at any meaningful traffic. Three independent layers, because each
- * one fails differently:
+ * arrive at any meaningful traffic. Three layers, because each fails
+ * differently:
  *
- *  1. A composite identity, so one signal being defeated does not grant
- *     unlimited access.
- *  2. A per-identity quota, which is the soft wall a real founder might hit.
+ *  1. Several independent identity signals, each with its own bucket, so
+ *     defeating one does not hand out a fresh allowance on the others.
+ *  2. A per-signal quota, which is the soft wall a real founder might hit.
  *  3. A global daily ceiling, which is the only layer that actually caps the
  *     bill and the only one that holds when the first two are evaded.
  *
@@ -56,56 +56,80 @@ type Bucket = { count: number; resetAt: number };
 const identities = new Map<string, Bucket>();
 let global: Bucket = { count: 0, resetAt: Date.now() + WINDOW_MS };
 
-function take(bucket: Bucket, cap: number): boolean {
-  if (Date.now() > bucket.resetAt) {
-    bucket.count = 0;
-    bucket.resetAt = Date.now() + WINDOW_MS;
-  }
-  if (bucket.count >= cap) return false;
-  bucket.count += 1;
-  return true;
-}
+/**
+ * One IP is not one person.
+ *
+ * Offices, universities, coworking spaces and mobile carriers all put many
+ * genuine visitors behind a single address, so an IP bucket as tight as a
+ * device bucket would lock out a whole building because one person in it
+ * was curious. A device is much closer to a person, so it gets the strict
+ * cap and the IP gets a looser one.
+ */
+const IP_MULTIPLE = 4;
 
 /**
- * Identity from several weak signals rather than one strong one.
+ * Each signal counted on its own, rather than combined into one key.
  *
- * Any single signal here is defeatable: IP by a phone hopping networks,
- * fingerprint by incognito or by Safari and Firefox actively degrading it,
- * the session cookie by clearing it. Requiring all three to change at once is
- * meaningfully more work than any of them alone, which is the realistic goal.
- * Stopping a determined attacker is what the global cap is for.
+ * This is the correction of a real hole. The previous version hashed
+ * fingerprint, IP and visitor id together into a single identity, which
+ * meant changing ANY one of them produced a brand new key and a brand new
+ * allowance. Rotating IPs behind one device - exactly the abuse worth
+ * defending against - reset the quota every time, while the comment above it
+ * claimed all three had to change at once. The code did the opposite of what
+ * it said.
  *
- * Fingerprints are hashed with a server secret and never stored raw. They are
- * personal data under GDPR and ePrivacy, so they stay one-way and expire with
- * the window.
+ * Counting each signal separately, and refusing when any one of them is
+ * spent, is what actually holds: a device that rotates a hundred addresses
+ * still presents the same fingerprint and the same stored visitor id, and is
+ * stopped by those buckets regardless of what the IP does.
+ *
+ * Every signal remains individually defeatable - fingerprints are degraded by
+ * Safari and Firefox and changed by incognito, visitor ids die with site
+ * data, addresses rotate - so this raises cost rather than making anything
+ * impossible. The global ceiling is what bounds the bill.
+ *
+ * Values are hashed with a server secret and never stored raw. A device
+ * fingerprint is personal data under GDPR and ePrivacy, so it stays one-way
+ * and expires with the window.
  */
-export function identify(parts: {
+export type IdentityKey = { key: string; cap: number };
+
+export function identityKeys(parts: {
   ip: string | null;
   fingerprint: string | null;
-  session: string | null;
-}): string {
+  visitor: string | null;
+}): IdentityKey[] {
+  const keys: IdentityKey[] = [];
+
+  // Namespaced per signal, so a fingerprint hash can never land in the same
+  // bucket as an address that happens to hash alike.
+  if (parts.fingerprint) keys.push({ key: hash(`fp:${parts.fingerprint}`), cap: QUOTA });
+  if (parts.visitor) keys.push({ key: hash(`vi:${parts.visitor}`), cap: QUOTA });
+  if (parts.ip) keys.push({ key: hash(`ip:${parts.ip}`), cap: QUOTA * IP_MULTIPLE });
+
+  return keys;
+}
+
+function hash(value: string): string {
   const salt = process.env.TEASER_ID_SALT ?? "dev-salt";
-  const raw = [parts.fingerprint, parts.ip, parts.session]
-    .map((p) => p ?? "-")
-    .join("|");
 
   // djb2. Not cryptographic, and does not need to be: this only has to make
   // the stored key non-reversible at a glance and stable within a window.
-  let hash = 5381;
-  const input = `${salt}|${raw}`;
+  let h = 5381;
+  const input = `${salt}|${value}`;
   for (let i = 0; i < input.length; i++) {
-    hash = ((hash << 5) + hash + input.charCodeAt(i)) | 0;
+    h = ((h << 5) + h + input.charCodeAt(i)) | 0;
   }
-  return String(hash >>> 0);
+  return String(h >>> 0);
 }
 
 export type LimitResult =
   | { ok: true; remaining: number }
   | { ok: false; reason: "quota" | "capacity" };
 
-export async function checkAndCount(identity: string): Promise<LimitResult> {
-  // The global cap is checked first and counted only if the identity also
-  // passes, so a single blocked visitor cannot burn global capacity.
+export async function checkAndCount(keys: IdentityKey[]): Promise<LimitResult> {
+  // The global cap is checked first and counted only if the visitor also
+  // passes, so a rejected request cannot burn global capacity.
   if (Date.now() > global.resetAt) {
     global = { count: 0, resetAt: Date.now() + WINDOW_MS };
   }
@@ -118,16 +142,38 @@ export async function checkAndCount(identity: string): Promise<LimitResult> {
     return { ok: true, remaining: Infinity };
   }
 
-  const bucket = identities.get(identity) ?? {
-    count: 0,
-    resetAt: Date.now() + WINDOW_MS,
-  };
-  identities.set(identity, bucket);
+  /**
+   * Every signal is checked before any is incremented.
+   *
+   * Charging one bucket and then rejecting on the next would spend a
+   * visitor's device allowance on a request they were never served, and over
+   * a day of shared-address traffic that quietly eats the allowance of people
+   * who did nothing.
+   */
+  const buckets = keys.map(({ key, cap }) => {
+    const bucket = identities.get(key) ?? { count: 0, resetAt: Date.now() + WINDOW_MS };
+    identities.set(key, bucket);
+    if (Date.now() > bucket.resetAt) {
+      bucket.count = 0;
+      bucket.resetAt = Date.now() + WINDOW_MS;
+    }
+    return { bucket, cap };
+  });
 
-  if (!take(bucket, QUOTA)) return { ok: false, reason: "quota" };
+  if (buckets.some(({ bucket, cap }) => bucket.count >= cap)) {
+    return { ok: false, reason: "quota" };
+  }
+
+  for (const { bucket } of buckets) bucket.count += 1;
   global.count += 1;
 
-  return { ok: true, remaining: Math.max(0, QUOTA - bucket.count) };
+  // The tightest remaining allowance, since that is the one that will stop
+  // them next. Absent any signal at all, the global cap is all that applies.
+  const remaining = buckets.length
+    ? Math.min(...buckets.map(({ bucket, cap }) => Math.max(0, cap - bucket.count)))
+    : Infinity;
+
+  return { ok: true, remaining };
 }
 
 /**

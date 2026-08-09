@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest, after } from "next/server";
 import { createAnonIdea, getAnonIdea } from "@/lib/anon";
 import { runResearchPipeline } from "@/lib/agents/orchestrator";
 import { publicCors } from "@/lib/public-cors";
+import { checkAndCount, identityKeys } from "@/lib/public-limits";
 
 export const runtime = "nodejs";
 // Research fans out across extraction and five live search queries, same as
@@ -38,7 +39,12 @@ export function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const headers = publicCors(request.headers.get("origin"));
 
-  let body: { description?: unknown; location?: unknown };
+  let body: {
+    description?: unknown;
+    location?: unknown;
+    fingerprint?: unknown;
+    visitor?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
@@ -57,6 +63,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "That is longer than this handles. Trim it to the essentials." },
       { status: 400, headers },
+    );
+  }
+
+  /**
+   * The same controls as the teaser, and they matter more here.
+   *
+   * A research pass is a model call plus five live searches, so it costs
+   * multiples of what the free read does. This route had none of it, which
+   * meant the cheap endpoint was defended and the expensive one was open.
+   */
+  const limit = await checkAndCount(
+    identityKeys({
+      ip:
+        request.headers.get("cf-connecting-ip") ??
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        null,
+      fingerprint: typeof body.fingerprint === "string" ? body.fingerprint : null,
+      visitor: typeof body.visitor === "string" ? body.visitor : null,
+    }),
+  );
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error:
+          limit.reason === "quota"
+            ? "That is the last free run for today. Create an account to keep going."
+            : "We are at capacity for free runs right now. Please try again shortly.",
+        reason: limit.reason,
+      },
+      { status: 429, headers },
     );
   }
 
