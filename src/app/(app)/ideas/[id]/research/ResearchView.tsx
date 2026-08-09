@@ -20,6 +20,8 @@ import { useToast } from "@/components/ui/Toast";
 import { TopBar } from "@/components/shell/AppShell";
 import { PipelineStepper } from "@/components/shell/PipelineStepper";
 import type { IdeaState, ProblemStrength } from "@/lib/domain/types";
+import { SIGNALS } from "@shared/signals";
+import { RESEARCH_STEPS } from "@shared/research-steps";
 
 /**
  * B3 - Research Report (design system §4.3).
@@ -41,32 +43,25 @@ import type { IdeaState, ProblemStrength } from "@/lib/domain/types";
  * page is looking for answers, not chapter titles.
  */
 
+/**
+ * The wording now lives in `shared/signals.ts`, which the marketing site
+ * imports too. It had been copied into both, and the failure that causes is
+ * specific: a visitor reads one phrasing before signing up and a different
+ * one after, and concludes that one of the two was marketing.
+ *
+ * The labels describe what research actually measured - how much a problem is
+ * publicly discussed - rather than grading the idea. That is a more precise
+ * claim than "Weak signal", not a gentler one: desk research genuinely cannot
+ * see problems people do not post about, and the real verdict belongs to the
+ * decision gate, on evidence from people.
+ */
 const STRENGTH_TONE: Record<ProblemStrength, BadgeTone> = {
-  weak: "caution",
-  moderate: "neutral",
-  strong: "success",
+  weak: SIGNALS.weak.tone,
+  moderate: SIGNALS.moderate.tone,
+  strong: SIGNALS.strong.tone,
 };
 
-const STRENGTH_LABEL: Record<ProblemStrength, string> = {
-  weak: "Weak signal",
-  moderate: "Mixed signal",
-  strong: "Strong signal",
-};
 
-/** The one-line answer, before the agent's reasoning explains it. */
-const STRENGTH_VERDICT: Record<ProblemStrength, string> = {
-  weak: "We couldn't find many people describing this problem.",
-  moderate: "Some people describe this problem, but the signal isn't loud yet.",
-  strong: "People are already describing this problem in their own words.",
-};
-
-const RESEARCH_STEPS = [
-  "Reading what you wrote…",
-  "Sharpening the problem statement…",
-  "Searching for people describing this problem…",
-  "Looking at what already exists…",
-  "Working out what would make this sharper…",
-];
 
 export function ResearchView({
   ideaId,
@@ -219,14 +214,14 @@ export function ResearchView({
           <section aria-labelledby="verdict-heading">
             <Card elevation="raised" className="p-6 sm:p-7">
               <Badge tone={STRENGTH_TONE[report.problem_strength]} dot>
-                {STRENGTH_LABEL[report.problem_strength]}
+                {SIGNALS[report.problem_strength].label}
               </Badge>
 
               <h2
                 id="verdict-heading"
                 className="type-display-l mt-4 max-w-prose text-primary"
               >
-                {STRENGTH_VERDICT[report.problem_strength]}
+                {SIGNALS[report.problem_strength].headline}
               </h2>
 
               <p className="type-body-l mt-3 max-w-prose text-secondary">

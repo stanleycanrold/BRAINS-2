@@ -44,10 +44,40 @@ const LINKS = [
 export function Nav() {
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
+  /**
+   * Auto-hide on the way down, return on the way up.
+   *
+   * Reading is the one thing every page here is for, and a bar pinned over
+   * the top of a long article is permanently spending vertical space to
+   * repeat links nobody is looking for mid-sentence. Coming straight back on
+   * an upward scroll means it is never more than a flick away, which is why
+   * this is worth more than simply making the bar shorter.
+   *
+   * Never hidden while the mobile menu is open, and never hidden near the top
+   * of the page, both of which would be the bar disappearing out from under
+   * someone who is using it.
+   */
+  const [hidden, setHidden] = React.useState(false);
   const pathname = usePathname();
 
+  /** Screens that behave like the product rather than like a page. */
+  const appLike = /^\/research(\/|$)/.test(pathname);
+
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    let last = window.scrollY;
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 12);
+
+      // A threshold rather than any movement at all, so the bar does not
+      // flicker on the small jitters a trackpad produces at rest.
+      if (Math.abs(y - last) > 8) {
+        setHidden(y > last && y > 140);
+        last = y;
+      }
+    };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -57,14 +87,18 @@ export function Nav() {
     <header
       className={cn(
         "sticky top-0 z-40 bg-page/80 backdrop-blur-md",
-        "transition-[height,border-color] duration-200",
+        "transition-[height,border-color,transform] duration-200",
         scrolled ? "border-b border-line" : "border-b border-transparent",
+        hidden && !open ? "-translate-y-full" : "translate-y-0",
       )}
     >
       <Container
         className={cn(
           "flex items-center justify-between transition-[height] duration-200",
-          scrolled ? "h-14" : "h-[72px]",
+          // Resting height comes from --nav-h so the research brief, which
+          // sizes itself to the viewport minus this bar, cannot fall out of
+          // step with it.
+          scrolled ? "h-14" : "h-[var(--nav-h)]",
         )}
       >
         <Link href="/" className="shrink-0" aria-label="BRAINS AI home">
@@ -90,11 +124,29 @@ export function Nav() {
           })}
         </nav>
 
+        {/* One primary action per screen, and on the research brief it is not
+            this one.
+
+            That screen carries its own solid button in the bar at the foot of
+            the report, where it follows on from the progress it refers to.
+            Two solid buttons meaning "make an account" split the eye and make
+            the page read as selling twice. So here it drops to an outline:
+            still present, still findable by anyone who has decided before
+            reaching the bottom, and visibly the second option rather than a
+            competing first one.
+
+            Everywhere else this bar IS the primary action, because content
+            pages offer the composer instead of a button, and it stays solid. */}
         <div className="hidden items-center gap-2 md:flex">
           <Button href={signInUrl} variant="ghost" size="compact">
             Log in
           </Button>
-          <Button href={signUpUrl} variant="primary" size="compact">
+          <Button
+            href={signUpUrl}
+            variant={appLike ? "secondary" : "primary"}
+            size="compact"
+            className={appLike ? "border-brand/50 text-brand hover:bg-brand-subtle" : undefined}
+          >
             Sign up
           </Button>
         </div>

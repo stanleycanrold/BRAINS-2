@@ -2,6 +2,11 @@ import type { Block, ContentPage } from "./types";
 import { page as howToValidate } from "./pages/how-to-validate-a-startup-idea";
 import { page as howManyInterviews } from "./pages/how-many-customer-interviews";
 import { page as marketplace } from "./pages/marketplace-startup-idea";
+import { page as saas } from "./pages/saas-startup-idea";
+import { page as aiApp } from "./pages/ai-app-startup-idea";
+import { page as mobileApp } from "./pages/mobile-app-startup-idea";
+import { page as b2bService } from "./pages/b2b-service-startup-idea";
+import { page as ecommerce } from "./pages/ecommerce-startup-idea";
 
 export type { Block, ContentPage, Section, Track } from "./types";
 
@@ -24,7 +29,16 @@ export type { Block, ContentPage, Section, Track } from "./types";
  * page needs bespoke JSX, the one-template arrangement is over and we are
  * maintaining hundreds of layouts again.
  */
-const PAGES: ContentPage[] = [howToValidate, howManyInterviews, marketplace];
+const PAGES: ContentPage[] = [
+  howToValidate,
+  howManyInterviews,
+  marketplace,
+  saas,
+  aiApp,
+  mobileApp,
+  b2bService,
+  ecommerce,
+];
 
 /** Sorted for stable output: build order must not depend on import order. */
 const BY_SLUG = new Map(
@@ -138,6 +152,13 @@ export function validateContent(): string[] {
 
     if (page.tags.length === 0) {
       problems.push(`${at} has no tags, so nothing can ever link to it`);
+    }
+
+    // The sitemap passes this straight to `new Date()`, where a malformed
+    // string becomes an Invalid Date and Next emits a sitemap entry with no
+    // lastModified at all - silently, on a page that was fine yesterday.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(page.updated) || Number.isNaN(Date.parse(page.updated))) {
+      problems.push(`${at} updated "${page.updated}" is not a valid YYYY-MM-DD date`);
     }
 
     // The answer is the one block that gets quoted out of context, so its

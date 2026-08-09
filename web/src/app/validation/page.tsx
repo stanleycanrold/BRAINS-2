@@ -248,34 +248,55 @@ export default function ValidationHubPage() {
             includes all of it.
           </p>
 
-          {/* The business-type guides used to have a card grid of their own at
-              the foot of this page. It was doing two jobs badly: this is a
-              service page, not a content index, and a three-up grid needs six
-              or more entries before it stops looking like a mistake.
-
-              One contextual sentence keeps the link equity flowing into those
-              pages without pretending this page is a library. Promote it back
-              to a grid once there are enough guides to fill one. */}
-          {guides.length > 0 ? (
-            <p className="type-body-l text-secondary">
-              What kills a marketplace is not what kills a SaaS product, and a
-              general checklist surfaces neither. Where the failure modes are
-              genuinely different we write it up separately:{" "}
-              {guides.map((guide, i) => (
-                <span key={guide.slug}>
-                  {i > 0 ? ", " : ""}
-                  <Link
-                    href={`/validation/${guide.slug}`}
-                    className="text-brand hover:underline"
-                  >
-                    {guide.shortTitle.toLowerCase()}
-                  </Link>
-                </span>
-              ))}
-              .
-            </p>
-          ) : null}
+          <p className="type-body-l text-secondary">
+            What kills a marketplace is not what kills a SaaS product, and a
+            general checklist surfaces neither. Where the failure modes are
+            genuinely different we write them up separately.
+          </p>
         </div>
+
+        {/* Promoted from a single inline sentence once the sixth guide landed,
+            which is the threshold the previous note here set: a three-up grid
+            needs six entries before the last row looks intentional rather than
+            unfinished. Below six, put it back to a sentence.
+
+            Still not a content index. The question-track pages are absent by
+            design and reached from search, so this grid stays capped at the
+            business-type guides. */}
+        {guides.length >= 6 ? (
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {guides.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/validation/${guide.slug}`}
+                className="mk-card flex flex-col p-6"
+              >
+                <h3 className="type-body-l font-medium text-primary">
+                  {guide.shortTitle}
+                </h3>
+                <p className="type-body-m mt-2.5 text-secondary">
+                  {guide.summary}
+                </p>
+              </Link>
+            ))}
+          </div>
+        ) : guides.length > 0 ? (
+          <p className="type-body-l mt-5 max-w-[70ch] text-secondary">
+            So far:{" "}
+            {guides.map((guide, i) => (
+              <span key={guide.slug}>
+                {i > 0 ? ", " : ""}
+                <Link
+                  href={`/validation/${guide.slug}`}
+                  className="text-brand hover:underline"
+                >
+                  {guide.shortTitle.toLowerCase()}
+                </Link>
+              </span>
+            ))}
+            .
+          </p>
+        ) : null}
       </Section>
 
       <Section

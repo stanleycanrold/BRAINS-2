@@ -110,7 +110,23 @@ const SECTIONS = [
   { id: "responses", label: "Every response", hint: "Raw, tagged, sourced" },
 ];
 
-export function ReportPreview() {
+/**
+ * The framing is a prop because this block now appears in two contexts.
+ *
+ * On the home page it is the output of step four of the run shown above it,
+ * and the eyebrow says so. On a guide page there is no numbered run, so
+ * "Step 04" would refer to a sequence the reader never saw. The sample itself
+ * is identical in both places; only the sentence introducing it changes.
+ */
+export function ReportPreview({
+  eyebrow = "Step 04 · Decide",
+  title = "A look inside a real brief",
+  lead = "Every score here is attached to the evidence that produced it, and where the evidence is thin the brief says so. This is an extract. The full one goes further on all of it.",
+}: {
+  eyebrow?: string;
+  title?: string;
+  lead?: string;
+} = {}) {
   const [active, setActive] = React.useState(0);
   const section = SECTIONS[active];
   const next = SECTIONS[(active + 1) % SECTIONS.length];
@@ -127,18 +143,12 @@ export function ReportPreview() {
                 its own. The four numbered steps belong to the run above; this
                 is what the last of them produces, so numbering its sections
                 01-04 as well implied a second sequence that does not exist. */}
-            <p className="type-eyebrow text-brand">
-              Step 04 &middot; Decide
-            </p>
+            <p className="type-eyebrow text-brand">{eyebrow}</p>
             <h2 className="type-display-hero mt-4 text-balance text-primary">
-              A look inside a real brief
+              {title}
             </h2>
           </div>
-          <p className="type-body-l max-w-[52ch] text-secondary">
-            Every score here is attached to the evidence that produced it, and
-            where the evidence is thin the brief says so. This is an extract.
-            The full one goes further on all of it.
-          </p>
+          <p className="type-body-l max-w-[52ch] text-secondary">{lead}</p>
         </div>
 
         <div className="mk-panel mt-12 overflow-hidden">

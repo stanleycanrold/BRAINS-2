@@ -90,7 +90,16 @@ function stripEmDashes<T>(value: T): T {
   if (typeof value === "string") {
     // \u2014 is the em dash, written escaped so no literal one exists
     // anywhere in the codebase, including the code that removes them.
-    return value.replace(/\s*\u2014\s*/g, " - ") as T;
+    return (
+      value
+        .replace(/\s*\u2014\s*/g, " - ")
+        // \u2011 is the non-breaking hyphen, which models reach for in
+        // compounds like "back-and-forth". It is invisible in most editors,
+        // survives copy and paste into a founder's own documents, and breaks
+        // word wrapping in narrow columns. Same class of problem as the em
+        // dash, so it is normalised in the same place.
+        .replace(/\u2011/g, "-") as T
+    );
   }
   if (Array.isArray(value)) {
     return value.map(stripEmDashes) as T;

@@ -49,6 +49,23 @@ export const signUpUrl = `${APP_URL}/sign-up`;
 export const dashboardUrl = `${APP_URL}/dashboard`;
 
 /**
+ * The free read. Served by the app, not by this site.
+ *
+ * The model keys, the spend ceiling and the abuse controls belong in one
+ * place, and this site deliberately has no database and no model SDK, which
+ * is what keeps every page static HTML. Calling across origins costs a
+ * preflight; owning a second copy of the agent stack would cost far more.
+ */
+export const teaserUrl = `${APP_URL}/api/public/teaser`;
+
+/**
+ * The real research pass, run before signup. Started with POST, polled with
+ * GET, and the same pipeline function the signed-in product calls.
+ */
+export const researchUrl = `${APP_URL}/api/public/research`;
+export const researchStatusUrl = researchUrl;
+
+/**
  * Sign up carrying whatever the visitor already typed, so the app can put it
  * straight back in front of them instead of asking twice.
  */

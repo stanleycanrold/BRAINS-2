@@ -108,6 +108,17 @@ export type ContentPage = {
   /** The URL segment. `/validation/{slug}`. */
   slug: string;
   track: Track;
+  /**
+   * The date this page's content last meaningfully changed, `YYYY-MM-DD`.
+   *
+   * Hand-set rather than derived from the build, because it feeds
+   * `lastModified` in the sitemap and that field is a claim to a crawler
+   * rather than a timestamp. Stamping every page with the build time tells
+   * Google that all of them changed on every deploy, which is false for all
+   * but one of them and trains it to stop believing the signal. Bump this
+   * when the words change; leave it alone for a typo or a styling pass.
+   */
+  updated: string;
   /** The H1. Phrased as the search query wherever that reads naturally. */
   title: string;
   /** `<title>`. May be longer and more specific than the H1. */

@@ -13,6 +13,7 @@ import type { ContentPage } from "../types";
 export const page: ContentPage = {
   slug: "marketplace-startup-idea",
   track: "business-type",
+  updated: "2026-08-04",
   title: "How to validate a marketplace startup idea before you build it",
   shortTitle: "Marketplace ideas",
   summary:

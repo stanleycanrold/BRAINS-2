@@ -22,9 +22,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: route === "" ? 1 : 0.7,
     })),
+    /**
+     * Articles carry their own edit date rather than the build time.
+     *
+     * `new Date()` here meant every deploy re-dated all of them at once, so a
+     * crawler was told the whole corpus changed whenever a button colour did.
+     * A date that is wrong in the same direction for every page is worse than
+     * no date, because it is the signal Google uses to decide which pages are
+     * worth recrawling and it stops meaning anything once it always says
+     * "today".
+     */
     ...getAllPages().map((page) => ({
       url: `${SITE_URL}/validation/${page.slug}`,
-      lastModified: new Date(),
+      lastModified: new Date(page.updated),
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),

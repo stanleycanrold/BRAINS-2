@@ -10,6 +10,8 @@ import { IdeaComposer } from "./IdeaComposer";
 import { FaqJsonLd } from "./Faq";
 import { MobileCta } from "./MobileCta";
 import { BlockRenderer } from "./ContentBlocks";
+import { ArticleJsonLd } from "./SiteJsonLd";
+import { ReportPreview } from "./ReportPreview";
 import { getFaq, getRelated } from "@/content";
 import type { ContentPage } from "@/content/types";
 import { SITE_URL, signUpUrl } from "@/lib/urls";
@@ -43,6 +45,12 @@ export function ArticlePage({ page }: { page: ContentPage }) {
       <ReadingProgress />
       <MobileCta />
       {faq ? <FaqJsonLd items={faq} /> : null}
+      <ArticleJsonLd
+        headline={page.metaTitle}
+        description={page.metaDescription}
+        slug={page.slug}
+        updated={page.updated}
+      />
 
       <section className="pt-8 pb-16 sm:pt-10 sm:pb-24">
         <Container>
@@ -104,6 +112,18 @@ export function ArticlePage({ page }: { page: ContentPage }) {
           ))}
         </div>
       </Container>
+
+      {/* The sample sits after the argument and before the related links.
+          A founder who has read this far has been told what evidence is worth
+          collecting; this is the first chance to see what it looks like
+          assembled, which is the question they actually decide on. Placing it
+          after "Keep going" would put the strongest artifact on the page below
+          four links out of it. */}
+      <ReportPreview
+        eyebrow="What you get back"
+        title="A look inside a real brief"
+        lead="Not a screenshot of an interface. This is the artifact a round produces, with every score attached to the evidence behind it. It is an extract; the full one goes further on all of it."
+      />
 
       <Section bordered className="mt-16 sm:mt-24">
         <h2 className="type-display-hero text-primary">Keep going</h2>

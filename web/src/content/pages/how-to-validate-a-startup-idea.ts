@@ -9,6 +9,7 @@ import type { ContentPage } from "../types";
 export const page: ContentPage = {
   slug: "how-to-validate-a-startup-idea",
   track: "question",
+  updated: "2026-08-04",
   title: "How to validate a startup idea",
   shortTitle: "How to validate a startup idea",
   summary:

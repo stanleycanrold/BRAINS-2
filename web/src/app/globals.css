@@ -55,6 +55,16 @@ body {
   --mk-radius-card: 12px;
   --mk-radius-panel: 20px;
 
+  /* The nav's resting height, defined once because two things now depend on
+     it: the bar itself, and the research brief, which sizes itself to exactly
+     the viewport minus this so that screen never scrolls. Two hardcoded
+     copies of the same number would drift the first time the bar changes
+     height, and the symptom would be a scrollbar appearing on a screen
+     designed not to have one. The nav condenses to 56px once a page is
+     scrolled; that does not apply here, because a screen that fits never
+     scrolls in the first place. */
+  --nav-h: 72px;
+
   /* Dark surfaces sit within a few percent of each other, so elevation on its
      own reads as almost nothing. Rather than fork the shared palette, panels
      get a top-down wash and a lit top edge: the treatment that separates a
@@ -139,6 +149,19 @@ body {
     background-color: var(--surface-raised);
     background-image: var(--mk-panel-wash);
     box-shadow: var(--shadow-raised);
+  }
+
+  /* The same surface, filling its container to the edge.
+     A panel's border, radius and shadow all exist to separate it from the
+     page behind it. A surface that IS the page has nothing to separate from,
+     and keeping them produces a rounded card floating inside a viewport-sized
+     hole - visible margins on all four sides and a seam under the nav. Used
+     by the research brief, which occupies the whole screen. */
+  .mk-panel-flush {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--surface-raised);
+    background-image: var(--mk-panel-wash);
   }
 
   .mk-panel::before {

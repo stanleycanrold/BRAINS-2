@@ -12,6 +12,7 @@ import type { ContentPage } from "../types";
 export const page: ContentPage = {
   slug: "how-many-customer-interviews",
   track: "question",
+  updated: "2026-08-04",
   title: "How many customer interviews do you need?",
   shortTitle: "How many customer interviews",
   summary:

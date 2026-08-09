@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import {
   ArrowUpIcon,
   PaperclipIcon,
   XIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { signUpUrl, signUpWithDraft } from "@/lib/urls";
+import { signUpUrl, signUpWithDraft, researchUrl } from "@/lib/urls";
+import { deviceSignal, visitorId } from "@/lib/fingerprint";
 
 /**
  * The idea composer - deliberately the same control as the app's own.
@@ -195,6 +196,20 @@ export function IdeaComposer({
   const [facetDismissed, setFacetDismissed] = React.useState(false);
   const textarea = React.useRef<HTMLTextAreaElement>(null);
 
+  /**
+   * `pending` outlives the fetch on purpose. It is never cleared on success,
+   * because the next thing that happens is a navigation and flipping the
+   * button back to its resting state first would read as the click having
+   * failed.
+   */
+  const [state, setState] = React.useState<
+    | { kind: "idle" }
+    | { kind: "pending" }
+    | { kind: "error"; message: string; submitted: string }
+  >({ kind: "idle" });
+
+  const pending = state.kind === "pending";
+
   const large = size === "large";
 
   /**
@@ -253,12 +268,68 @@ export function IdeaComposer({
     el.style.height = `${Math.max(floor, Math.min(el.scrollHeight, Math.max(96, ceiling)))}px`;
   }, [value, large]);
 
-  function submit() {
-    // Signup carries the idea through rather than making anyone retype what
-    // they already gave us (UX guide, Part 10). The app reads it back off the
-    // query string and seeds its own composer with it. A raw param for now; it
-    // becomes a signed short-lived token once Clerk satellite domains are up.
-    router.push(signUpWithDraft(value));
+  /**
+   * Start the real research pass, then move to where it will appear.
+   *
+   * The whole run is the same one a signed-in founder gets: extraction, five
+   * live searches, sourced evidence, the workarounds, the counter-evidence
+   * and the proposed changes. No account, no email, no wall.
+   *
+   * Only the POST is awaited here, and it returns a token in well under a
+   * second. The pass itself continues server side while the results page
+   * polls, which is why a ninety second job does not need the visitor to hold
+   * still on this screen or keep a request open.
+   *
+   * The navigation is deliberate and replaced an in-place render. A brief
+   * this long does not belong wedged under a text box halfway down an
+   * article, and a page of its own is reloadable, linkable and sendable to a
+   * co-founder.
+   */
+  async function submit() {
+    const description = value.trim();
+    if (description.length < 20 || pending) return;
+
+    setState({ kind: "pending" });
+
+    try {
+      // No `credentials: include`. It requires the server to send
+      // Access-Control-Allow-Credentials, and the cookie it would carry is a
+      // third-party one that Safari and Firefox drop outright. It failed
+      // closed: the browser rejected every response before the page saw it,
+      // and the composer reported the API unreachable while it was answering
+      // normally.
+      const res = await fetch(researchUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description,
+          fingerprint: deviceSignal(),
+          visitor: visitorId(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.token) {
+        setState({
+          kind: "error",
+          message: data?.error ?? "That did not go through. Try again in a moment.",
+          submitted: description,
+        });
+        return;
+      }
+
+      router.push(`/research/${data.token}`);
+    } catch {
+      // Usually the app being unreachable rather than anything the visitor
+      // did. Signup still works, so the message points there rather than
+      // stranding them.
+      setState({
+        kind: "error",
+        message: "We could not start that run just now. You can still continue.",
+        submitted: description,
+      });
+    }
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
@@ -349,16 +420,41 @@ export function IdeaComposer({
           <button
             type="button"
             onClick={submit}
-            aria-label="Continue with this idea"
+            disabled={pending || value.trim().length < 20}
+            aria-label="Get a first read on this idea"
             className={cn(
               "flex size-8 shrink-0 items-center justify-center rounded-full",
               "bg-brand text-on-accent transition-colors duration-[120ms] hover:bg-brand-hover",
+              // Disabled until there is enough to reason about. A read
+              // generated from four words is worse than no read at all, and
+              // the founder would blame the product rather than the input.
+              "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-brand",
             )}
           >
             <ArrowUpIcon size={15} weight="bold" aria-hidden="true" />
           </button>
         </div>
       </div>
+
+      {/* Held here rather than on the results page, because the wait before
+          navigation is the one moment the visitor has no feedback at all. */}
+      {pending ? (
+        <p className="type-body-m mt-3 text-tertiary" aria-live="polite">
+          Starting your research...
+        </p>
+      ) : null}
+
+      {state.kind === "error" ? (
+        <div className="mk-panel mt-4 p-5">
+          <p className="type-body-m text-primary">{state.message}</p>
+          <a
+            href={signUpWithDraft(state.submitted)}
+            className="type-body-m mt-3 inline-block text-brand hover:underline"
+          >
+            Continue to the full run
+          </a>
+        </div>
+      ) : null}
 
       {/* Categories take the row when set. Like the starters they vanish the
           moment there is anything typed: chips under a paragraph somebody is
