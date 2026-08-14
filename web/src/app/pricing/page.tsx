@@ -61,8 +61,8 @@ const TRACKS = [
     name: "Self-serve",
     price: "Free",
     priceNote: "No card, no time limit",
-    tagline: "You find the people.",
-    body: "Everything above, and you gather the responses yourself using the questions and the share link. The report is the same one a paid round produces.",
+    tagline: "Do it yourself.",
+    body: "Everything you need to validate the idea is included. You use the questions and share link, collect the responses, and get the same scored report as a paid round.",
     cta: { label: "Start free", href: signUpUrl, variant: "primary" as const },
   },
   {
@@ -70,8 +70,8 @@ const TRACKS = [
     name: "Fast Track",
     price: "Priced per round",
     priceNote: "Itemised before you pay",
-    tagline: "We find the people.",
-    body: "Respondents sourced to match your market, interviews run and screened, and the round back on your dashboard in one to two weeks.",
+    tagline: "We do the outreach.",
+    body: "We source people who match your market, run and screen the conversations, and return a clear verdict in one to two weeks.",
     cta: {
       label: "How the price works",
       href: "#how-price-works",
@@ -83,8 +83,8 @@ const TRACKS = [
     name: "Continued Social Scan",
     price: "Monthly",
     priceNote: "Cancel whenever",
-    tagline: "The research keeps running.",
-    body: "The scan does not stop when the score lands. The communities the research named stay watched, and you get told when the problem shows up again.",
+    tagline: "Keep listening.",
+    body: "The research does not stop at the first score. We keep watching the communities you care about and flag the moments when the problem shows up again.",
     cta: {
       label: "What it watches",
       href: "#social-scan",
@@ -196,12 +196,12 @@ export default function PricingPage() {
           <div className="max-w-[820px]">
             <p className="type-eyebrow text-brand">Pricing</p>
             <h1 className="type-display-2xl mt-6 text-balance text-primary">
-              An answer you can defend.
+              Know before you build.
             </h1>
             <p className="type-body-xl mt-7 max-w-[58ch] text-secondary">
-              To a co-founder, to an investor, or to yourself at 2am. Running
-              it yourself costs nothing. Paying buys back the weeks of finding
-              the right people and getting them to talk.
+              The validation itself is free. Paying buys back the legwork of
+              finding the right people, asking the right questions, and turning
+              the signal into a decision you can defend.
             </p>
           </div>
         </Container>
@@ -209,8 +209,8 @@ export default function PricingPage() {
 
       <Section
         eyebrow="What you get"
-        title="Every round produces the same thing"
-        lead="This list does not change between tiers. Nothing is held back on the free one, and nothing extra is unlocked by paying. The only variable is who does the legwork of reaching people."
+        title="Every round gives you the same decision-making engine"
+        lead="The deliverable does not change between tiers. The free version gives you the full report. Paid rounds only change who does the outreach and how quickly you get the answer."
       >
         <div className="mk-grid mk-grid-raised sm:grid-cols-2">
           {INCLUDED.map((item) => (
@@ -230,8 +230,8 @@ export default function PricingPage() {
       <Section
         tone="sunken"
         eyebrow="How it runs"
-        title="Three ways to get there"
-        lead="Pick the one that matches how much of your own time you want to spend."
+        title="Choose the path that fits your time"
+        lead="Use the free version when you want to run it yourself. Use Fast Track when speed matters. Use Continued Social Scan when the problem needs ongoing listening."
       >
         <div className="mk-grid mk-grid-raised lg:grid-cols-3">
           {TRACKS.map((track) => (
@@ -273,33 +273,31 @@ export default function PricingPage() {
       <Section
         id="how-price-works"
         eyebrow="How the price works"
-        title="Two components, and one of them barely moves"
-        lead="Fast Track is priced from the two things it actually costs us. Both appear itemised at checkout before anything is charged."
+        title="Two costs. One is mostly fixed."
+        lead="Fast Track is priced from the work it actually takes: reaching the right people and turning the responses into a clear answer. Both are shown before you pay."
       >
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="mk-card p-7">
             <p className="type-eyebrow text-tertiary">Component one</p>
             <h3 className="type-display-m mt-3 text-primary">
-              Reaching the people
+              Finding the right people
             </h3>
             <p className="type-body-m mt-3 text-secondary">
-              Charged per response, and it scales directly with how many you
-              order. This is the part that varies by audience, because a
-              hospital procurement lead is far harder to reach than a dog
-              owner.
+              This is the variable cost. A general consumer audience is easier to
+              reach than a specialist professional one, so the per-response rate
+              changes with how hard the market is to find.
             </p>
           </div>
 
           <div className="mk-card p-7">
             <p className="type-eyebrow text-tertiary">Component two</p>
             <h3 className="type-display-m mt-3 text-primary">
-              Turning it into an answer
+              Turning signals into a verdict
             </h3>
             <p className="type-body-m mt-3 text-secondary">
-              Screening every response, finding the themes, weighing the
-              contradictions and producing the scored report. Largely fixed: a
-              round of six needs almost the same work as a round of thirty,
-              which is why it is not billed per head.
+              Screening responses, finding the themes, weighing the counter-arguments,
+              and turning it into a scored report. This part stays mostly fixed, even
+              as the number of responses rises.
             </p>
           </div>
         </div>
@@ -353,11 +351,10 @@ export default function PricingPage() {
           </div>
 
           <p className="type-body-m mt-6 max-w-[72ch] text-secondary">
-            Which tier your idea falls into is decided during research, from
-            who you said it is for, not chosen by you at checkout. You set the
-            number of responses, the total updates as you change it, and you
-            see the itemised figure before paying. Three responses is the
-            floor we will run.
+            Your audience tier is assigned during research, based on who the idea is
+            actually for, not chosen at checkout. You choose the number of responses,
+            the total updates live, and you see the itemised cost before paying. Three
+            responses is the minimum we will run.
           </p>
         </div>
       </Section>
@@ -366,8 +363,8 @@ export default function PricingPage() {
         id="social-scan"
         tone="sunken"
         eyebrow="Continued Social Scan"
-        title="Stop spending your week looking for where your customers are"
-        lead="The research already names the communities where your problem gets discussed. This keeps that scan running, tells you when the conversation worth joining appears, and hands you something worth saying in it."
+        title="Stay in the rooms where your customers are already talking"
+        lead="The first round identifies the communities that matter. This keeps the listening on, tells you when the problem shows up again, and gives you a better opening line before you join the conversation."
         aside={
           <Button href={signUpUrl} variant="secondary">
             Start free first
@@ -386,8 +383,8 @@ export default function PricingPage() {
         </div>
 
         <p className="type-body-m mt-8 max-w-[72ch] text-secondary">
-          Every draft is yours to edit and post in your own words, so what goes
-          out sounds like you and lands in your account&rsquo;s own history.
+          Every draft is yours to edit and post in your own words, so it sounds like
+          you and lives in your own account history instead of a generic sales pitch.
         </p>
       </Section>
 
@@ -399,12 +396,12 @@ export default function PricingPage() {
         <Container>
           <div className="max-w-[760px]">
             <h2 className="type-display-hero text-balance text-primary">
-              Find out this week, not next quarter.
+              Validate the idea before it takes the quarter.
             </h2>
             <p className="type-body-xl mt-5 max-w-[56ch] text-secondary">
-              The research costs nothing and comes back in under 60 seconds. Start with
-              the idea you are least sure about, and decide on evidence instead
-              of a hunch.
+              The research is free and usually comes back in under a minute. Start with
+              the idea you are least sure about and make the decision with evidence,
+              not a hunch.
             </p>
             <div className="mt-9">
               <Button href={signUpUrl} variant="primary">

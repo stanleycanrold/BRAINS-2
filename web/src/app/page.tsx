@@ -338,8 +338,8 @@ export default function HomePage() {
 
       <Section
         eyebrow="Why this matters"
-        title="Ideas rarely fail because the founder could not build it"
-        lead="They fail because a confident guess went unchecked for six months. These are the three patterns behind most post-mortems, and all three are knowable before you write code."
+        title="Most ideas fail before launch."
+        lead="Not because the product was impossible. Because the founder guessed before the market proved the problem."
       >
         <div className="mk-grid md:grid-cols-3">
           {FAILURE_MODES.map((mode) => (
@@ -362,8 +362,8 @@ export default function HomePage() {
       <Section
         id="score"
         eyebrow="The decision gate"
-        title="One number, and everything behind it"
-        lead="Half of your respondents confirming the problem is the line. Clear it and you get a go-ahead. Miss it and you get a rethink with a diagnosis, never a silent kill."
+        title="One score. Clear enough to act."
+        lead="If more than half the respondents confirm the problem, you have a real wedge. If not, you get a diagnosis and a better next move."
       >
         <div className="mk-grid mk-grid-raised lg:grid-cols-3">
           {GATE.map((gate) => (
@@ -407,8 +407,8 @@ export default function HomePage() {
       <Section
         id="evidence"
         eyebrow="The evidence standard"
-        title="You should be able to check our work"
-        lead="A brief you cannot audit is just a longer opinion. Every claim carries its source, and every weak finding is labelled weak."
+        title="You should be able to check every claim."
+        lead="If the answer cannot be traced to a source, it is not evidence. Every signal in the report is linked back to the public discussion behind it."
       >
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
@@ -476,8 +476,8 @@ export default function HomePage() {
         tone="sunken"
         layout="stack"
         eyebrow="Honest comparison"
-        title="Why not just ask a chatbot, or your friends"
-        lead="Both are free and both feel productive. Neither is accountable to a source, which is exactly the property you need when the decision costs you six months."
+        title="Why not just ask a chatbot?"
+        lead="It is fast. It is also unaccountable. When the decision costs time and money, you need a source-backed answer, not a plausible one."
       >
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-left">
@@ -602,8 +602,8 @@ export default function HomePage() {
               Start with the idea you are least sure about.
             </h2>
             <p className="type-body-xl mx-auto mt-5 max-w-[52ch] text-secondary">
-              That is the one worth checking. The research and the full scored
-              report cost nothing.
+              That is the one worth validating. The research and the scored
+              report are free.
             </p>
 
             <div className="mk-panel mt-10 p-5 text-left sm:p-6">
@@ -620,7 +620,7 @@ export default function HomePage() {
 
             <div className="mt-12">
               <Button href="/how-it-works" variant="secondary">
-                See how the scoring works
+                See the scoring logic
               </Button>
             </div>
           </div>
