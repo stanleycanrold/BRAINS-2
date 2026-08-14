@@ -20,53 +20,55 @@ import { SITE_URL } from "@/lib/urls";
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "Validate your startup idea with real market signal: research the problem, ask the right people, and get a clear score before you build.",
+    "The four steps of a validation round: describe the idea, research it against real sources, get answers from people who have the problem, and decide on a scored report.",
   alternates: { canonical: `${SITE_URL}/how-it-works` },
 };
 
 const STEPS = [
   {
     n: "01",
-    title: "Describe the idea you are trying to test",
-    body: "Start with the problem, not the pitch. One paragraph is enough. Tell us what is broken today, who it affects, and why the current workaround is not good enough.",
+    title: "Describe what you're building",
+    body: "A paragraph is enough. What the situation is, and what goes wrong today. Not the whole product if only one feature is uncertain: describe just that part.",
     points: [
-      "Drop in notes, a deck, a link, or a rough concept",
-      "We use the right context to focus the research on the actual market",
-      "Your draft is saved before any agent starts, so nothing is lost if the round changes direction",
+      "Attach a deck, notes, or a link and we read them for context",
+      "Tell us who it is for and where they are, so research looks in the right market",
+      "Your idea is saved before any agent runs, so nothing is lost if a step fails",
     ],
   },
   {
     n: "02",
-    title: "We check whether the problem is real",
-    body: "This is where the guesswork gets tested. We look for real public evidence, current workarounds, and the people already paying a real cost to solve the problem.",
+    title: "We research whether the problem is real",
+    body: "Real search, not a model guessing from memory. We name the products that already solve this and the gap they leave, and surface the case against the idea as deliberately as the case for it.",
     points: [
-      "Every claim points back to the source it came from",
-      "We surface the strongest counter-arguments, not just the flattering ones",
-      "We call out when the evidence is thin instead of pretending it is strong",
-      "You can sharpen or reject the direction before any conversations happen",
+      "Every claim links to where we found it",
+      "What people do instead today, which is usually the real competition",
+      "The strongest counter-evidence, kept where it cannot be buried",
+      "A proposed sharpening of the idea, which you accept or reject",
+      "When live search turns up nothing, the report says so rather than inventing sources",
     ],
   },
   {
     n: "03",
-    title: "You get feedback from the right people",
-    body: "The method is simple: ask the people living the problem, not your friends and not a generic chatbot. We write the questions, and you can either run the round yourself or let us source and run it for you.",
+    title: "You get answers from real people",
+    body: "Two routes, one report. Gather answers yourself with questions we write and a link you share, or hand the whole thing over and have the conversations sourced and run for you.",
     points: [
-      "Questions are built from the research, not from a generic template",
-      "We name the communities and threads where the buyers already gather",
-      "A public link lets people answer without signing up first",
-      "Every answer is screened before it affects the final score",
+      "Questions built from your research, editable, in your own words if you prefer",
+      "The communities where your buyers already gather, named with a real thread",
+      "A public link that needs no signup to answer",
+      "Every response screened for quality before it counts toward anything",
+      "Both routes feed the same pool and the same score",
     ],
   },
   {
     n: "04",
-    title: "You get a clear score and the reasoning behind it",
-    body: "This is the decision you can actually act on. The report shows the signal, where it came from, and what the weak spots are so you know whether to build, rework, or stop.",
+    title: "You get a score, and the reasoning behind it",
+    body: "Never a bare number. Half of your respondents confirming the problem is the line: clear it and you get a go-ahead, miss it and you get a diagnosis of which part failed.",
     points: [
-      "The confirmation rate and how we reached it",
-      "Patterns that kept showing up, and the push-back you heard",
-      "The six risk factors that adjust a score",
+      "The confirmation rate, and how we got to the number",
+      "Patterns that came up repeatedly, and the push-back you heard",
+      "Risk factors named, with the six things that adjust a score",
       "Every raw response, tagged confirmed, unsure or no, with its source",
-      "The final call is always yours, but the evidence is no longer vague",
+      "Proceed, rework or stop is always your call",
     ],
   },
 ];
@@ -81,11 +83,12 @@ export default function HowItWorksPage() {
           <div className="max-w-[820px]">
             <p className="type-eyebrow text-brand">How it works</p>
             <h1 className="type-display-2xl mt-6 text-balance text-primary">
-              Validate the idea before it becomes a roadmap.
+              Four steps, and nothing hidden in any of them.
             </h1>
             <p className="type-body-xl mt-7 max-w-[58ch] text-secondary">
-              The process is simple: research the problem, talk to the right people,
-              and get a clear score before you spend months building the wrong thing.
+              The research, the questions, and every individual response stay
+              visible to you the whole way through. These are the same four
+              stages the product shows you while a round is running.
             </p>
           </div>
         </Container>
@@ -93,8 +96,8 @@ export default function HowItWorksPage() {
 
       <Section
         eyebrow="The round"
-        title="A faster way to know whether the problem is real"
-        lead="Most product ideas fail not because they are impossible, but because they were never tested against the market before the build started."
+        title="From a paragraph to a decision you can defend"
+        lead="Most of it is free, self-paced, and repeatable as many times as you need."
       >
         <div className="mk-grid lg:grid-cols-2">
           {STEPS.map((step) => (
@@ -131,20 +134,22 @@ export default function HowItWorksPage() {
       <Section
         tone="sunken"
         eyebrow="After the score"
-        title="A stronger decision, not a dead end"
-        lead="A weak result is not a failure of the idea. It is usually a sign that the audience, the message, or the wedge needs to be sharpened."
+        title="A loop, not a verdict"
+        lead="A weak result is usually specific rather than fatal, and it points somewhere."
       >
         <div className="max-w-[70ch] space-y-5">
           <p className="type-body-l text-secondary">
-            If the signal is weak you get a diagnosis of what failed: the problem,
-            the audience, or the way it was framed. Then you tighten the idea and run
-            the round again. There is no penalty for testing a second time, and every
-            version remains visible so you can compare the signal instead of guessing.
+            If the signal is weak you get a diagnosis of which part failed: the
+            problem statement, the audience, or the problem itself. Sharpen it
+            and run the round again. There is no limit on rounds, and every
+            version you have been through stays readable, including the ones
+            that did not pass.
           </p>
           <p className="type-body-l text-secondary">
-            The final call is still yours. You can build after a go-ahead, or rework
-            after a rethink. The point is not to outsource judgment. It is to make the
-            decision with evidence instead of momentum.
+            The final call is always yours. You can rework after a go-ahead, or
+            build anyway after a rethink. The product records the decision and
+            the reasoning behind the number, but it does not make the decision
+            for you.
           </p>
         </div>
       </Section>
@@ -153,12 +158,9 @@ export default function HowItWorksPage() {
         <Container>
           <div className="mk-panel p-8 sm:p-14">
             <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,560px)] lg:gap-20">
-              <div>
-                <p className="type-eyebrow text-brand">Ready to test your idea?</p>
-                <h2 className="type-display-hero mt-4 text-balance text-primary">
-                  Start with the signal. Build only when the evidence is there.
-                </h2>
-              </div>
+              <h2 className="type-display-hero text-balance text-primary">
+                See it run on your own idea.
+              </h2>
               <IdeaComposer size="large" starters={[]} />
             </div>
           </div>
