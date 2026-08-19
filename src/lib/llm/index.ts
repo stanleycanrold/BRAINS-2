@@ -24,11 +24,17 @@ export function getLLM(): LLMProvider {
 
 export function getSearch(): SearchProvider {
   if (cachedSearch) return cachedSearch;
-  const choice = (process.env.SEARCH_PROVIDER || "groq").toLowerCase();
-  cachedSearch =
-    choice === "gemini"
-      ? createGeminiSearchProvider()
-      : createGroqSearchProvider();
+  const choice = (process.env.SEARCH_PROVIDER || "gemini").toLowerCase();
+  if (choice === "groq") {
+    cachedSearch = createGroqSearchProvider();
+    return cachedSearch;
+  }
+
+  // Gemini is the default search backend. Keep Groq available automatically
+  // until a Gemini key is configured, so local and preview environments keep
+  // their existing search behavior.
+  const gemini = createGeminiSearchProvider();
+  cachedSearch = gemini.available ? gemini : createGroqSearchProvider();
   return cachedSearch;
 }
 
