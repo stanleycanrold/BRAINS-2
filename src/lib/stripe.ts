@@ -13,14 +13,14 @@ import Stripe from "stripe";
 let cached: Stripe | null = null;
 
 export function paymentsEnabled(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(process.env.stripe_private);
 }
 
 export function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = process.env.stripe_private;
   if (!key) {
     throw new Error(
-      "Stripe is not configured. Set STRIPE_SECRET_KEY to enable Fast Track checkout.",
+      "Stripe is not configured. Set stripe_private to enable Fast Track checkout.",
     );
   }
 
@@ -40,5 +40,5 @@ export function getStripe(): Stripe {
 
 /** Guards against a live key being used against a dev database by accident. */
 export function isLiveMode(): boolean {
-  return (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_");
+  return (process.env.stripe_private ?? "").startsWith("sk_live_");
 }

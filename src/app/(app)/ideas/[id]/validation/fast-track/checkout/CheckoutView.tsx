@@ -35,18 +35,16 @@ import { recalculate, type Estimate } from "@/lib/pricing-math";
  * a hand-off to a different domain is exactly where people reconsider.
  */
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
-
 export function CheckoutView({
   ideaId,
   state,
   initialEstimate,
+  stripePublicKey,
 }: {
   ideaId: string;
   state: IdeaState;
   initialEstimate: Estimate;
+  stripePublicKey: string;
 }) {
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -58,6 +56,10 @@ export function CheckoutView({
   const [clientSecret, setClientSecret] = React.useState<string | null>(null);
   const [preparing, setPreparing] = React.useState(false);
   const [location, setLocation] = React.useState("");
+  const stripePromise = React.useMemo(
+    () => (stripePublicKey ? loadStripe(stripePublicKey) : null),
+    [stripePublicKey],
+  );
 
   // Priced locally so the total moves on the same frame as the input; the
   // server confirms in the background and its figure is what Stripe charges.

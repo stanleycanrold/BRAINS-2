@@ -39,6 +39,11 @@ export default async function CheckoutPage({
   });
 
   return (
-    <CheckoutView ideaId={id} state={idea.state} initialEstimate={estimate} />
+    <CheckoutView
+      ideaId={id}
+      state={idea.state}
+      initialEstimate={estimate}
+      stripePublicKey={process.env.stripe_public ?? ""}
+    />
   );
 }

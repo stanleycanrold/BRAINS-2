@@ -18,7 +18,7 @@ export default async function AccountPage() {
   const ops = await isOpsUser();
 
   const decided = ideas.filter((i) => i.state.decision_gate?.signal).length;
-  const paymentsLive = Boolean(process.env.STRIPE_SECRET_KEY);
+  const paymentsLive = Boolean(process.env.stripe_private);
 
   return (
     <>

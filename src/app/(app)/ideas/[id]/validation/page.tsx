@@ -44,7 +44,7 @@ export default async function ValidationPage({
       ideaId={id}
       initialState={idea.state}
       floorPerInterview={formatMoney(floor.cents, floor.currency)}
-      paymentsEnabled={Boolean(process.env.STRIPE_SECRET_KEY)}
+      paymentsEnabled={Boolean(process.env.stripe_private)}
     />
   );
 }
