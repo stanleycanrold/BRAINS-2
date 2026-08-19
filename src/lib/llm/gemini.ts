@@ -1,4 +1,10 @@
-import type { SearchProvider, SearchResult } from "./types";
+import type {
+  LLMProvider,
+  SearchProvider,
+  SearchResult,
+  StructuredRequest,
+  StructuredResult,
+} from "./types";
 
 type GroundingChunk = {
   web?: { uri?: string; title?: string };
@@ -19,6 +25,68 @@ type GeminiResponse = {
   }>;
   error?: { message?: string };
 };
+
+/** Gemini structured-output adapter used by the agent pipeline. */
+export function createGeminiProvider(): LLMProvider {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+  return {
+    name: "gemini",
+    model,
+
+    async structured<T>(
+      req: StructuredRequest<T>,
+    ): Promise<StructuredResult<T>> {
+      if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: req.system }] },
+            contents: req.messages
+              .filter((message) => message.role !== "system")
+              .map((message) => ({
+                role: message.role === "assistant" ? "model" : "user",
+                parts: [{ text: message.content }],
+              })),
+            generationConfig: {
+              temperature: req.temperature ?? 0.3,
+              maxOutputTokens: req.maxTokens ?? 2048,
+              responseMimeType: "application/json",
+              responseJsonSchema: req.jsonSchema,
+            },
+          }),
+          signal: AbortSignal.timeout(60_000),
+        },
+      );
+
+      const payload = (await response.json()) as GeminiResponse;
+      if (!response.ok) {
+        throw new Error(payload.error?.message || `HTTP ${response.status}`);
+      }
+
+      const raw = payload.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text || "")
+        .join("")
+        .trim();
+      if (!raw) throw new Error(`Gemini returned no content for "${req.name}".`);
+
+      try {
+        return { data: req.schema.parse(JSON.parse(raw)), model, raw };
+      } catch (error) {
+        throw new Error(
+          `Gemini returned output that did not match schema "${req.name}": ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    },
+  };
+}
 
 /**
  * Gemini search using Google's built-in Google Search grounding tool.

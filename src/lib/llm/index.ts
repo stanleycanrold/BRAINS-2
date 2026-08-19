@@ -1,7 +1,7 @@
 import type { LLMProvider, SearchProvider } from "./types";
 import { createGroqProvider, createGroqSearchProvider } from "./groq";
 import { createAnthropicProvider } from "./anthropic";
-import { createGeminiSearchProvider } from "./gemini";
+import { createGeminiProvider, createGeminiSearchProvider } from "./gemini";
 
 /**
  * Provider selection. This function is the single switch between LLM backends
@@ -15,9 +15,21 @@ let cachedSearch: SearchProvider | null = null;
 export function getLLM(): LLMProvider {
   if (cachedProvider) return cachedProvider;
 
-  const choice = (process.env.LLM_PROVIDER || "groq").toLowerCase();
-  cachedProvider =
-    choice === "anthropic" ? createAnthropicProvider() : createGroqProvider();
+  const choice = (process.env.LLM_PROVIDER || "gemini").toLowerCase();
+  if (choice === "groq") {
+    cachedProvider = createGroqProvider();
+    return cachedProvider;
+  }
+  if (choice === "anthropic") {
+    cachedProvider = createAnthropicProvider();
+    return cachedProvider;
+  }
+
+  // Gemini is the default LLM. Groq remains the automatic fallback until the
+  // Gemini key is configured in local, preview, or production environments.
+  cachedProvider = process.env.GEMINI_API_KEY
+    ? createGeminiProvider()
+    : createGroqProvider();
 
   return cachedProvider;
 }
