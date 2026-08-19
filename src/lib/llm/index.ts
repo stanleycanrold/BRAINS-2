@@ -1,6 +1,7 @@
 import type { LLMProvider, SearchProvider } from "./types";
 import { createGroqProvider, createGroqSearchProvider } from "./groq";
 import { createAnthropicProvider } from "./anthropic";
+import { createGeminiSearchProvider } from "./gemini";
 
 /**
  * Provider selection. This function is the single switch between LLM backends
@@ -23,10 +24,11 @@ export function getLLM(): LLMProvider {
 
 export function getSearch(): SearchProvider {
   if (cachedSearch) return cachedSearch;
-  // Groq's compound model backs search regardless of which provider generates
-  // structured output, so research keeps real citations even before an
-  // Anthropic key is added.
-  cachedSearch = createGroqSearchProvider();
+  const choice = (process.env.SEARCH_PROVIDER || "groq").toLowerCase();
+  cachedSearch =
+    choice === "gemini"
+      ? createGeminiSearchProvider()
+      : createGroqSearchProvider();
   return cachedSearch;
 }
 
