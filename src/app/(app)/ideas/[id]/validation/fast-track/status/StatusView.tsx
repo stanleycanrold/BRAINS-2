@@ -253,11 +253,31 @@ export function StatusView({
             <ClockIcon size={14} className="mr-1 inline" aria-hidden="true" />
             {order.paymentStatus === "pending" ? "Waiting for payment confirmation." : "Payment status needs attention."}
           </p>
+          <div className="mt-5 border-t border-line pt-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="type-caption text-tertiary uppercase">Your order</h2>
+                <p className="type-body-l mt-1.5 font-medium text-primary">
+                  {order.nRequested} people in your validation round
+                </p>
+                <p className="type-body-m mt-0.5 text-secondary">
+                  Ordered {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
+                  {order.locationPreference ? ` · ${order.locationPreference}` : ""}
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="type-data-l text-[28px] text-primary">{money}</span>
+                <div className="mt-1.5 flex justify-end">
+                  <Badge tone={paymentTone} dot>Awaiting payment</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
         </Card>
       ) : null}
 
       {/* Order summary */}
-      <Card elevation="raised" className="mt-8 p-6">
+      {paid ? <Card elevation="raised" className="mt-8 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="type-caption text-tertiary uppercase">Your order</h2>
@@ -297,7 +317,7 @@ export function StatusView({
             />
           </div>
         ) : null}
-      </Card>
+      </Card> : null}
 
       {paid ? (
         <Card className="mt-6 p-5">

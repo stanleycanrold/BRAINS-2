@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, CheckCircleIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -22,12 +23,13 @@ export function CheckoutView({
   state: IdeaState;
   initialEstimate: Estimate;
 }) {
+  const router = useRouter();
   const { toast } = useToast();
   const [n, setN] = React.useState(initialEstimate.nRequested);
   const [serverEstimate, setServerEstimate] = React.useState(initialEstimate);
   const [preparing, setPreparing] = React.useState(false);
   const [location, setLocation] = React.useState("");
-  const [submitted, setSubmitted] = React.useState(false);
+  const submitted = false;
 
   const estimate = recalculate(serverEstimate, n);
 
@@ -66,7 +68,7 @@ export function CheckoutView({
       if (!response.ok || !body.submitted) {
         throw new Error(body.error ?? "We couldn't send your request.");
       }
-      setSubmitted(true);
+      router.push(`/ideas/${ideaId}/validation/fast-track/status`);
     } catch (err) {
       toast(err instanceof Error ? err.message : "We couldn't send your request.", "danger");
     } finally {
