@@ -84,13 +84,14 @@ export function TrackSelection({
         </div>
       </TopBar>
 
-      <header>
-        <h1 className="type-display-l text-primary">
-          How do you want to talk to people?
+      <header className="max-w-[760px]">
+        <p className="type-eyebrow text-brand">Validation</p>
+        <h1 className="type-display-l mt-3 text-balance text-primary">
+          Get an answer you can defend.
         </h1>
-        <p className="type-body-l mt-1 max-w-prose text-secondary">
-          Research says the problem probably exists. Only people can tell you it
-          matters. Pick either - you get the same analysed report at the end.
+        <p className="type-body-l mt-3 max-w-[58ch] text-secondary">
+          Choose how much of the people-work you want to own. Both paths use
+          the same questions, quality checks, and decision-ready report.
         </p>
       </header>
 
@@ -113,22 +114,25 @@ export function TrackSelection({
         * itemisation belong at checkout, where they already exist and where
         * someone has decided to buy. Here the only job is: which of these two.
         */}
-      <div className="mt-8 grid items-stretch gap-5 lg:grid-cols-2">
+      <div className="mt-8 grid items-stretch gap-px overflow-hidden rounded-[10px] border border-line bg-line lg:grid-cols-2">
         {/* ── Do it yourself ───────────────────────────────────────────── */}
-        <Card elevation="raised" className="flex h-full flex-col p-6">
+        <Card elevation="raised" className="flex h-full flex-col rounded-none border-0 p-6 lg:p-7">
           <div className="flex items-center justify-between gap-3">
             <h2 className="type-display-m text-primary">Do it yourself</h2>
             <Badge tone="success">Free</Badge>
           </div>
-          <p className="type-body-l mt-2 text-secondary">
-            We find where your people talk and write your questions. You go and
-            have the conversations.
+          <p className="type-body-m mt-1.5 text-secondary">
+            We find where your people talk and write the questions. You have
+            the conversations.
           </p>
 
-          <ul className="mt-5 flex-1 space-y-2.5">
-            <Feature>Named communities, with real threads to start from</Feature>
+          <p className="type-display-hero mt-7 text-primary">$0</p>
+          <p className="type-caption mt-1 text-tertiary">No card, no time limit</p>
+
+          <ul className="mt-6 flex-1 space-y-2.5 border-t border-line pt-5">
+            <Feature>Named communities and real threads to start from</Feature>
             <Feature>Questions written not to lead the witness</Feature>
-            <Feature>Same AI analysis and scored report at the end</Feature>
+            <Feature>Same analysis and scored report at the end</Feature>
           </ul>
 
           <div className="mt-6">
@@ -143,7 +147,7 @@ export function TrackSelection({
               I&rsquo;ll validate with real people
             </Button>
             <p className="type-caption mt-2.5 text-center text-tertiary">
-              Takes a minute to find your communities
+              Start gathering signal now
             </p>
           </div>
         </Card>
@@ -151,23 +155,27 @@ export function TrackSelection({
         {/* ── Done for you ─────────────────────────────────────────────── */}
         <Card
           elevation="raised"
-          className="flex h-full flex-col border-brand/35 p-6"
+          className="flex h-full flex-col rounded-none border-0 border-l-brand/35 p-6 lg:p-7"
         >
           <div className="flex items-center justify-between gap-3">
             <h2 className="type-display-m text-primary">We do it for you</h2>
-            <Badge tone="brand">
-              From {floorPerInterview} per person
-            </Badge>
+            <Badge tone="brand">Done for you</Badge>
           </div>
-          <p className="type-body-l mt-2 text-secondary">
-            Validation runs against your questions. Our AI reads every
-            response, finds what people have in common, and scores it.
+          <p className="type-body-m mt-1.5 text-secondary">
+            We reach the people, review every response, and return the same
+            decision-ready report.
           </p>
 
-          <ul className="mt-5 flex-1 space-y-2.5">
-            <Feature>You choose how many people - more responses, firmer signal</Feature>
+          <p className="type-display-hero mt-7 text-primary">
+            From {floorPerInterview}
+          </p>
+          <p className="type-caption mt-1 text-tertiary">per response · analysis free</p>
+
+          <ul className="mt-6 flex-1 space-y-2.5 border-t border-line pt-5">
+            <Feature>You choose how many people</Feature>
             <Feature>Nothing for you to chase or schedule</Feature>
-            <Feature>Finished report on your dashboard in 1&ndash;2 weeks</Feature>
+            <Feature>Human quality review before analysis</Feature>
+            <Feature>Report on your dashboard in 1&ndash;2 weeks</Feature>
           </ul>
 
           <div className="mt-6">
@@ -187,7 +195,7 @@ export function TrackSelection({
                   Contact us to arrange payment
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Pick your number next. We&rsquo;ll reply with your personal Wise link.
+                  Choose your number next. We&rsquo;ll reply with your personal Wise link.
                 </p>
               </>
             ) : (
@@ -201,7 +209,7 @@ export function TrackSelection({
                   Payment contact not configured
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Add your payment contact email in the production environment.
+                  Payment contact is not available yet.
                 </p>
               </>
             )}

@@ -109,25 +109,36 @@ export function CheckoutView({
         Back to track options
       </Link>
 
-      <header className="mt-4">
-        <h1 className="type-display-l text-primary">Arrange your validation round</h1>
-        <p className="type-body-l mt-1 max-w-prose text-secondary">
+      <header className="mt-4 max-w-[760px]">
+        <p className="type-eyebrow text-brand">Fast Track</p>
+        <h1 className="type-display-l mt-3 text-balance text-primary">
+          Arrange your validation round.
+        </h1>
+        <p className="type-body-l mt-3 max-w-[58ch] text-secondary">
           Choose the people you want to hear from. We will contact you first,
           send your Wise payment link, and start only after payment is confirmed.
         </p>
       </header>
 
-      <div className="mt-4 border-y border-line py-3">
-        <p className="type-body-m font-medium text-primary">
-          Every response gets a human quality check
-        </p>
-        <p className="type-caption mt-1 max-w-prose text-secondary">
-          We check for detail, relevance, and enough context before it is used
-          in your report.
-        </p>
+      <div className="mt-5 grid gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-3">
+        <div className="bg-raised p-4">
+          <p className="type-eyebrow text-tertiary">01</p>
+          <p className="type-body-m mt-2 font-medium text-primary">We reach people</p>
+          <p className="type-caption mt-1 text-secondary">Matched to your audience.</p>
+        </div>
+        <div className="bg-raised p-4">
+          <p className="type-eyebrow text-tertiary">02</p>
+          <p className="type-body-m mt-2 font-medium text-primary">We check responses</p>
+          <p className="type-caption mt-1 text-secondary">Detail, relevance, context.</p>
+        </div>
+        <div className="bg-raised p-4">
+          <p className="type-eyebrow text-tertiary">03</p>
+          <p className="type-body-m mt-2 font-medium text-primary">You get the answer</p>
+          <p className="type-caption mt-1 text-secondary">Scored report, analysis free.</p>
+        </div>
       </div>
 
-      <Card elevation="raised" className="mt-6 p-5">
+      <Card elevation="raised" className="mt-5 max-w-[760px] p-5 lg:p-6">
         <InterviewCount
           value={n}
           onChange={setN}
@@ -155,7 +166,7 @@ export function CheckoutView({
           </p>
         </div>
 
-        <dl className="mt-6 space-y-2.5 border-t border-line pt-5" aria-live="polite">
+        <dl className="mt-5 space-y-2.5 border-t border-line pt-5" aria-live="polite">
           <Line
             label={`Validation responses · ${money(estimate.costPerInterviewCents)} each`}
             value={money(estimate.interviewsSubtotalCents)}
@@ -169,7 +180,7 @@ export function CheckoutView({
                     estimate.analysisFeePerUnitCents * estimate.nRequested,
                 )}
               </span>
-              <span className="type-body-m font-medium text-brand">100% off · Free</span>
+              <span className="type-body-m font-medium text-brand">Free</span>
             </dd>
           </div>
           <div className="border-t border-line pt-2.5">
@@ -186,11 +197,11 @@ export function CheckoutView({
             onClick={() => void requestPayment()}
             iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
           >
-            Email me payment instructions
+            Talk to us about payment
           </Button>
           <p className="type-caption mt-3 flex items-center justify-center gap-1.5 text-tertiary">
             <ShieldCheckIcon size={14} aria-hidden="true" />
-            We will reply with your personal Wise link. Nothing starts until payment is confirmed.
+            We&rsquo;ll reply with your personal Wise link. Nothing starts until payment is confirmed.
           </p>
         </div>
       </Card>
