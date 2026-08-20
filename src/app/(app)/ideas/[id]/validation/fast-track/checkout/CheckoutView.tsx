@@ -145,9 +145,29 @@ export function CheckoutView({
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {clientSecret
             ? "Your order is held below. Nothing starts until this clears."
-            : "Every validation response is read by our AI, synthesised across all of them, scored, and delivered as a finished report on your dashboard."}
+            : "Every response is human-reviewed for quality, then analysed by our AI, scored, and delivered as a finished report on your dashboard."}
         </p>
       </header>
+
+      {!clientSecret ? (
+        <div className="mt-5 flex items-start gap-3 border-y border-line py-4">
+          <ShieldCheckIcon
+            size={20}
+            className="mt-0.5 shrink-0 text-brand"
+            aria-hidden="true"
+          />
+          <div>
+            <p className="type-body-m font-medium text-primary">
+              Useful evidence, not empty replies
+            </p>
+            <p className="type-body-m mt-1 max-w-prose text-secondary">
+              We manually review every response for detail, relevance, and
+              enough context before it reaches your report. Thin, vague, or
+              off-topic answers are flagged instead of treated as strong signal.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {cancelled && !clientSecret ? (
         <Card className="mt-6 border-caution/40 bg-caution-subtle p-4">
