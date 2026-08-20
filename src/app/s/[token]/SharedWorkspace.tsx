@@ -718,7 +718,7 @@ function ValidationTab({
           {/* Named explicitly, because "who asked" is the part of the service a
               client is actually buying. A count of communities does not say
               whether the founder chased these people themselves or whether we
-              sourced, screened and interviewed them. */}
+              sourced, screened and validated with them. */}
           {round.responsesByTrack.managed > 0 ? (
             <div className="mb-5 rounded-[8px] border border-brand/30 bg-brand-subtle p-4">
               <p className="type-body-m font-medium text-primary">
@@ -726,7 +726,7 @@ function ValidationTab({
                 {round.responsesByTrack.managed === 1
                   ? "respondent was"
                   : "respondents were"}{" "}
-                sourced and interviewed by the BRAINS team
+                sourced and validated with by the BRAINS team
               </p>
               <p className="type-body-m mt-1 text-secondary">
                 Fast Track: we find people matching the audience the research
@@ -745,7 +745,7 @@ function ValidationTab({
               </p>
               <p className="type-body-m mt-1 text-secondary">
                 On Fast Track, the BRAINS team sources respondents matching the
-                audience, runs the interviews, and screens every answer.
+                audience, gathers the responses, and screens every answer.
               </p>
             </div>
           )}

@@ -146,8 +146,8 @@ export function FastTrackButton({
     not_started: {
       icon: <LightningIcon size={15} weight="fill" aria-hidden="true" />,
       label: rate
-        ? `Interviews for you · from ${formatMoney(rate)} each`
-        : "Get interviews done for you",
+        ? `Validation with real people · from ${formatMoney(rate)} each`
+        : "Run a validation round for me",
       href: `/ideas/${ideaId}/validation/fast-track/checkout`,
       tone: "offer" as const,
     },
@@ -175,7 +175,7 @@ export function FastTrackButton({
     },
     delivered: {
       icon: <CheckCircleIcon size={15} weight="fill" aria-hidden="true" />,
-      label: "Interviews complete",
+      label: "Validation round complete",
       href: `/ideas/${ideaId}/validation/fast-track/status`,
       tone: "done" as const,
     },

@@ -159,7 +159,7 @@ export default async function OpsPage() {
             <Thead>
               <tr>
                 <Th>Tier</Th>
-                <Th align="right">Per interview</Th>
+                <Th align="right">Per response</Th>
                 <Th align="right">Analysis base</Th>
                 <Th align="right">Per unit</Th>
                 <Th align="right">Range</Th>

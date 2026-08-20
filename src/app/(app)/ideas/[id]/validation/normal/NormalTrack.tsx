@@ -478,7 +478,7 @@ function ResponsesTab({
 
           {paid.length > 0 ? (
             <Disclosure
-              title="Interviews we ran"
+              title="Responses we gathered"
               count={paid.length}
               summary="From your Fast Track round"
               storageKey={`brains-responses-paid-${ideaId}`}

@@ -31,10 +31,10 @@ import {
 } from "@/lib/domain/types";
 
 /**
- * The interview questions, built from this idea's research.
+ * The validation questions, built from this idea's research.
  *
- * One set drives everything: the founder's own interviews, the public
- * questionnaire link, and any interviews run on their behalf. Keeping a single
+ * One set drives everything: the founder's own validation, the public
+ * questionnaire link, and any validation run on their behalf. Keeping a single
  * set is what makes responses from all three comparable - and what lets the
  * Decision Gate score them as one pool rather than three.
  */
@@ -74,7 +74,7 @@ export function QuestionsTab({
    * The paid round answers on its own link.
    *
    * Two links rather than one so the founder can tell their own outreach from
-   * the interviews they paid for - the token an answer arrives on is what
+  * the validation they paid for - the token an answer arrives on is what
    * attributes it. Only exists once a round is paid.
    */
   const panelUrl = questionnaire.panel_share_token
@@ -197,7 +197,7 @@ export function QuestionsTab({
             </h3>
             <p className="type-body-m mt-1 max-w-prose text-secondary">
               Send it to anyone. They answer without signing up, and every reply
-              lands in the same pool as your interviews - analysed together.
+                lands in the same pool as your other responses - analysed together.
               {panelUrl
                 ? " Answers here are counted as your own outreach."
                 : ""}
@@ -277,7 +277,7 @@ export function QuestionsTab({
                 Fast Track link
               </h3>
               <p className="type-body-m mt-1 max-w-prose text-secondary">
-                The interviews you paid for come in on this link, so they stay
+                The responses from your paid validation round come in on this link, so they stay
                 countable separately from your own outreach. You don&rsquo;t
                 need to send it anywhere - it&rsquo;s here so you can see where
                 each answer came from.

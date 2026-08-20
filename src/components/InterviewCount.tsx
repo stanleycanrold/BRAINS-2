@@ -58,7 +58,7 @@ export function InterviewCount({
           htmlFor="interview-count"
           className="type-caption text-secondary uppercase"
         >
-          How many interviews
+          How many people should we hear from
         </label>
         <span className="type-body-m text-tertiary">
           {min}&ndash;{max}
@@ -110,7 +110,7 @@ export function InterviewCount({
           max={max}
           value={value}
           onChange={onChange}
-          ariaLabel="Number of interviews"
+          ariaLabel="Number of people"
           className="flex-1"
         />
       </div>

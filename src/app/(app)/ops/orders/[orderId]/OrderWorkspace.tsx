@@ -236,7 +236,7 @@ export function OrderWorkspace({
             onClick={() => void logInterview()}
             iconLeft={<PlusIcon size={15} aria-hidden="true" />}
           >
-            Log interview
+            Log response
           </Button>
           <span className="type-body-m text-tertiary">
             {approved.length} of {nRequested} approved
@@ -247,7 +247,7 @@ export function OrderWorkspace({
 
       <Card elevation="raised" className="mt-4 p-5">
         <h2 className="type-display-m text-primary">
-          Interviews{" "}
+          Validation responses{" "}
           <span className="type-body-m text-tertiary">{responses.length}</span>
         </h2>
 

@@ -45,7 +45,7 @@ export function SiteJsonLd() {
       operatingSystem: "Web",
       publisher: { "@id": `${SITE_URL}/#organization` },
       description:
-        "Validate a startup idea before building it: sourced market research, community scanning, interview questions, response screening, and a scored decision.",
+        "Validate a startup idea before building it: sourced market research, community scanning, evidence questions, response screening, and a scored decision.",
       /**
        * The self-serve tier really is free with no card and no time limit, per
        * the pricing page. Fast Track is quoted per round and so has no fixed

@@ -140,12 +140,12 @@ export function CheckoutView({
 
       <header className="mt-4">
         <h1 className="type-display-l text-primary">
-          {clientSecret ? "Confirm and pay" : "How many interviews?"}
+          {clientSecret ? "Confirm and pay" : "How many people should validate it?"}
         </h1>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {clientSecret
             ? "Your order is held below. Nothing starts until this clears."
-            : "Every interview is read by our AI, synthesised across all of them, scored, and delivered as a finished report on your dashboard."}
+            : "Every validation response is read by our AI, synthesised across all of them, scored, and delivered as a finished report on your dashboard."}
         </p>
       </header>
 
@@ -203,7 +203,7 @@ export function CheckoutView({
             aria-live="polite"
           >
             <Line
-              label={`Interviews · ${money(estimate.costPerInterviewCents)} each`}
+              label={`Validation responses · ${money(estimate.costPerInterviewCents)} each`}
               value={money(estimate.interviewsSubtotalCents)}
             />
             <Line
@@ -239,7 +239,7 @@ export function CheckoutView({
           <Card className="p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="type-body-m text-secondary">
-                {estimate.nRequested} interviews, analysed and scored
+                {estimate.nRequested} responses, analysed and scored
                 {location.trim() ? ` · ${location.trim()}` : ""}
               </span>
               <span className="type-data-l text-[20px] text-primary">
@@ -270,7 +270,7 @@ export function CheckoutView({
             onClick={() => setClientSecret(null)}
             className="type-body-m mt-4 text-secondary hover:text-primary"
           >
-            Change the number of interviews
+            Change the number of people
           </button>
         </div>
       )}

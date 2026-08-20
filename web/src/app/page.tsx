@@ -63,7 +63,7 @@ const SCORE_FACTORS = [
   },
   {
     title: "Channel mix",
-    body: "Interviews, surveys and social replies carry different reliability. We say so rather than averaging it away.",
+    body: "Conversations, surveys and social replies carry different reliability. We say so rather than averaging it away.",
   },
   {
     title: "Experts versus users",
@@ -246,7 +246,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "I already have a product live. Is this still useful?",
     answer:
-      "Often more useful. Paste your link and we start from evidence you already own: your ratings, review volume and the recurring themes in recent reviews, before going out to strangers. For a founder with real usage, that existing feedback is cheaper and more diagnostic than fresh outside interviews.",
+      "Often more useful. Paste your link and we start from evidence you already own: your ratings, review volume and the recurring themes in recent reviews, before going out to strangers. For a founder with real usage, that existing feedback is cheaper and more diagnostic than fresh outside conversations.",
   },
   {
     question: "What if I only manage six responses instead of ten?",

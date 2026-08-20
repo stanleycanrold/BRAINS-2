@@ -71,7 +71,7 @@ const TRACKS = [
     price: "Priced per round",
     priceNote: "Itemised before you pay",
     tagline: "We find the people.",
-    body: "Respondents sourced to match your market, interviews run and screened, and the round back on your dashboard in one to two weeks.",
+    body: "Respondents sourced to match your market, conversations run and screened, and the validation round back on your dashboard in one to two weeks.",
     cta: {
       label: "How the price works",
       href: "#how-price-works",
@@ -149,9 +149,9 @@ const FAQ_ITEMS: FaqItem[] = [
       "Actually free. The research, the questions, the share link and the full scored report cost nothing, with no time limit and no card. Paying changes who does the legwork of reaching people. It does not change what the report contains or how the score is calculated.",
   },
   {
-    question: "Why is it not just a price per interview?",
+    question: "Why is it priced per validation round?",
     answer:
-      "Because that is not what you are buying. Sourcing and running conversations is one cost, and turning them into a defensible answer is another that barely changes with volume. A round of six and a round of thirty need almost the same analysis. Pricing purely per interview would either overcharge small rounds or make large ones look artificially cheap.",
+      "Because you are buying a decision-ready answer, not a pile of conversations. Sourcing and running conversations is one cost, and turning them into a defensible answer is another that barely changes with volume. A round of six and a round of thirty need almost the same analysis. Pricing only per response would either overcharge small rounds or make large ones look artificially cheap.",
   },
   {
     question: "What makes one round cost more than another?",

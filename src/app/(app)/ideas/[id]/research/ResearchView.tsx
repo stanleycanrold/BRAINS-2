@@ -416,7 +416,7 @@ export function ResearchView({
             >
               <p className="type-body-m text-secondary">
                 Searching cannot answer these. They are the reason the next step
-                is talking to someone, and they feed your interview questions.
+                is talking to someone, and they feed your validation questions.
               </p>
               <ul className="mt-4 space-y-2">
                 {report.open_questions.map((q, i) => (
@@ -472,7 +472,7 @@ export function ResearchView({
                 We didn&rsquo;t find anyone solving this directly. Worth being
                 honest with yourself about which it is: a real gap, or a sign
                 that people don&rsquo;t want it solved badly enough to pay. The
-                interviews will tell you which.
+                real responses will tell you which.
               </EmptyFinding>
             )}
           </Disclosure>

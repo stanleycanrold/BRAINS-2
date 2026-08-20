@@ -82,9 +82,9 @@ export function FastTrackTeaser({
           </h3>
 
           <p className="type-body-m mt-1 text-secondary">
-            Get the interviews done and analysed for you - from{" "}
+            Get a complete validation round with real people - from{" "}
             <span className="font-medium text-primary">
-              {perInterviewPrice} an interview
+              {perInterviewPrice} per person
             </span>
             . You pick how many.
           </p>
@@ -126,7 +126,7 @@ export function FastTrackInline({
     >
       <UsersThreeIcon size={15} className="shrink-0 text-brand" aria-hidden="true" />
       <span className="type-body-m text-primary">
-        Interviews done for you, from {perInterviewPrice} each
+        Validation round, done for you, from {perInterviewPrice} per person
       </span>
       <ArrowRightIcon
         size={13}

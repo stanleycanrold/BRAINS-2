@@ -341,7 +341,7 @@ export function ResearchReport({
     report.open_questions.length > 0 && {
       id: "questions",
       label: "Only people can answer",
-      hint: "These become your interviews",
+      hint: "These become your evidence prompts",
       count: report.open_questions.length,
       render: () => (
         <Panel

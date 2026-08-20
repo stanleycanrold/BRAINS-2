@@ -33,7 +33,7 @@ const NEXT_STEP: Record<IdeaStatus, string> = {
   draft: "Pick up where you left off",
   researching: "See what we found",
   validating_normal: "Log what people told you",
-  validating_fast: "See how the interviews are going",
+  validating_fast: "See how the validation is going",
   gate_review: "Read your score",
   needs_rework: "Start the next round",
   passed: "Validated - ready to build",
@@ -239,7 +239,7 @@ function IdeaCard({
           {roundStage === "underway" ? (
             <span className="type-caption inline-flex items-center gap-1.5 rounded-full bg-brand-subtle px-2.5 py-1 text-brand">
               <span className="size-1.5 animate-pulse rounded-full bg-brand" />
-              Interviews running
+              Validation round running
             </span>
           ) : null}
         </div>

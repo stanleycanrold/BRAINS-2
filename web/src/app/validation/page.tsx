@@ -33,7 +33,7 @@ import { SITE_URL } from "@/lib/urls";
 export const metadata: Metadata = {
   title: "Startup idea validation",
   description:
-    "Everything inside a validation round: sourced market research, community scanning, interview questions, response screening, and a score with its reasoning.",
+    "Everything inside a validation round: sourced market research, community scanning, evidence questions, response screening, and a score with its reasoning.",
   alternates: { canonical: `${SITE_URL}/validation` },
 };
 
@@ -51,7 +51,7 @@ const RESEARCH: DisclosureItem[] = [
   {
     title: "Existing product context",
     summary: "Already live? We start from what you own.",
-    body: "If you already have something in market, paste the link. We read the evidence you already own before going out to strangers, because for a founder with real usage that feedback is cheaper and more diagnostic than fresh outside interviews.",
+    body: "If you already have something in market, paste the link. We read the evidence you already own before going out to strangers, because for a founder with real usage that feedback is cheaper and more diagnostic than fresh outside conversations.",
     points: [
       "Ratings and review volume where they are public",
       "The recurring themes in recent reviews, including the complaints",
@@ -103,7 +103,7 @@ const RESEARCH: DisclosureItem[] = [
 
 const EVIDENCE: DisclosureItem[] = [
   {
-    title: "Interview questions",
+    title: "Evidence questions",
     summary: "Written from your research, not a template.",
     body: "Questions drafted from what the research actually found, designed so the answers mean something. The rule throughout is to ask about the last time it happened rather than what someone would hypothetically do, because memory of a real event is checkable and a prediction is not.",
     points: [
@@ -133,8 +133,8 @@ const EVIDENCE: DisclosureItem[] = [
     ],
   },
   {
-    title: "Fast Track interviews",
-    summary: "We source and run them for you.",
+    title: "Fast Track validation round",
+    summary: "We gather and screen the evidence for you.",
     body: "When you want the answer without spending three weeks finding people, respondents are sourced to match your market and the conversations are run and screened for you. The report that comes back is the same one the free route produces.",
     points: [
       "Respondents matched to the audience the research identified",

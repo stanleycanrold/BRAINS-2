@@ -141,7 +141,7 @@ export function TrackSelection({
               onClick={() => void startNormal()}
               iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
             >
-              I&rsquo;ll do the interviews
+              I&rsquo;ll validate with real people
             </Button>
             <p className="type-caption mt-2.5 text-center text-tertiary">
               Takes a minute to find your communities
@@ -158,17 +158,17 @@ export function TrackSelection({
             <h2 className="type-display-m text-primary">We do it for you</h2>
             <Badge tone="brand">
               {paymentsEnabled
-                ? `From ${floorPerInterview} an interview`
+                ? `From ${floorPerInterview} per person`
                 : "Paid"}
             </Badge>
           </div>
           <p className="type-body-l mt-2 text-secondary">
-            The interviews get run against your questions. Our AI reads every
-            one, finds what people have in common, and scores it.
+            Validation runs against your questions. Our AI reads every
+            response, finds what people have in common, and scores it.
           </p>
 
           <ul className="mt-5 flex-1 space-y-2.5">
-            <Feature>You choose how many - more interviews, firmer signal</Feature>
+            <Feature>You choose how many people - more responses, firmer signal</Feature>
             <Feature>Nothing for you to chase or schedule</Feature>
             <Feature>Finished report on your dashboard in 1&ndash;2 weeks</Feature>
           </ul>
@@ -187,7 +187,7 @@ export function TrackSelection({
                   }
                   iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
                 >
-                  Get interviews done for me
+                  Run my validation round
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
                   Pick your number next. Nobody is contacted until payment

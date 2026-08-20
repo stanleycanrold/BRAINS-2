@@ -244,7 +244,7 @@ export function EntryForm({
     {
       title: "Anywhere in particular?",
       description:
-        "Leave it blank for worldwide. This decides which markets we search, and where we would find people to interview.",
+        "Leave it blank for worldwide. This decides which markets we search, and where we would find real people to validate with.",
       canAdvance: true,
       body: (
         <div>
@@ -513,7 +513,7 @@ function Highlights() {
     {
       icon: <UsersThreeIcon size={17} aria-hidden="true" />,
       title: "Answers from real people",
-      body: "Share a link, or have the interviews run and analysed for you.",
+      body: "Share a link, or have a full validation round run and analysed for you.",
     },
     {
       icon: <GaugeIcon size={17} aria-hidden="true" />,

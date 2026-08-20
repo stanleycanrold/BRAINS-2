@@ -102,7 +102,7 @@ export default async function OpsOrderPage({
           <Badge tone="neutral">{order.status.replace(/_/g, " ")}</Badge>
         </div>
         <p className="type-body-m mt-1 text-secondary">
-          {order.nRequested} interviews ordered{" "}
+          {order.nRequested} responses ordered{" "}
           {formatDistanceToNow(order.createdAt, { addSuffix: true })} ·{" "}
           {formatMoney(order.totalCostCents, order.currency)} ·{" "}
           {NICHE_TIER_LABELS[order.nicheTier]}
@@ -120,7 +120,7 @@ export default async function OpsOrderPage({
           <Row label="Problem being tested">
             {state.structured.problem_statement || "Not set"}
           </Row>
-          <Row label="Interviews needed">
+          <Row label="Responses needed">
             {order.nRequested} ({fromThisOrder.length} logged so far)
           </Row>
         </dl>

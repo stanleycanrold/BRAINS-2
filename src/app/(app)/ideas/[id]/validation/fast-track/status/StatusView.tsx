@@ -44,19 +44,19 @@ const STAGES = [
   },
   {
     key: "scheduling",
-    label: "Interviews being arranged",
-    detail: "Sessions are being booked against your script.",
+    label: "Validation participants being arranged",
+    detail: "People are being sourced against your validation questions.",
   },
   {
     key: "in_progress",
-    label: "Interviews underway",
-    detail: "Responses are landing in your pool as they complete.",
+    label: "Validation underway",
+    detail: "Responses are landing in your pool as people complete the validation.",
   },
   {
     key: "completed",
     label: "Analysed and scored",
     detail:
-      "Our AI has read every interview, found the recurring themes, and built your report.",
+      "Our AI has read every validation response, found the recurring themes, and built your report.",
   },
 ] as const;
 
@@ -162,7 +162,7 @@ export function StatusView({
         </div>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {paid
-            ? "Nothing more for you to do. Interviews run against your questions, our AI analyses every one of them, and the finished report appears on your dashboard - usually within one to two weeks."
+            ? "Nothing more for you to do. We gather responses against your questions, our AI analyses every one, and the finished report appears on your dashboard - usually within one to two weeks."
             : "This normally takes a few seconds. You can safely leave this page."}
         </p>
       </header>
@@ -189,7 +189,7 @@ export function StatusView({
           <div>
             <h2 className="type-caption text-tertiary uppercase">Your order</h2>
             <p className="type-display-m mt-1.5 text-primary">
-              {order.nRequested} interviews
+              {order.nRequested} people in your validation round
             </p>
             <p className="type-body-m mt-0.5 text-secondary">
               Ordered {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
@@ -215,12 +215,12 @@ export function StatusView({
             <ProgressBar
               value={scheduled}
               total={order.nRequested}
-              label="Interviews scheduled"
+              label="Conversations scheduled"
             />
             <ProgressBar
               value={completed}
               total={order.nRequested}
-              label="Interviews completed"
+              label="Responses completed"
             />
           </div>
         ) : null}
