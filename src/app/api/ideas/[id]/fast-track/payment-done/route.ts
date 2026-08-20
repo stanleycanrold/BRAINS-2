@@ -5,6 +5,8 @@ import { getIdea } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { sendFastTrackPaymentEmails } from "@/lib/fast-track-email";
 import { markOrderPaidManually } from "@/lib/fast-track-fulfil";
+import { originFor } from "@/lib/app-url";
+import { ideaStateSchema } from "@/lib/domain/types";
 
 export const runtime = "nodejs";
 
@@ -43,6 +45,16 @@ export async function POST(
     }
 
     await markOrderPaidManually(order.id);
+    const origin = originFor(_request);
+    const [updatedVersion] = await db
+      .select()
+      .from(schema.ideaStateVersions)
+      .where(eq(schema.ideaStateVersions.id, order.ideaStateVersionId))
+      .limit(1);
+    const updatedState = updatedVersion
+      ? ideaStateSchema.parse(updatedVersion.stateJson)
+      : idea.state;
+    const panelToken = updatedState.validation.questionnaire.panel_share_token;
     const emailSent = await sendFastTrackPaymentEmails({
       customerEmail: user.email,
       ideaTitle: idea.title,
@@ -51,6 +63,9 @@ export async function POST(
       location: order.locationPreference,
       totalCostCents: order.totalCostCents,
       currency: order.currency,
+      questionsEditUrl: `${origin}/ideas/${id}/validation/normal?tab=questions`,
+      panelUrl: panelToken ? `${origin}/q/${panelToken}` : null,
+      founderWebsite: idea.state.raw_submission.product_link,
     });
 
     return NextResponse.json({ paid: true, email_sent: emailSent });

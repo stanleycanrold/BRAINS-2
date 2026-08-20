@@ -12,6 +12,9 @@ type PaymentEmailDetails = {
   location: string;
   totalCostCents: number;
   currency: string;
+  questionsEditUrl: string;
+  panelUrl: string | null;
+  founderWebsite: string | null;
 };
 
 export async function sendFastTrackPaymentEmails(
@@ -32,6 +35,15 @@ export async function sendFastTrackPaymentEmails(
     `Location: ${details.location || "Anywhere"}`,
     `Amount paid: ${amount}`,
     `Order reference: ${details.orderId}`,
+    "",
+    `Edit your questions: ${details.questionsEditUrl}`,
+    ...(details.panelUrl ? [`Questionnaire link: ${details.panelUrl}`] : []),
+    ...(details.founderWebsite
+      ? [`Your website: ${details.founderWebsite}`]
+      : []),
+    "",
+    "Questions can be edited before we send them to participants.",
+    "Contact us: stanley@nexabrains.io",
   ].join("\n");
 
   const adminText = [
@@ -43,8 +55,16 @@ export async function sendFastTrackPaymentEmails(
     `Location: ${details.location || "Anywhere"}`,
     `Amount: ${amount}`,
     `Order reference: ${details.orderId}`,
+    `Customer email: ${details.customerEmail}`,
+    "",
+    `Edit questions: ${details.questionsEditUrl}`,
+    ...(details.panelUrl ? [`Questionnaire link: ${details.panelUrl}`] : []),
+    ...(details.founderWebsite
+      ? [`Founder website: ${details.founderWebsite}`]
+      : []),
     "",
     "The order has been marked paid and the work is now in the fast track.",
+    "Contact us: stanley@nexabrains.io",
   ].join("\n");
 
   const headers = {

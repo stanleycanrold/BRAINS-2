@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowSquareOutIcon,
   PlusIcon,
@@ -74,10 +74,13 @@ export function NormalTrack({
   paymentsEnabled: boolean;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [state, setState] = React.useState(initialState);
-  const [tab, setTab] = React.useState<TabKey>("communities");
+  const [tab, setTab] = React.useState<TabKey>(() =>
+    searchParams.get("tab") === "questions" ? "questions" : "communities",
+  );
   const [analysing, setAnalysing] = React.useState(false);
   const [confirmEarly, setConfirmEarly] = React.useState(false);
 

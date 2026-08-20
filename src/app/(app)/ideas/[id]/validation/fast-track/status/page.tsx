@@ -6,6 +6,7 @@ import { getIdea } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { StatusView } from "./StatusView";
 import { wisePaymentLink } from "@/lib/stripe";
+import { originFromHeaders } from "@/lib/app-url";
 
 export const metadata: Metadata = { title: "Fast Track status" };
 
@@ -34,6 +35,9 @@ export default async function FastTrackStatusPage({
     .from(schema.fastTrackInterviews)
     .where(eq(schema.fastTrackInterviews.fastTrackOrderId, order.id));
 
+  const origin = await originFromHeaders();
+  const panelToken = idea.state.validation.questionnaire.panel_share_token;
+
   return (
     <StatusView
       ideaId={id}
@@ -52,6 +56,9 @@ export default async function FastTrackStatusPage({
       scheduled={interviews.filter((i) => i.scheduledAt !== null).length}
       completed={interviews.filter((i) => i.status === "completed").length}
       paymentLink={wisePaymentLink()}
+      questionsEditUrl={`${origin}/ideas/${id}/validation/normal?tab=questions`}
+      panelUrl={panelToken ? `${origin}/q/${panelToken}` : null}
+      founderWebsite={idea.state.raw_submission.product_link}
     />
   );
 }
