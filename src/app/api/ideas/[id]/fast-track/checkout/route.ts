@@ -5,7 +5,11 @@ import { requireUser } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
-import { fastTrackPaymentsEnabled, paymentContactEmail } from "@/lib/stripe";
+import {
+  emailFromAddress,
+  fastTrackPaymentsEnabled,
+  paymentContactEmail,
+} from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -29,6 +33,12 @@ export async function POST(
     }
 
     const user = await requireUser();
+    if (!user.email) {
+      return NextResponse.json(
+        { error: "Your account needs an email address before we can send payment details." },
+        { status: 400 },
+      );
+    }
     const idea = await getIdea(id, user.id);
     if (!idea) {
       return NextResponse.json({ error: "Idea not found." }, { status: 404 });
@@ -123,7 +133,7 @@ export async function POST(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM ?? "BRAINS AI <onboarding@resend.dev>",
+        from: emailFromAddress(),
         to: [user.email],
         cc: [paymentContactEmail()],
         subject: `Your BRAINS AI payment details: ${idea.title}`,

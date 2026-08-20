@@ -30,10 +30,6 @@ export default async function ValidationPage({
    * away from the top bar.
    */
   const stage = validationStage(idea.state);
-  if (stage === "awaiting_payment") {
-    redirect(`/ideas/${id}/validation/fast-track/status`);
-  }
-
   if (
     stage === "underway" ||
     stage === "delivered" ||

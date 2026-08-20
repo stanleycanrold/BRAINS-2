@@ -24,10 +24,15 @@ export function paymentContactEmail(): string {
   return process.env.PAYMENT_CONTACT_EMAIL?.trim() || "stanley@nexabrains.io";
 }
 
+export function emailFromAddress(): string {
+  return process.env.EMAIL_FROM?.trim() ?? "";
+}
+
 export function fastTrackPaymentsEnabled(): boolean {
   return Boolean(
     paymentContactEmail() &&
       process.env.RESEND_API_KEY &&
+    emailFromAddress() &&
       process.env.WISE_PAYMENT_URL,
   );
 }
