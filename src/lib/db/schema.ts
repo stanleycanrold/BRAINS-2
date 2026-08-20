@@ -280,6 +280,12 @@ export const validationResponses = pgTable(
     confirmed: confirmedEnum("confirmed").notNull(),
     notes: text("notes").notNull().default(""),
     source: text("source").notNull().default(""),
+    /** Private respondent identity used for legitimacy checks; never exposed to founders. */
+    respondentName: text("respondent_name").notNull().default(""),
+    respondentCareer: text("respondent_career").notNull().default(""),
+    respondentLocation: text("respondent_location").notNull().default(""),
+    respondentEmail: text("respondent_email").notNull().default(""),
+    respondentPhone: text("respondent_phone").notNull().default(""),
     expertId: uuid("expert_id").references(() => experts.id, {
       onDelete: "set null",
     }),

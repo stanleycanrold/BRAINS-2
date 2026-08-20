@@ -27,7 +27,7 @@ export function InterviewCount({
   value: number;
   onChange: (next: number) => void;
   min: number;
-  max: number;
+  max?: number;
   className?: string;
 }) {
   /**
@@ -45,11 +45,11 @@ export function InterviewCount({
     const parsed = Number.parseInt(draft, 10);
     setDraft(null);
     if (Number.isNaN(parsed)) return;
-    onChange(Math.max(min, Math.min(max, parsed)));
+    onChange(Math.max(min, parsed));
   }
 
   const atMin = value <= min;
-  const atMax = value >= max;
+  const atMax = max !== undefined && value >= max;
 
   return (
     <div className={className}>
@@ -61,7 +61,7 @@ export function InterviewCount({
           How many people should we hear from
         </label>
         <span className="type-body-m text-tertiary">
-          {min}&ndash;{max}
+          {max !== undefined ? `${min}\u2013${max}` : `${min}+`}
         </span>
       </div>
 
@@ -99,25 +99,27 @@ export function InterviewCount({
           <StepButton
             label="One more"
             disabled={atMax}
-            onClick={() => onChange(Math.min(max, value + 1))}
+            onClick={() => onChange(max === undefined ? value + 1 : Math.min(max, value + 1))}
           >
             <PlusIcon size={15} weight="bold" aria-hidden="true" />
           </StepButton>
         </div>
 
-        <Slider
-          min={min}
-          max={max}
-          value={value}
-          onChange={onChange}
-          ariaLabel="Number of people"
-          className="flex-1"
-        />
+        {max !== undefined ? (
+          <Slider
+            min={min}
+            max={max}
+            value={value}
+            onChange={onChange}
+            ariaLabel="Number of people"
+            className="flex-1"
+          />
+        ) : null}
       </div>
 
       <SignalStrength n={value} className="mt-5" />
       <p id="interview-count-help" className="sr-only">
-        Type a number between {min} and {max}, or use the slider.
+        Type a number of at least {min}.
       </p>
     </div>
   );

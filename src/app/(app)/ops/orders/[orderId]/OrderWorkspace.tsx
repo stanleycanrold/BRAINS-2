@@ -38,6 +38,11 @@ type Response = {
   id: string;
   notes: string;
   source: string;
+  respondentName: string;
+  respondentCareer: string;
+  respondentLocation: string;
+  respondentEmail: string;
+  respondentPhone: string;
   confirmed: string;
   reviewStatus: string;
   qualityFlags: string[];
@@ -294,6 +299,16 @@ export function OrderWorkspace({
                     <span className="type-body-m text-tertiary">{r.source}</span>
                   ) : null}
                 </div>
+
+                  {(r.respondentName || r.respondentCareer || r.respondentLocation) ? (
+                    <div className="mt-3 grid gap-2 border-y border-line py-3 text-sm sm:grid-cols-3">
+                      <span><strong className="font-medium text-primary">Name:</strong> {r.respondentName || "-"}</span>
+                      <span><strong className="font-medium text-primary">Career:</strong> {r.respondentCareer || "-"}</span>
+                      <span><strong className="font-medium text-primary">Location:</strong> {r.respondentLocation || "-"}</span>
+                      <span><strong className="font-medium text-primary">Email:</strong> {r.respondentEmail || "-"}</span>
+                      <span><strong className="font-medium text-primary">Phone:</strong> {r.respondentPhone || "-"}</span>
+                    </div>
+                  ) : null}
 
                 {/* Split into its questions rather than printed raw. A
                     screener deciding whether an answer is real has to see

@@ -46,7 +46,13 @@ export function QuestionnaireForm({
 }) {
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = React.useState<Confirmed | null>(null);
-  const [source, setSource] = React.useState("");
+  const [profile, setProfile] = React.useState({
+    name: "",
+    career: "",
+    location: "",
+    email: "",
+    phone: "",
+  });
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -74,7 +80,11 @@ export function QuestionnaireForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           confirmed,
-          source,
+          respondent_name: profile.name,
+          respondent_career: profile.career,
+          respondent_location: profile.location,
+          respondent_email: profile.email,
+          respondent_phone: profile.phone,
           answers: Object.entries(answers).map(([questionId, answer]) => ({
             questionId,
             answer,
@@ -175,22 +185,19 @@ export function QuestionnaireForm({
           />
         ))}
 
-        <div>
-          <label
-            htmlFor="respondent"
-            className="type-body-l block font-medium text-primary"
-          >
-            Anything to identify you by?{" "}
-            <span className="type-body-m text-tertiary">Optional</span>
-          </label>
-          <Input
-            id="respondent"
-            className="mt-2.5"
-            value={source}
-            onChange={(e) => setSource(e.target.value)}
-            placeholder="A first name or your role - or leave it blank"
-          />
-        </div>
+        <fieldset className="border-t border-line pt-7">
+          <legend className="type-body-l font-medium text-primary">About you</legend>
+          <p className="type-body-m mt-1.5 text-secondary">
+            This helps us verify that responses come from real people. Your contact details are kept private and are not shared with the founder.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <ProfileField id="respondent-name" label="Name" type="text" value={profile.name} onChange={(value) => setProfile((p) => ({ ...p, name: value }))} />
+            <ProfileField id="respondent-career" label="Career or role" type="text" value={profile.career} onChange={(value) => setProfile((p) => ({ ...p, career: value }))} />
+            <ProfileField id="respondent-location" label="Where are you based?" type="text" value={profile.location} onChange={(value) => setProfile((p) => ({ ...p, location: value }))} />
+            <ProfileField id="respondent-email" label="Email" type="email" value={profile.email} onChange={(value) => setProfile((p) => ({ ...p, email: value }))} />
+            <ProfileField id="respondent-phone" label="Phone number" type="tel" value={profile.phone} onChange={(value) => setProfile((p) => ({ ...p, phone: value }))} />
+          </div>
+        </fieldset>
 
         {error ? (
           <p className="type-body-m text-danger" role="alert">
@@ -210,11 +217,32 @@ export function QuestionnaireForm({
           <p className="type-body-m mt-3 text-tertiary">
             Your answers go to the person who sent you this link, and are read
             alongside everyone else&rsquo;s to find what people have in common.
-            Leave the name field blank if you&rsquo;d rather stay anonymous.
+            Your contact details are used for verification only.
           </p>
         </div>
       </form>
     </Shell>
+  );
+}
+
+function ProfileField({
+  id,
+  label,
+  type,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  type: React.HTMLInputTypeAttribute;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label htmlFor={id} className="type-body-m block font-medium text-primary">
+      {label} <span className="text-danger" aria-hidden="true">*</span>
+      <Input id={id} type={type} required className="mt-2" value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
   );
 }
 

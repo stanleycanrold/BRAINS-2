@@ -43,6 +43,13 @@
       "when": 1786091575327,
       "tag": "0005_workspace_share",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787237569115,
+      "tag": "0006_exotic_ikaris",
+      "breakpoints": true
     }
   ]
 }

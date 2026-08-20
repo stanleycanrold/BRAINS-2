@@ -93,13 +93,21 @@ async function main() {
   await submitPublicResponse({
     token: ownToken,
     confirmed: "yes",
-    source: "",
+    respondentName: "Test respondent",
+    respondentCareer: "Product designer",
+    respondentLocation: "London",
+    respondentEmail: "test@example.com",
+    respondentPhone: "+441234567890",
     answers: [{ questionId: "q2", answer: "From my own outreach" }],
   });
   await submitPublicResponse({
     token: panelToken,
     confirmed: "yes",
-    source: "",
+    respondentName: "Panel respondent",
+    respondentCareer: "Founder",
+    respondentLocation: "Manchester",
+    respondentEmail: "panel@example.com",
+    respondentPhone: "+441234567891",
     answers: [{ questionId: "q2", answer: "From the paid round" }],
   });
 

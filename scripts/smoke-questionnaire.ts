@@ -127,7 +127,11 @@ async function main() {
     const submitted = await submitPublicResponse({
       token,
       confirmed: "yes",
-      source: "Anon designer",
+      respondentName: "Test respondent",
+      respondentCareer: "Product designer",
+      respondentLocation: "London",
+      respondentEmail: "test@example.com",
+      respondentPhone: "+441234567890",
       answers: [
         { questionId: "q1", answer: "I send three awkward emails and give up." },
       ],
@@ -156,7 +160,11 @@ async function main() {
     const afterClose = await submitPublicResponse({
       token,
       confirmed: "yes",
-      source: "Too late",
+      respondentName: "Test respondent",
+      respondentCareer: "Product designer",
+      respondentLocation: "London",
+      respondentEmail: "test@example.com",
+      respondentPhone: "+441234567890",
       answers: [{ questionId: "q1", answer: "…" }],
     });
     check("closed questionnaire refuses", !afterClose.ok, afterClose.error);

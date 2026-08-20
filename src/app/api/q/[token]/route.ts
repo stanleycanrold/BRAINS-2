@@ -9,7 +9,11 @@ const bodySchema = z.object({
     .array(z.object({ questionId: z.string(), answer: z.string().max(5000) }))
     .max(40),
   confirmed: z.enum(["yes", "no", "unsure"]),
-  source: z.string().max(200).default(""),
+  respondent_name: z.string().trim().min(1).max(120),
+  respondent_career: z.string().trim().min(1).max(160),
+  respondent_location: z.string().trim().min(1).max(160),
+  respondent_email: z.string().trim().email().max(320),
+  respondent_phone: z.string().trim().min(7).max(40),
 });
 
 /**
@@ -38,7 +42,11 @@ export async function POST(
       token,
       answers: parsed.data.answers,
       confirmed: parsed.data.confirmed,
-      source: parsed.data.source,
+      respondentName: parsed.data.respondent_name,
+      respondentCareer: parsed.data.respondent_career,
+      respondentLocation: parsed.data.respondent_location,
+      respondentEmail: parsed.data.respondent_email,
+      respondentPhone: parsed.data.respondent_phone,
     });
 
     if (!result.ok) {

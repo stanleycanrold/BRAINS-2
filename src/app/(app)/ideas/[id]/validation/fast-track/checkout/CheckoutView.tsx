@@ -131,7 +131,7 @@ export function CheckoutView({
           </div>
 
           <Card elevation="raised" className="mt-5 max-w-[760px] p-5 lg:p-6">
-            <InterviewCount value={n} onChange={setN} min={estimate.minInterviews} max={estimate.maxInterviews} />
+            <InterviewCount value={n} onChange={setN} min={estimate.minInterviews} />
 
             <div className="mt-6 border-t border-line pt-5">
               <label htmlFor="location-preference" className="type-body-m block font-medium text-primary">

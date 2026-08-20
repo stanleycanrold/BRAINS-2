@@ -40,10 +40,7 @@ export function priceFor(
   tier: NicheTier,
   n: number,
 ): Estimate {
-  const clamped = Math.max(
-    rates.minInterviews,
-    Math.min(rates.maxInterviews, Math.round(n)),
-  );
+  const clamped = Math.max(rates.minInterviews, Math.round(n));
 
   const interviewsSubtotalCents = rates.costPerInterviewCents * clamped;
   // Launch promotion: analysis, review, scoring, and the report are free.

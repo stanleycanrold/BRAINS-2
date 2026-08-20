@@ -15,7 +15,7 @@ import {
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
-  n: z.number().int().min(1).max(100),
+  n: z.number().int().min(1),
   location_preference: z.string().max(200).default(""),
 });
 

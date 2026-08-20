@@ -315,55 +315,36 @@ export function StatusView({
               total={order.nRequested}
               label="Responses completed"
             />
+            <div className="border-t border-line pt-5">
+              <h3 className="type-body-l font-medium text-primary">Questions and links</h3>
+              <p className="type-body-m mt-1.5 text-secondary">
+                Review the questions and keep the useful links for this round in one place.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <Link href={questionsEditUrl} className="type-body-m text-brand hover:text-primary">
+                  Edit questions
+                </Link>
+                {panelUrl ? (
+                  <Link href={panelUrl} target="_blank" rel="noreferrer" className="type-body-m text-brand hover:text-primary">
+                    Open questionnaire
+                  </Link>
+                ) : null}
+                {founderWebsite ? (
+                  <Link href={founderWebsite} target="_blank" rel="noreferrer" className="type-body-m text-brand hover:text-primary">
+                    Open your website
+                  </Link>
+                ) : null}
+              </div>
+              <p className="type-caption mt-4 border-t border-line pt-3 text-tertiary">
+                Questions or payment help? Contact us at{" "}
+                <a href="mailto:stanley@nexabrains.io" className="text-secondary hover:text-primary">
+                  stanley@nexabrains.io
+                </a>
+              </p>
+            </div>
           </div>
         ) : null}
       </Card> : null}
-
-      {paid ? (
-        <Card className="mt-6 p-5">
-          <h2 className="type-body-l font-medium text-primary">Questions and links</h2>
-          <p className="type-body-m mt-1.5 text-secondary">
-            Review or edit the questions before we send them to participants.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Link
-              href={questionsEditUrl}
-              className="type-body-m text-brand hover:text-primary"
-            >
-              Edit questions
-            </Link>
-            {panelUrl ? (
-              <Link
-                href={panelUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="type-body-m text-brand hover:text-primary"
-              >
-                Open questionnaire
-              </Link>
-            ) : null}
-            {founderWebsite ? (
-              <Link
-                href={founderWebsite}
-                target="_blank"
-                rel="noreferrer"
-                className="type-body-m text-brand hover:text-primary"
-              >
-                Open your website
-              </Link>
-            ) : null}
-          </div>
-          <p className="type-caption mt-4 border-t border-line pt-3 text-tertiary">
-            Questions or payment help? Contact us at{" "}
-            <a
-              href="mailto:stanley@nexabrains.io"
-              className="text-secondary hover:text-primary"
-            >
-              stanley@nexabrains.io
-            </a>
-          </p>
-        </Card>
-      ) : null}
 
       {/* Stage tracker */}
       {paid ? (

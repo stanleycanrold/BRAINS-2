@@ -93,7 +93,11 @@ export async function submitPublicResponse(params: {
   token: string;
   answers: PublicAnswer[];
   confirmed: "yes" | "no" | "unsure";
-  source: string;
+  respondentName: string;
+  respondentCareer: string;
+  respondentLocation: string;
+  respondentEmail: string;
+  respondentPhone: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const resolved = await resolveToken(params.token);
   if (!resolved) return { ok: false, error: "This link isn't valid." };
@@ -132,9 +136,12 @@ export async function submitPublicResponse(params: {
     channel: "survey",
     confirmed: params.confirmed,
     notes,
-    source:
-      params.source ||
-      (track === "fast" ? "Fast Track interview" : "Questionnaire link"),
+      source: track === "fast" ? "Fast Track respondent" : "Questionnaire respondent",
+      respondentName: params.respondentName,
+      respondentCareer: params.respondentCareer,
+      respondentLocation: params.respondentLocation,
+      respondentEmail: params.respondentEmail,
+      respondentPhone: params.respondentPhone,
     })
     .returning();
 
@@ -149,9 +156,7 @@ export async function submitPublicResponse(params: {
           id: stored.id,
           confirmed: params.confirmed,
           notes,
-          source:
-            params.source ||
-            (track === "fast" ? "Fast Track interview" : "Questionnaire link"),
+          source: track === "fast" ? "Fast Track respondent" : "Questionnaire respondent",
           channel: "survey" as const,
           track,
           expert_id: null,
