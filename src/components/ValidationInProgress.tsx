@@ -51,16 +51,12 @@ export function ValidationInProgress({
         bare={bare}
         className={className}
         icon={<ClockIcon size={16} className="text-caution" aria-hidden="true" />}
-        title="Payment not finished"
-        body="Your Fast Track order is held but hasn't been paid for, so nothing has started yet."
-        action={
-          buyable
-            ? {
-                href: `/ideas/${ideaId}/validation/fast-track/checkout`,
-                label: "Finish payment",
-              }
-            : undefined
-        }
+        title="Request submitted"
+        body="Your Fast Track request is with the team. Nothing has started yet; we will contact you to arrange payment."
+        action={{
+          href: `/ideas/${ideaId}/validation/fast-track/status`,
+          label: "See request status",
+        }}
       />
     );
   }
@@ -79,7 +75,7 @@ export function ValidationInProgress({
           />
         }
         title="Fast Track round complete"
-        body={`All ${order?.completed_count ?? 0} interviews are in and analysed.`}
+        body={`All ${order?.completed_count ?? 0} validation responses are in and analysed.`}
         action={{
           href: `/ideas/${ideaId}/validation/fast-track/status`,
           label: "See the round",
@@ -100,8 +96,8 @@ export function ValidationInProgress({
         title="Validation in progress"
         body={
           done > 0
-            ? `We're running your interviews - ${done} of ${total} done. The report lands on your dashboard when they're all in.`
-            : `We're lining up your ${total} interviews. Nothing more for you to do - the report lands on your dashboard.`
+            ? `We're validating with real people - ${done} of ${total} responses in. The report lands on your dashboard when they're all in.`
+            : `We're lining up ${total} validation participants. Nothing more for you to do - the report lands on your dashboard.`
         }
         action={{
           href: `/ideas/${ideaId}/validation/fast-track/status`,

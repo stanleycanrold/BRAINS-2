@@ -161,8 +161,8 @@ export function FastTrackButton({
     },
     awaiting_payment: {
       icon: <ClockIcon size={15} aria-hidden="true" />,
-      label: "Finish your payment",
-      href: `/ideas/${ideaId}/validation/fast-track/checkout`,
+      label: "Payment request submitted",
+      href: `/ideas/${ideaId}/validation/fast-track/status`,
       tone: "caution" as const,
     },
     underway: {

@@ -29,7 +29,11 @@ export default async function CheckoutPage({
   // too (409), but a founder should never reach a payment form for something
   // they already own.
   const stage = validationStage(idea.state);
-  if (stage === "underway" || stage === "delivered") {
+  if (
+    stage === "awaiting_payment" ||
+    stage === "underway" ||
+    stage === "delivered"
+  ) {
     redirect(`/ideas/${id}/validation/fast-track/status`);
   }
 

@@ -152,7 +152,7 @@ export function StatusView({
       <header>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="type-display-l text-primary">
-            {paid ? "Validation in progress" : "Confirming your payment"}
+            {paid ? "Validation in progress" : "Request submitted"}
           </h1>
           {paid ? (
             <Badge tone="brand" dot>
@@ -163,7 +163,7 @@ export function StatusView({
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {paid
             ? "Nothing more for you to do. We gather responses against your questions, our AI analyses every one, and the finished report appears on your dashboard - usually within one to two weeks."
-            : "This normally takes a few seconds. You can safely leave this page."}
+            : "Your request is with the team. We will contact you within the next few hours to arrange payment before any work begins."}
         </p>
       </header>
 
@@ -176,8 +176,7 @@ export function StatusView({
               aria-hidden="true"
             />
             <span>
-              Waiting for Stripe to confirm. No work starts until it clears - if the payment failed, you won&rsquo;t be charged and nothing will
-              have happened.
+              Nothing has started yet. We will confirm the amount and payment details with you first.
             </span>
           </p>
         </Card>
@@ -204,7 +203,7 @@ export function StatusView({
                   ? "Paid"
                   : order.paymentStatus === "failed"
                     ? "Payment failed"
-                    : "Awaiting confirmation"}
+                    : "Awaiting payment details"}
               </Badge>
             </div>
           </div>

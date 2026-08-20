@@ -31,6 +31,7 @@ export default async function ValidationPage({
    */
   const stage = validationStage(idea.state);
   if (
+    stage === "awaiting_payment" ||
     stage === "underway" ||
     stage === "delivered" ||
     idea.state.validation.track === "normal"
