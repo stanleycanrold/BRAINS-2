@@ -67,7 +67,6 @@ export function StatusView({
   order,
   scheduled,
   completed,
-  paymentEmail,
   paymentLink,
 }: {
   ideaId: string;
@@ -75,13 +74,12 @@ export function StatusView({
   order: Order;
   scheduled: number;
   completed: number;
-  paymentEmail: string;
   paymentLink: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
-  const [copied, setCopied] = React.useState<"link" | "email" | null>(null);
+  const [copied, setCopied] = React.useState<"link" | null>(null);
 
   const paid = order.paymentStatus === "paid";
   const currentIndex = Math.max(
@@ -146,9 +144,9 @@ export function StatusView({
         ? "danger"
         : "caution";
 
-  async function copyValue(value: string, kind: "link" | "email") {
+  async function copyValue(value: string) {
     await navigator.clipboard.writeText(value);
-    setCopied(kind);
+    setCopied("link");
     window.setTimeout(() => setCopied(null), 1600);
   }
 
@@ -185,34 +183,23 @@ export function StatusView({
             Complete payment to start the round
           </p>
           <p className="type-body-m mt-1.5 text-secondary">
-            Use the link below, then contact Stanley with your order reference.
+            Make payment using the link below, then contact us with your order reference.
           </p>
           <div className="mt-4 space-y-2.5">
             <div className="flex items-center gap-2 rounded-[6px] border border-line bg-raised p-2.5">
               <code className="type-data-s min-w-0 flex-1 truncate text-primary">{paymentLink}</code>
               <button
                 type="button"
-                onClick={() => void copyValue(paymentLink, "link")}
+                onClick={() => void copyValue(paymentLink)}
                 className="type-caption inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-line px-2.5 py-1.5 text-secondary hover:text-primary"
               >
                 <CopyIcon size={14} aria-hidden="true" />
                 {copied === "link" ? "Copied" : "Copy link"}
               </button>
             </div>
-            <div className="flex items-center gap-2 rounded-[6px] border border-line bg-raised p-2.5">
-              <code className="type-data-s min-w-0 flex-1 truncate text-primary">{paymentEmail}</code>
-              <button
-                type="button"
-                onClick={() => void copyValue(paymentEmail, "email")}
-                className="type-caption inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-line px-2.5 py-1.5 text-secondary hover:text-primary"
-              >
-                <CopyIcon size={14} aria-hidden="true" />
-                {copied === "email" ? "Copied" : "Copy email"}
-              </button>
-            </div>
           </div>
           <p className="type-caption mt-3 text-tertiary">
-            Include order reference <span className="font-mono text-secondary">{order.id}</span> so we can match your payment.
+            After payment, contact us with order reference <span className="font-mono text-secondary">{order.id}</span> so we can start the work.
           </p>
           <p className="type-caption mt-2 text-secondary">
             <ClockIcon size={14} className="mr-1 inline" aria-hidden="true" />
