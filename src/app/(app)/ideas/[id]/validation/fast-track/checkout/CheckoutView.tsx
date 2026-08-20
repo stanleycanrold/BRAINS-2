@@ -99,8 +99,12 @@ export function CheckoutView({
         body: JSON.stringify({ n, location_preference: location }),
       });
       const body = await response.json();
-      if (!response.ok || !body.client_secret) {
+      if (!response.ok || (!body.client_secret && !body.payment_url)) {
         throw new Error(body.error ?? "We couldn't start checkout.");
+      }
+      if (body.payment_url) {
+        window.location.assign(body.payment_url);
+        return;
       }
       setClientSecret(body.client_secret);
     } catch (err) {
@@ -140,30 +144,24 @@ export function CheckoutView({
 
       <header className="mt-4">
         <h1 className="type-display-l text-primary">
-          {clientSecret ? "Confirm and pay" : "How many people should validate it?"}
+          {clientSecret ? "Confirm and pay" : "Get your validation round"}
         </h1>
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {clientSecret
             ? "Your order is held below. Nothing starts until this clears."
-            : "Every response is human-reviewed for quality, then analysed by our AI, scored, and delivered as a finished report on your dashboard."}
+            : "Choose how many people we should reach. We handle the conversations, review every response, and return a decision-ready report."}
         </p>
       </header>
 
       {!clientSecret ? (
-        <div className="mt-5 flex items-start gap-3 border-y border-line py-4">
-          <ShieldCheckIcon
-            size={20}
-            className="mt-0.5 shrink-0 text-brand"
-            aria-hidden="true"
-          />
+        <div className="mt-4 border-y border-line py-3">
           <div>
             <p className="type-body-m font-medium text-primary">
-              Useful evidence, not empty replies
+              Every response gets a human quality check
             </p>
-            <p className="type-body-m mt-1 max-w-prose text-secondary">
-              We manually review every response for detail, relevance, and
-              enough context before it reaches your report. Thin, vague, or
-              off-topic answers are flagged instead of treated as strong signal.
+            <p className="type-caption mt-1 max-w-prose text-secondary">
+              We check for detail, relevance, and enough context before it is
+              used in your report.
             </p>
           </div>
         </div>
@@ -185,7 +183,7 @@ export function CheckoutView({
       ) : null}
 
       {!clientSecret ? (
-        <Card elevation="raised" className="mt-8 p-6">
+        <Card elevation="raised" className="mt-6 p-5">
           <InterviewCount
             value={n}
             onChange={setN}
@@ -226,10 +224,22 @@ export function CheckoutView({
               label={`Validation responses · ${money(estimate.costPerInterviewCents)} each`}
               value={money(estimate.interviewsSubtotalCents)}
             />
-            <Line
-              label="AI analysis, scoring & report"
-              value={money(estimate.analysisFeeCents)}
-            />
+            <div className="flex items-baseline justify-between gap-4">
+              <dt className="type-body-m text-secondary">
+                Analysis, scoring & report
+              </dt>
+              <dd className="text-right">
+                <span className="type-caption mr-2 text-tertiary line-through">
+                  {money(
+                    estimate.analysisFeeBaseCents +
+                      estimate.analysisFeePerUnitCents * estimate.nRequested,
+                  )}
+                </span>
+                <span className="type-body-m font-medium text-brand">
+                  100% off · Free
+                </span>
+              </dd>
+            </div>
             <div className="border-t border-line pt-2.5">
               <Line label="Total" value={money(estimate.totalCents)} emphasis />
             </div>
@@ -248,7 +258,8 @@ export function CheckoutView({
             </Button>
             <p className="type-caption mt-3 flex items-center justify-center gap-1.5 text-tertiary">
               <ShieldCheckIcon size={14} aria-hidden="true" />
-              Card handled by Stripe. Nothing starts until payment clears.
+              You&rsquo;ll complete payment through Wise. Nothing starts until
+              payment is confirmed.
             </p>
           </div>
         </Card>
@@ -295,9 +306,8 @@ export function CheckoutView({
         </div>
       )}
 
-      <p className="type-body-m mt-6 max-w-prose text-tertiary">
-        Responses land in the same pool as anything you gather yourself, so the
-        score is computed across everything together.
+      <p className="type-caption mt-5 max-w-prose text-tertiary">
+        Your own responses and this round can be combined in the same report.
       </p>
     </>
   );

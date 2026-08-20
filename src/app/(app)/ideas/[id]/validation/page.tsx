@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { formatMoney, marketingFloorPerInterview } from "@/lib/pricing";
 import { validationStage } from "@/lib/validation-stage";
+import { fastTrackPaymentsEnabled } from "@/lib/stripe";
 import { TrackSelection } from "./TrackSelection";
 
 export const metadata: Metadata = { title: "Validation" };
@@ -44,7 +45,7 @@ export default async function ValidationPage({
       ideaId={id}
       initialState={idea.state}
       floorPerInterview={formatMoney(floor.cents, floor.currency)}
-      paymentsEnabled={Boolean(process.env.stripe_private)}
+      paymentsEnabled={fastTrackPaymentsEnabled()}
     />
   );
 }

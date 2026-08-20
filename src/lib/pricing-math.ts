@@ -46,8 +46,9 @@ export function priceFor(
   );
 
   const interviewsSubtotalCents = rates.costPerInterviewCents * clamped;
-  const analysisFeeCents =
-    rates.analysisFeeBaseCents + rates.analysisFeePerUnitCents * clamped;
+  // Launch promotion: analysis, review, scoring, and the report are free.
+  // Keep the configured coefficients in the estimate for a future promotion.
+  const analysisFeeCents = 0;
 
   return {
     nRequested: clamped,

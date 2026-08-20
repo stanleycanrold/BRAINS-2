@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { estimateFastTrack } from "@/lib/pricing";
-import { paymentsEnabled } from "@/lib/stripe";
+import { fastTrackPaymentsEnabled } from "@/lib/stripe";
 import { validationStage } from "@/lib/validation-stage";
 import { CheckoutView } from "./CheckoutView";
 
@@ -19,7 +19,7 @@ export default async function CheckoutPage({
   const idea = await getIdea(id, user.id);
   if (!idea) notFound();
 
-  if (!paymentsEnabled()) redirect(`/ideas/${id}/validation`);
+  if (!fastTrackPaymentsEnabled()) redirect(`/ideas/${id}/validation`);
 
   // Interviews use the questions built from research, so there's nothing to
   // buy until research has run.

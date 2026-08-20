@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { formatMoney, marketingFloorPerInterview } from "@/lib/pricing";
-import { paymentsEnabled } from "@/lib/stripe";
+import { fastTrackPaymentsEnabled } from "@/lib/stripe";
 import { NormalTrack } from "./NormalTrack";
 
 export const metadata: Metadata = { title: "Gathering signal" };
@@ -31,7 +31,7 @@ export default async function NormalTrackPage({
       ideaId={id}
       initialState={idea.state}
       fastTrackPerInterview={formatMoney(floor.cents, floor.currency)}
-      paymentsEnabled={paymentsEnabled()}
+      paymentsEnabled={fastTrackPaymentsEnabled()}
     />
   );
 }

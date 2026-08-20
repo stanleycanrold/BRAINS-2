@@ -14,7 +14,7 @@ import {
   canMarketFastTrack,
   validationStage,
 } from "@/lib/validation-stage";
-import { paymentsEnabled } from "@/lib/stripe";
+import { fastTrackPaymentsEnabled } from "@/lib/stripe";
 import { FastTrackInline, LoopReminder } from "@/components/FastTrackTeaser";
 import { summariseWorkspace } from "@/lib/domain/workspace-summary";
 
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          {readyToChoose && teaserPrice && paymentsEnabled() ? (
+          {readyToChoose && teaserPrice && fastTrackPaymentsEnabled() ? (
             <FastTrackInline
               ideaId={readyToChoose.id}
               perInterviewPrice={teaserPrice}

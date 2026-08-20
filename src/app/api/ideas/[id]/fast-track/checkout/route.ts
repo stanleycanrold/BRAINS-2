@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
-import { getStripe, paymentsEnabled } from "@/lib/stripe";
+import { fastTrackPaymentsEnabled, getStripe } from "@/lib/stripe";
 import { originFor } from "@/lib/app-url";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ export async function POST(
   const { id } = await params;
 
   try {
-    if (!paymentsEnabled()) {
+    if (!fastTrackPaymentsEnabled()) {
       return NextResponse.json(
         { error: "Payments aren't configured yet." },
         { status: 503 },
@@ -71,55 +71,39 @@ export async function POST(
      * gets its own order and its own payment.
      */
     const existing = await db
-      .select()
-      .from(schema.fastTrackOrders)
-      .where(
-        and(
-          eq(schema.fastTrackOrders.ideaStateVersionId, idea.versionId),
-          eq(schema.fastTrackOrders.paymentStatus, "paid"),
-        ),
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "This round is already paid for and underway. Redo the validation if you want another round.",
-        },
-        { status: 409 },
-      );
-    }
-
-    const parsed = bodySchema.safeParse(await request.json());
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Choose how many interviews you want." },
-        { status: 400 },
-      );
-    }
 
     const tier = idea.state.structured.niche_tier;
     // Priced server-side from pricing_config - never from a client-supplied
     // amount, which would let anyone name their own price.
     const estimate = await estimateFastTrack({ tier, n: parsed.data.n });
+        const parsed = bodySchema.safeParse(await request.json());
+        if (!parsed.success) {
+          return NextResponse.json(
+            { error: "Choose how many people you want to reach." },
+            { status: 400 },
+          );
+        }
 
     const [order] = await db
       .insert(schema.fastTrackOrders)
-      .values({
-        ideaStateVersionId: idea.versionId,
-        userId: user.id,
-        nRequested: estimate.nRequested,
-        costPerInterviewCents: estimate.costPerInterviewCents,
-        analysisFeeCents: estimate.analysisFeeCents,
-        totalCostCents: estimate.totalCents,
-        currency: estimate.currency,
-        nicheTier: tier,
-        locationPreference: parsed.data.location_preference.trim(),
-        paymentStatus: "pending",
-        status: "pending_sourcing",
-      })
-      .returning();
+        completed_count: 0,
+      },
+    }));
+
+    const wisePaymentUrl = process.env.WISE_PAYMENT_URL;
+    if (wisePaymentUrl) {
+      await recordPendingOrder();
+      await db
+        .update(schema.fastTrackOrders)
+        .set({ paymentRef: "wise" })
+        .where(eq(schema.fastTrackOrders.id, order.id));
+
+      return NextResponse.json({
+        payment_url: wisePaymentUrl,
+        order_id: order.id,
+        total: formatMoney(estimate.totalCents, estimate.currency),
+      });
+    }
 
     // Resolved from the request so it can't drift from where the app is
     // actually served - see app-url.ts.
@@ -182,6 +166,8 @@ export async function POST(
       .update(schema.fastTrackOrders)
       .set({ paymentRef: session.id })
       .where(eq(schema.fastTrackOrders.id, order.id));
+
+    await recordPendingOrder();
 
     /**
      * Record the pending order, but do NOT move the idea onto the Fast Track

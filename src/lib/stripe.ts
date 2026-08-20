@@ -16,6 +16,14 @@ export function paymentsEnabled(): boolean {
   return Boolean(process.env.stripe_private);
 }
 
+export function wisePaymentsEnabled(): boolean {
+  return Boolean(process.env.WISE_PAYMENT_URL);
+}
+
+export function fastTrackPaymentsEnabled(): boolean {
+  return paymentsEnabled() || wisePaymentsEnabled();
+}
+
 export function getStripe(): Stripe {
   const key = process.env.stripe_private;
   if (!key) {

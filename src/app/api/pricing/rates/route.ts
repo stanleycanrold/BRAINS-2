@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { marketingFloorPerInterview } from "@/lib/pricing";
-import { paymentsEnabled } from "@/lib/stripe";
+import { fastTrackPaymentsEnabled } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,7 @@ export async function GET() {
   try {
     await requireUser();
 
-    if (!paymentsEnabled()) {
+    if (!fastTrackPaymentsEnabled()) {
       return NextResponse.json({ enabled: false });
     }
 
