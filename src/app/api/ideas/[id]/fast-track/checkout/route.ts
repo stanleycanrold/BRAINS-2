@@ -5,8 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
-import { fastTrackPaymentsEnabled, getStripe } from "@/lib/stripe";
-import { originFor } from "@/lib/app-url";
+import { fastTrackPaymentsEnabled, paymentContactEmail } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -24,7 +23,7 @@ export async function POST(
   try {
     if (!fastTrackPaymentsEnabled()) {
       return NextResponse.json(
-        { error: "Payments aren't configured yet." },
+        { error: "Payment contact is not configured yet." },
         { status: 503 },
       );
     }
@@ -74,9 +73,11 @@ export async function POST(
       );
     }
 
-    const tier = idea.state.structured.niche_tier;
-    const estimate = await estimateFastTrack({ tier, n: parsed.data.n });
-
+    const estimate = await estimateFastTrack({
+      tier: idea.state.structured.niche_tier,
+      n: parsed.data.n,
+    });
+    const location = parsed.data.location_preference.trim();
     const [order] = await db
       .insert(schema.fastTrackOrders)
       .values({
@@ -87,100 +88,51 @@ export async function POST(
         analysisFeeCents: estimate.analysisFeeCents,
         totalCostCents: estimate.totalCents,
         currency: estimate.currency,
-        nicheTier: tier,
-        locationPreference: parsed.data.location_preference.trim(),
+        nicheTier: idea.state.structured.niche_tier,
+        locationPreference: location,
         paymentStatus: "pending",
         status: "pending_sourcing",
       })
       .returning();
 
-    const recordPendingOrder = () =>
-      updateCurrentState(idea.versionId, (state) => ({
-        ...state,
-        fast_track_order: {
-          order_id: order.id,
-          n_requested: estimate.nRequested,
-          cost_per_interview: estimate.costPerInterviewCents,
-          analysis_fee: estimate.analysisFeeCents,
-          total_cost: estimate.totalCents,
-          currency: estimate.currency,
-          location_preference: parsed.data.location_preference.trim(),
-          status: "pending_sourcing",
-          scheduled_count: 0,
-          completed_count: 0,
-        },
-      }));
-
-    const wisePaymentUrl = process.env.WISE_PAYMENT_URL;
-    if (wisePaymentUrl) {
-      await recordPendingOrder();
-      await db
-        .update(schema.fastTrackOrders)
-        .set({ paymentRef: "wise" })
-        .where(eq(schema.fastTrackOrders.id, order.id));
-
-      return NextResponse.json({
-        payment_url: wisePaymentUrl,
+    await updateCurrentState(idea.versionId, (state) => ({
+      ...state,
+      fast_track_order: {
         order_id: order.id,
-        total: formatMoney(estimate.totalCents, estimate.currency),
-      });
-    }
-
-    const stripe = getStripe();
-    const appUrl = originFor(request);
-    const lineItems = [
-      {
-        quantity: estimate.nRequested,
-        price_data: {
-          currency: estimate.currency,
-          unit_amount: estimate.costPerInterviewCents,
-          product_data: {
-            name: "Validation responses",
-            description: `Sourced and run by BRAINS AI - ${idea.title}`,
-          },
-        },
+        n_requested: estimate.nRequested,
+        cost_per_interview: estimate.costPerInterviewCents,
+        analysis_fee: estimate.analysisFeeCents,
+        total_cost: estimate.totalCents,
+        currency: estimate.currency,
+        location_preference: location,
+        status: "pending_sourcing",
+        scheduled_count: 0,
+        completed_count: 0,
       },
-      ...(estimate.analysisFeeCents > 0
-        ? [
-            {
-              quantity: 1,
-              price_data: {
-                currency: estimate.currency,
-                unit_amount: estimate.analysisFeeCents,
-                product_data: {
-                  name: "Analysis & synthesis",
-                  description:
-                    "Cross-channel synthesis, scoring, and your validation report",
-                },
-              },
-            },
-          ]
-        : []),
-    ];
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ui_mode: "embedded_page",
-      customer_email: user.email || undefined,
-      client_reference_id: order.id,
-      metadata: {
-        order_id: order.id,
-        idea_id: id,
-        idea_state_version_id: idea.versionId,
-        user_id: user.id,
-      },
-      line_items: lineItems,
-      return_url: `${appUrl}/ideas/${id}/validation/fast-track/status?session_id={CHECKOUT_SESSION_ID}`,
-    });
+    }));
 
     await db
       .update(schema.fastTrackOrders)
-      .set({ paymentRef: session.id })
+      .set({ paymentRef: "contact" })
       .where(eq(schema.fastTrackOrders.id, order.id));
-    await recordPendingOrder();
+
+    const subject = encodeURIComponent(`BRAINS AI payment for ${idea.title}`);
+    const message = encodeURIComponent(
+      [
+        "Hi, I would like to complete payment for my BRAINS AI validation round.",
+        "",
+        `Idea: ${idea.title}`,
+        `People requested: ${estimate.nRequested}`,
+        `Location: ${location || "Anywhere"}`,
+        `Total: ${formatMoney(estimate.totalCents, estimate.currency)}`,
+        `Order reference: ${order.id}`,
+        "",
+        "Please send me the payment link and next steps.",
+      ].join("\n"),
+    );
 
     return NextResponse.json({
-      client_secret: session.client_secret,
+      contact_url: `mailto:${paymentContactEmail()}?subject=${subject}&body=${message}`,
       order_id: order.id,
       total: formatMoney(estimate.totalCents, estimate.currency),
     });
@@ -191,7 +143,7 @@ export async function POST(
         error:
           err instanceof Error
             ? err.message
-            : "We couldn't start checkout. You haven't been charged.",
+            : "We couldn't prepare the payment request.",
       },
       { status: 500 },
     );

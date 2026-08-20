@@ -20,8 +20,12 @@ export function wisePaymentsEnabled(): boolean {
   return Boolean(process.env.WISE_PAYMENT_URL);
 }
 
+export function paymentContactEmail(): string {
+  return process.env.PAYMENT_CONTACT_EMAIL?.trim() ?? "";
+}
+
 export function fastTrackPaymentsEnabled(): boolean {
-  return paymentsEnabled() || wisePaymentsEnabled();
+  return Boolean(paymentContactEmail());
 }
 
 export function getStripe(): Stripe {

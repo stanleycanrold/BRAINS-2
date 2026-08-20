@@ -43,7 +43,6 @@ export default async function CheckoutPage({
       ideaId={id}
       state={idea.state}
       initialEstimate={estimate}
-      stripePublicKey={process.env.stripe_public ?? ""}
     />
   );
 }
