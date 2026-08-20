@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { isOpsUser } from "@/lib/auth";
 import {
+  buildTestOutreachRecipient,
   getOutreachRecipients,
   outreachTestRecipient,
   sendOutreachEmail,
+  sendOutreachBatch,
 } from "@/lib/outreach";
 
 export const runtime = "nodejs";
@@ -39,7 +41,7 @@ export async function POST(request: Request) {
   if (!first) return NextResponse.json({ error: "No valid recipients found." }, { status: 400 });
 
   if (body.action === "test") {
-    await sendOutreachEmail(first, outreachTestRecipient());
+    await sendOutreachEmail(buildTestOutreachRecipient(), outreachTestRecipient());
     return NextResponse.json({ sent: 1, to: outreachTestRecipient(), product: first.product });
   }
 
@@ -47,7 +49,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Type SEND FIRST 50 to authorize the batch." }, { status: 400 });
   }
 
-  const results = await Promise.allSettled(recipients.map((recipient) => sendOutreachEmail(recipient)));
-  const failed = results.filter((result) => result.status === "rejected").length;
-  return NextResponse.json({ sent: results.length - failed, failed, attempted: results.length });
+  try {
+    await sendOutreachBatch(recipients);
+    return NextResponse.json({ sent: recipients.length, failed: 0, attempted: recipients.length });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "The outreach batch failed." },
+      { status: 502 },
+    );
+  }
 }
