@@ -240,6 +240,12 @@ export function StatusView({
           <p className="type-caption mt-2 text-tertiary">
             Click after you have completed payment. We will mark the order paid and begin the work.
           </p>
+          <Link
+            href={questionsEditUrl}
+            className="type-body-m mt-3 inline-flex text-brand hover:text-primary"
+          >
+            Generate or edit questions first
+          </Link>
           {confirmationError ? (
             <p className="type-caption mt-2 text-danger" role="alert">{confirmationError}</p>
           ) : null}

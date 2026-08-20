@@ -7,6 +7,7 @@ import { sendFastTrackPaymentEmails } from "@/lib/fast-track-email";
 import { markOrderPaidManually } from "@/lib/fast-track-fulfil";
 import { originFor } from "@/lib/app-url";
 import { ideaStateSchema } from "@/lib/domain/types";
+import { runQuestionnaire } from "@/lib/agents/orchestrator";
 
 export const runtime = "nodejs";
 
@@ -44,6 +45,17 @@ export async function POST(
       return NextResponse.json({ paid: true, email_sent: false });
     }
 
+    // Questions are required for the paid round. Generate them here when the
+    // founder skipped the questions screen before ordering; the emailed edit
+    // link remains available for review and changes afterward.
+    let currentState = idea.state;
+    if (currentState.validation.questionnaire.questions.length === 0) {
+      currentState = await runQuestionnaire({
+        versionId: idea.versionId,
+        state: currentState,
+      });
+    }
+
     await markOrderPaidManually(order.id);
     const origin = originFor(_request);
     const [updatedVersion] = await db
@@ -53,7 +65,7 @@ export async function POST(
       .limit(1);
     const updatedState = updatedVersion
       ? ideaStateSchema.parse(updatedVersion.stateJson)
-      : idea.state;
+      : currentState;
     const panelToken = updatedState.validation.questionnaire.panel_share_token;
     const emailSent = await sendFastTrackPaymentEmails({
       customerEmail: user.email,
@@ -65,7 +77,7 @@ export async function POST(
       currency: order.currency,
       questionsEditUrl: `${origin}/ideas/${id}/validation/normal?tab=questions`,
       panelUrl: panelToken ? `${origin}/q/${panelToken}` : null,
-      founderWebsite: idea.state.raw_submission.product_link,
+      founderWebsite: currentState.raw_submission.product_link,
     });
 
     return NextResponse.json({ paid: true, email_sent: emailSent });
