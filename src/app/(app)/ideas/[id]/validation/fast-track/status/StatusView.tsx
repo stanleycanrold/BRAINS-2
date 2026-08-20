@@ -80,6 +80,8 @@ export function StatusView({
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [copied, setCopied] = React.useState<"link" | null>(null);
+  const [confirmingPayment, setConfirmingPayment] = React.useState(false);
+  const [confirmationError, setConfirmationError] = React.useState<string | null>(null);
 
   const paid = order.paymentStatus === "paid";
   const currentIndex = Math.max(
@@ -150,6 +152,27 @@ export function StatusView({
     window.setTimeout(() => setCopied(null), 1600);
   }
 
+  async function confirmPayment() {
+    setConfirmingPayment(true);
+    setConfirmationError(null);
+    try {
+      const response = await fetch(`/api/ideas/${ideaId}/fast-track/payment-done`, {
+        method: "POST",
+      });
+      const body = await response.json();
+      if (!response.ok || !body.paid) {
+        throw new Error(body.error ?? "We couldn't confirm the payment yet.");
+      }
+      router.refresh();
+    } catch (err) {
+      setConfirmationError(
+        err instanceof Error ? err.message : "We couldn't confirm the payment yet.",
+      );
+    } finally {
+      setConfirmingPayment(false);
+    }
+  }
+
   return (
     <>
       <IdeaTopBar
@@ -198,9 +221,21 @@ export function StatusView({
               </button>
             </div>
           </div>
-          <p className="type-caption mt-3 text-tertiary">
-            After payment, contact us with order reference <span className="font-mono text-secondary">{order.id}</span> so we can start the work.
+          <Button
+            className="mt-4"
+            variant="primary"
+            loading={confirmingPayment}
+            onClick={() => void confirmPayment()}
+            iconRight={<CheckCircleIcon size={17} aria-hidden="true" />}
+          >
+            Payment done
+          </Button>
+          <p className="type-caption mt-2 text-tertiary">
+            Click after you have completed payment. We will mark the order paid and begin the work.
           </p>
+          {confirmationError ? (
+            <p className="type-caption mt-2 text-danger" role="alert">{confirmationError}</p>
+          ) : null}
           <p className="type-caption mt-2 text-secondary">
             <ClockIcon size={14} className="mr-1 inline" aria-hidden="true" />
             {order.paymentStatus === "pending" ? "Waiting for payment confirmation." : "Payment status needs attention."}

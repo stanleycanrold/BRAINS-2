@@ -100,11 +100,17 @@ export function CheckoutView({
           <p className="type-eyebrow mt-5 text-brand">Request submitted</p>
           <h1 className="type-display-l mt-2 text-primary">Payment details are on the way.</h1>
           <p className="type-body-l mt-3 max-w-prose text-secondary">
-            We sent the amount and payment link to your email. Complete payment when you&rsquo;re ready, then reply with your confirmation so we can begin.
+            We sent the amount and payment link to your email. Complete payment when you&rsquo;re ready, then confirm it on your order status page so we can begin.
           </p>
           <p className="type-caption mt-6 text-tertiary">
             {estimate.nRequested} responses · estimated total {money(estimate.totalCents)}
           </p>
+          <Link
+            href={`/ideas/${ideaId}/validation/fast-track/status`}
+            className="type-body-m mt-5 inline-flex items-center text-brand hover:text-primary"
+          >
+            Open order status <ArrowRightIcon size={16} className="ml-1.5" aria-hidden="true" />
+          </Link>
         </Card>
       ) : (
         <>

@@ -22,6 +22,20 @@ export async function markOrderPaid(
   session: Stripe.Checkout.Session,
   orderId: string,
 ): Promise<boolean> {
+  return markOrderPaidWithRef(
+    orderId,
+    session.payment_intent ? String(session.payment_intent) : session.id,
+  );
+}
+
+export async function markOrderPaidManually(orderId: string): Promise<boolean> {
+  return markOrderPaidWithRef(orderId, `manual-${orderId}`);
+}
+
+async function markOrderPaidWithRef(
+  orderId: string,
+  paymentRef: string,
+): Promise<boolean> {
   const rows = await db
     .select()
     .from(schema.fastTrackOrders)
@@ -40,9 +54,8 @@ export async function markOrderPaid(
     .set({
       paymentStatus: "paid",
       paidAt: new Date(),
-      paymentRef: session.payment_intent
-        ? String(session.payment_intent)
-        : session.id,
+      paymentRef,
+      simulatedPayment: paymentRef.startsWith("manual-"),
       // Payment verified - only NOW does this become an Ops work item.
       status: "scheduling",
     })
