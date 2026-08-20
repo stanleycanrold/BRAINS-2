@@ -179,41 +179,21 @@ export function TrackSelection({
           </ul>
 
           <div className="mt-6">
-            {paymentsEnabled ? (
-              <>
-                <Button
-                  variant="primary"
-                  size="large"
-                  fullWidth
-                  onClick={() =>
-                    router.push(
-                      `/ideas/${ideaId}/validation/fast-track/checkout`,
-                    )
-                  }
-                  iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
-                  className="bg-on-brand text-brand hover:bg-on-brand/90"
-                >
-                  Contact us to arrange payment
-                </Button>
-                <p className="type-caption mt-2.5 text-center text-on-brand/70">
-                  Choose your number next. We&rsquo;ll confirm payment details by email.
-                </p>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="primary"
-                  size="large"
-                  fullWidth
-                  disabled
-                >
-                  Payment contact not configured
-                </Button>
-                <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Payment contact is not available yet.
-                </p>
-              </>
-            )}
+            <Button
+              variant="primary"
+              size="large"
+              fullWidth
+              onClick={() =>
+                router.push(`/ideas/${ideaId}/validation/fast-track/checkout`)
+              }
+              iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
+              className="bg-on-brand text-brand hover:bg-on-brand/90"
+            >
+              Contact us to arrange payment
+            </Button>
+            <p className="type-caption mt-2.5 text-center text-on-brand/70">
+              Choose your number next. We&rsquo;ll confirm payment details by email.
+            </p>
           </div>
         </Card>
       </div>
