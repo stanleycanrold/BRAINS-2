@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 const SECTIONS = [
   { href: "/ops", label: "Orders" },
   { href: "/ops/review", label: "Response review" },
+  { href: "/ops/outreach", label: "Outreach" },
 ];
 
 export function OpsTopBar() {
