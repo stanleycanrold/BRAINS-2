@@ -29,7 +29,11 @@ type GeminiResponse = {
 /** Gemini structured-output adapter used by the agent pipeline. */
 export function createGeminiProvider(): LLMProvider {
   const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const configuredModel = process.env.GEMINI_MODEL;
+  const model =
+    configuredModel === "gemini-2.5-flash"
+      ? "gemini-3.6-flash"
+      : configuredModel || "gemini-3.6-flash";
 
   return {
     name: "gemini",
@@ -95,7 +99,11 @@ export function createGeminiProvider(): LLMProvider {
  */
 export function createGeminiSearchProvider(): SearchProvider {
   const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_SEARCH_MODEL || "gemini-2.5-flash";
+  const configuredModel = process.env.GEMINI_SEARCH_MODEL;
+  const model =
+    configuredModel === "gemini-2.5-flash"
+      ? "gemini-3.6-flash"
+      : configuredModel || "gemini-3.6-flash";
   const available = Boolean(apiKey);
 
   return {
