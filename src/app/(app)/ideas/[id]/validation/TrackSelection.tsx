@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   CheckIcon,
   ArrowRightIcon,
-  LockSimpleIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -157,9 +156,7 @@ export function TrackSelection({
           <div className="flex items-center justify-between gap-3">
             <h2 className="type-display-m text-primary">We do it for you</h2>
             <Badge tone="brand">
-              {paymentsEnabled
-                ? `From ${floorPerInterview} per person`
-                : "Paid"}
+              From {floorPerInterview} per person
             </Badge>
           </div>
           <p className="type-body-l mt-2 text-secondary">
@@ -187,11 +184,10 @@ export function TrackSelection({
                   }
                   iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
                 >
-                  Run my validation round
+                  Contact us to arrange payment
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Pick your number next. Nobody is contacted until payment
-                  clears.
+                  Pick your number next. We&rsquo;ll reply with your personal Wise link.
                 </p>
               </>
             ) : (
@@ -201,12 +197,11 @@ export function TrackSelection({
                   size="large"
                   fullWidth
                   disabled
-                  iconLeft={<LockSimpleIcon size={16} aria-hidden="true" />}
                 >
-                  Payment not connected yet
+                  Payment contact not configured
                 </Button>
                 <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Pricing is live - checkout switches on with your Stripe keys.
+                  Add your payment contact email in the production environment.
                 </p>
               </>
             )}
