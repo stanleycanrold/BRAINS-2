@@ -163,7 +163,7 @@ export function StatusView({
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {paid
             ? "Nothing more for you to do. We gather responses against your questions, our AI analyses every one, and the finished report appears on your dashboard - usually within one to two weeks."
-            : "Your request is with the team. We will contact you within the next few hours to arrange payment before any work begins."}
+            : "Your payment details have been emailed to you. Complete payment and reply with confirmation before any work begins."}
         </p>
       </header>
 
@@ -176,7 +176,7 @@ export function StatusView({
               aria-hidden="true"
             />
             <span>
-              Nothing has started yet. We will confirm the amount and payment details with you first.
+              Nothing has started yet. Check your email for the amount and payment link, then reply with payment confirmation.
             </span>
           </p>
         </Card>

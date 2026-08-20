@@ -25,7 +25,11 @@ export function paymentContactEmail(): string {
 }
 
 export function fastTrackPaymentsEnabled(): boolean {
-  return Boolean(paymentContactEmail());
+  return Boolean(
+    paymentContactEmail() &&
+      process.env.RESEND_API_KEY &&
+      process.env.WISE_PAYMENT_URL,
+  );
 }
 
 export function getStripe(): Stripe {

@@ -98,9 +98,9 @@ export function CheckoutView({
         <Card elevation="raised" className="mt-8 max-w-[680px] border-brand/40 p-7 lg:p-8">
           <CheckCircleIcon size={30} weight="fill" className="text-brand" aria-hidden="true" />
           <p className="type-eyebrow mt-5 text-brand">Request submitted</p>
-          <h1 className="type-display-l mt-2 text-primary">We&rsquo;ll be in touch shortly.</h1>
+          <h1 className="type-display-l mt-2 text-primary">Payment details are on the way.</h1>
           <p className="type-body-l mt-3 max-w-prose text-secondary">
-            Your request has been sent to the team. We&rsquo;ll reply within the next few hours to confirm the amount and payment details before anything begins.
+            We sent the amount and payment link to your email. Complete payment when you&rsquo;re ready, then reply with your confirmation so we can begin.
           </p>
           <p className="type-caption mt-6 text-tertiary">
             {estimate.nRequested} responses · estimated total {money(estimate.totalCents)}
