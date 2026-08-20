@@ -17,7 +17,11 @@ export function paymentsEnabled(): boolean {
 }
 
 export function wisePaymentsEnabled(): boolean {
-  return Boolean(process.env.WISE_PAYMENT_URL);
+  return Boolean(wisePaymentLink());
+}
+
+export function wisePaymentLink(): string {
+  return process.env.WISE_PAYMENT_URL?.trim() || "https://wise.com/pay/me/stanleyk82";
 }
 
 export function paymentContactEmail(): string {
@@ -29,12 +33,7 @@ export function emailFromAddress(): string {
 }
 
 export function fastTrackPaymentsEnabled(): boolean {
-  return Boolean(
-    paymentContactEmail() &&
-      process.env.RESEND_API_KEY &&
-    emailFromAddress() &&
-      process.env.WISE_PAYMENT_URL,
-  );
+  return Boolean(paymentContactEmail() && wisePaymentLink());
 }
 
 export function getStripe(): Stripe {

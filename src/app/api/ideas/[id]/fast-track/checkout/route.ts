@@ -9,6 +9,7 @@ import {
   emailFromAddress,
   fastTrackPaymentsEnabled,
   paymentContactEmail,
+  wisePaymentLink,
 } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -33,12 +34,6 @@ export async function POST(
     }
 
     const user = await requireUser();
-    if (!user.email) {
-      return NextResponse.json(
-        { error: "Your account needs an email address before we can send payment details." },
-        { status: 400 },
-      );
-    }
     const idea = await getIdea(id, user.id);
     if (!idea) {
       return NextResponse.json({ error: "Idea not found." }, { status: 404 });
@@ -126,7 +121,9 @@ export async function POST(
       .set({ paymentRef: "contact" })
       .where(eq(schema.fastTrackOrders.id, order.id));
 
-    const emailResponse = await fetch("https://api.resend.com/emails", {
+    const canSendEmail = Boolean(process.env.RESEND_API_KEY && emailFromAddress() && user.email);
+    const emailResponse = canSendEmail
+      ? await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY ?? ""}`,
@@ -148,24 +145,22 @@ export async function POST(
           `Amount to pay: ${formatMoney(estimate.totalCents, estimate.currency)}`,
           `Order reference: ${order.id}`,
           "",
-          `Complete payment here: ${process.env.WISE_PAYMENT_URL}`,
+          `Complete payment here: ${wisePaymentLink()}`,
           "",
           "Once payment is complete, reply to this email or send your confirmation so we can begin sourcing responses.",
         ].join("\n"),
       }),
-    });
+      })
+      : null;
 
-    if (!emailResponse.ok) {
+    if (emailResponse && !emailResponse.ok) {
       const details = await emailResponse.text();
       console.error("[Fast Track payment email]", details);
-      return NextResponse.json(
-        { error: "We saved your request, but could not notify the team. Please try again." },
-        { status: 502 },
-      );
     }
 
     return NextResponse.json({
       submitted: true,
+      email_sent: emailResponse?.ok === true,
       order_id: order.id,
       total: formatMoney(estimate.totalCents, estimate.currency),
     });

@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import {
   CheckCircleIcon,
   ClockIcon,
+  CopyIcon,
   WarningIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Card } from "@/components/ui/Card";
@@ -66,16 +67,21 @@ export function StatusView({
   order,
   scheduled,
   completed,
+  paymentEmail,
+  paymentLink,
 }: {
   ideaId: string;
   state: IdeaState;
   order: Order;
   scheduled: number;
   completed: number;
+  paymentEmail: string;
+  paymentLink: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const [copied, setCopied] = React.useState<"link" | "email" | null>(null);
 
   const paid = order.paymentStatus === "paid";
   const currentIndex = Math.max(
@@ -140,6 +146,12 @@ export function StatusView({
         ? "danger"
         : "caution";
 
+  async function copyValue(value: string, kind: "link" | "email") {
+    await navigator.clipboard.writeText(value);
+    setCopied(kind);
+    window.setTimeout(() => setCopied(null), 1600);
+  }
+
   return (
     <>
       <IdeaTopBar
@@ -163,21 +175,48 @@ export function StatusView({
         <p className="type-body-l mt-1 max-w-prose text-secondary">
           {paid
             ? "Nothing more for you to do. We gather responses against your questions, our AI analyses every one, and the finished report appears on your dashboard - usually within one to two weeks."
-            : "Your payment details have been emailed to you. Complete payment and reply with confirmation before any work begins."}
+            : "Use the payment details below. Complete payment and reply with confirmation before any work begins."}
         </p>
       </header>
 
       {!paid ? (
-        <Card className="mt-6 border-caution/40 bg-caution-subtle p-4">
-          <p className="type-body-m flex items-start gap-2 text-primary">
-            <ClockIcon
-              size={18}
-              className="mt-0.5 shrink-0 text-caution"
-              aria-hidden="true"
-            />
-            <span>
-              Nothing has started yet. Check your email for the amount and payment link, then reply with payment confirmation.
-            </span>
+        <Card className="mt-6 border-brand/40 bg-brand-subtle p-5">
+          <p className="type-body-l font-medium text-primary">
+            Complete payment to start the round
+          </p>
+          <p className="type-body-m mt-1.5 text-secondary">
+            Use the link below, then contact Stanley with your order reference.
+          </p>
+          <div className="mt-4 space-y-2.5">
+            <div className="flex items-center gap-2 rounded-[6px] border border-line bg-raised p-2.5">
+              <code className="type-data-s min-w-0 flex-1 truncate text-primary">{paymentLink}</code>
+              <button
+                type="button"
+                onClick={() => void copyValue(paymentLink, "link")}
+                className="type-caption inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-line px-2.5 py-1.5 text-secondary hover:text-primary"
+              >
+                <CopyIcon size={14} aria-hidden="true" />
+                {copied === "link" ? "Copied" : "Copy link"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 rounded-[6px] border border-line bg-raised p-2.5">
+              <code className="type-data-s min-w-0 flex-1 truncate text-primary">{paymentEmail}</code>
+              <button
+                type="button"
+                onClick={() => void copyValue(paymentEmail, "email")}
+                className="type-caption inline-flex shrink-0 items-center gap-1.5 rounded-[5px] border border-line px-2.5 py-1.5 text-secondary hover:text-primary"
+              >
+                <CopyIcon size={14} aria-hidden="true" />
+                {copied === "email" ? "Copied" : "Copy email"}
+              </button>
+            </div>
+          </div>
+          <p className="type-caption mt-3 text-tertiary">
+            Include order reference <span className="font-mono text-secondary">{order.id}</span> so we can match your payment.
+          </p>
+          <p className="type-caption mt-2 text-secondary">
+            <ClockIcon size={14} className="mr-1 inline" aria-hidden="true" />
+            {order.paymentStatus === "pending" ? "Waiting for payment confirmation." : "Payment status needs attention."}
           </p>
         </Card>
       ) : null}

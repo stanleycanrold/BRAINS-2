@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { StatusView } from "./StatusView";
+import { paymentContactEmail, wisePaymentLink } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Fast Track status" };
 
@@ -50,6 +51,8 @@ export default async function FastTrackStatusPage({
       }}
       scheduled={interviews.filter((i) => i.scheduledAt !== null).length}
       completed={interviews.filter((i) => i.status === "completed").length}
+      paymentEmail={paymentContactEmail()}
+      paymentLink={wisePaymentLink()}
     />
   );
 }
