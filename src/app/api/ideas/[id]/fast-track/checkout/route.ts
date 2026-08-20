@@ -116,23 +116,42 @@ export async function POST(
       .set({ paymentRef: "contact" })
       .where(eq(schema.fastTrackOrders.id, order.id));
 
-    const subject = encodeURIComponent(`BRAINS AI payment for ${idea.title}`);
-    const message = encodeURIComponent(
-      [
-        "Hi, I would like to complete payment for my BRAINS AI validation round.",
-        "",
-        `Idea: ${idea.title}`,
-        `People requested: ${estimate.nRequested}`,
-        `Location: ${location || "Anywhere"}`,
-        `Total: ${formatMoney(estimate.totalCents, estimate.currency)}`,
-        `Order reference: ${order.id}`,
-        "",
-        "Please send me the payment link and next steps.",
-      ].join("\n"),
-    );
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY ?? ""}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM ?? "BRAINS AI <onboarding@resend.dev>",
+        to: [paymentContactEmail()],
+        subject: `Payment request: ${idea.title}`,
+        text: [
+          "A founder wants to arrange a Fast Track validation round.",
+          "",
+          `Idea: ${idea.title}`,
+          `Founder email: ${user.email}`,
+          `People requested: ${estimate.nRequested}`,
+          `Location: ${location || "Anywhere"}`,
+          `Total: ${formatMoney(estimate.totalCents, estimate.currency)}`,
+          `Order reference: ${order.id}`,
+          "",
+          "Reply to the founder with payment instructions and your payment link.",
+        ].join("\n"),
+      }),
+    });
+
+    if (!emailResponse.ok) {
+      const details = await emailResponse.text();
+      console.error("[Fast Track payment email]", details);
+      return NextResponse.json(
+        { error: "We saved your request, but could not notify the team. Please try again." },
+        { status: 502 },
+      );
+    }
 
     return NextResponse.json({
-      contact_url: `mailto:${paymentContactEmail()}?subject=${subject}&body=${message}`,
+      submitted: true,
       order_id: order.id,
       total: formatMoney(estimate.totalCents, estimate.currency),
     });

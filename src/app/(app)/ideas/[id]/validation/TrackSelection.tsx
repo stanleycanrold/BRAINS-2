@@ -155,27 +155,27 @@ export function TrackSelection({
         {/* ── Done for you ─────────────────────────────────────────────── */}
         <Card
           elevation="raised"
-          className="flex h-full flex-col rounded-none border-0 border-l-brand/35 p-6 lg:p-7"
+          className="flex h-full flex-col rounded-none border-0 bg-brand p-6 text-on-brand lg:p-7"
         >
           <div className="flex items-center justify-between gap-3">
-            <h2 className="type-display-m text-primary">We do it for you</h2>
-            <Badge tone="brand">Done for you</Badge>
+            <h2 className="type-display-m text-on-brand">We do it for you</h2>
+            <span className="type-caption rounded-full bg-on-brand/15 px-2.5 py-1 text-on-brand">Done for you</span>
           </div>
-          <p className="type-body-m mt-1.5 text-secondary">
+          <p className="type-body-m mt-1.5 text-on-brand/75">
             We reach the people, review every response, and return the same
             decision-ready report.
           </p>
 
-          <p className="type-display-hero mt-7 text-primary">
+          <p className="type-display-hero mt-7 text-on-brand">
             From {floorPerInterview}
           </p>
-          <p className="type-caption mt-1 text-tertiary">per response · analysis free</p>
+          <p className="type-caption mt-1 text-on-brand/70">per response · analysis free</p>
 
-          <ul className="mt-6 flex-1 space-y-2.5 border-t border-line pt-5">
-            <Feature>You choose how many people</Feature>
-            <Feature>Nothing for you to chase or schedule</Feature>
-            <Feature>Human quality review before analysis</Feature>
-            <Feature>Report on your dashboard in 1&ndash;2 weeks</Feature>
+          <ul className="mt-6 flex-1 space-y-2.5 border-t border-on-brand/20 pt-5">
+            <Feature tone="blue">You choose how many people</Feature>
+            <Feature tone="blue">Nothing for you to chase or schedule</Feature>
+            <Feature tone="blue">Human quality review before analysis</Feature>
+            <Feature tone="blue">Report on your dashboard in 1&ndash;2 weeks</Feature>
           </ul>
 
           <div className="mt-6">
@@ -191,11 +191,12 @@ export function TrackSelection({
                     )
                   }
                   iconRight={<ArrowRightIcon size={18} aria-hidden="true" />}
+                  className="bg-on-brand text-brand hover:bg-on-brand/90"
                 >
                   Contact us to arrange payment
                 </Button>
-                <p className="type-caption mt-2.5 text-center text-tertiary">
-                  Choose your number next. We&rsquo;ll reply with your personal Wise link.
+                <p className="type-caption mt-2.5 text-center text-on-brand/70">
+                  Choose your number next. We&rsquo;ll confirm payment details by email.
                 </p>
               </>
             ) : (
@@ -225,13 +226,13 @@ export function TrackSelection({
   );
 }
 
-function Feature({ children }: { children: React.ReactNode }) {
+function Feature({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "blue" }) {
   return (
-    <li className="type-body-m flex items-start gap-2.5 text-primary">
+    <li className={`type-body-m flex items-start gap-2.5 ${tone === "blue" ? "text-on-brand" : "text-primary"}`}>
       <CheckIcon
         size={16}
         weight="bold"
-        className="mt-1 shrink-0 text-success"
+        className={`mt-1 shrink-0 ${tone === "blue" ? "text-on-brand/80" : "text-success"}`}
         aria-hidden="true"
       />
       <span>{children}</span>

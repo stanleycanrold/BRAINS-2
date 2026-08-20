@@ -21,11 +21,11 @@ export function wisePaymentsEnabled(): boolean {
 }
 
 export function paymentContactEmail(): string {
-  return process.env.PAYMENT_CONTACT_EMAIL?.trim() ?? "";
+  return process.env.PAYMENT_CONTACT_EMAIL?.trim() || "stanley@nexabrains.io";
 }
 
 export function fastTrackPaymentsEnabled(): boolean {
-  return Boolean(paymentContactEmail());
+  return Boolean(paymentContactEmail() && process.env.RESEND_API_KEY);
 }
 
 export function getStripe(): Stripe {
