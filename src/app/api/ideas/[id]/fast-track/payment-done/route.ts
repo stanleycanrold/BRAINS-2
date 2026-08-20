@@ -10,6 +10,7 @@ import { ideaStateSchema } from "@/lib/domain/types";
 import { runQuestionnaire } from "@/lib/agents/orchestrator";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 export async function POST(
   _request: Request,
