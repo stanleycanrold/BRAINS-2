@@ -13,13 +13,13 @@ import { destinationAfterAuth } from "@/lib/auth-redirect";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ draft?: string; claim?: string }>;
+  searchParams: Promise<{ draft?: string; claim?: string; workspace?: string }>;
 }) {
-  const { draft, claim } = await searchParams;
+  const { draft, claim, workspace } = await searchParams;
 
   return (
     <AuthLayout title="Welcome back" subtitle="Pick up where you left off.">
-      <SignIn forceRedirectUrl={destinationAfterAuth({ draft, claim })} />
+      <SignIn forceRedirectUrl={destinationAfterAuth({ draft, claim, workspace })} />
     </AuthLayout>
   );
 }

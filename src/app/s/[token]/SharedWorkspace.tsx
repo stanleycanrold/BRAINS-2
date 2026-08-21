@@ -104,14 +104,14 @@ export function SharedWorkspace({
 
   return (
     <div className="min-h-screen bg-page">
-      <header className="border-b border-line">
-        <div className="mx-auto flex h-14 max-w-[1000px] items-center justify-between px-5">
-          <Logo />
-          <span className="type-caption text-tertiary">
-            {founder ? "Founder workspace" : "Shared, read-only"}
-          </span>
-        </div>
-      </header>
+      {!founder ? (
+        <header className="border-b border-line">
+          <div className="mx-auto flex h-14 max-w-[1000px] items-center justify-between px-5">
+            <Logo />
+            <span className="type-caption text-tertiary">Shared, read-only</span>
+          </div>
+        </header>
+      ) : null}
 
       <div className="mx-auto max-w-[1000px] px-5 pt-10">
         <p className="type-caption text-brand uppercase">Validation workspace</p>

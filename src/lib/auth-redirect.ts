@@ -9,14 +9,19 @@
 export function destinationAfterAuth({
   draft,
   claim,
+  workspace,
 }: {
   draft?: string;
   claim?: string;
+  workspace?: string;
 }): string | undefined {
   // A finished run wins over raw text. Someone who has both typed an idea and
   // had it researched should get the research.
   const token = claim?.trim();
   if (token) return `/claim/${encodeURIComponent(token)}`;
+
+  const sharedWorkspace = workspace?.trim();
+  if (sharedWorkspace) return `/w/${encodeURIComponent(sharedWorkspace)}`;
 
   const trimmed = draft?.trim();
   if (trimmed) return `/ideas/new?draft=${encodeURIComponent(trimmed)}`;

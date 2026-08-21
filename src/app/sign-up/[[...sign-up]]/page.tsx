@@ -19,16 +19,16 @@ import { destinationAfterAuth } from "@/lib/auth-redirect";
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ draft?: string; claim?: string }>;
+  searchParams: Promise<{ draft?: string; claim?: string; workspace?: string }>;
 }) {
-  const { draft, claim } = await searchParams;
+  const { draft, claim, workspace } = await searchParams;
 
   return (
     <AuthLayout
       title="Find out if your idea holds up"
       subtitle="Research, real signal, and a score with the reasoning behind it."
     >
-      <SignUp forceRedirectUrl={destinationAfterAuth({ draft, claim })} />
+      <SignUp forceRedirectUrl={destinationAfterAuth({ draft, claim, workspace })} />
     </AuthLayout>
   );
 }

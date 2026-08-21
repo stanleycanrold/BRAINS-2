@@ -29,10 +29,12 @@ export function AppShell({
   ideas,
   children,
   isOps = false,
+  publicWorkspace,
 }: {
   ideas: SidebarIdea[];
   children: React.ReactNode;
   isOps?: boolean;
+  publicWorkspace?: { token: string; ideaId: string };
 }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [collapsed, setCollapsed] = usePersistedFlag(COLLAPSE_KEY);
@@ -58,6 +60,7 @@ export function AppShell({
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
         isOps={isOps}
+        publicWorkspace={publicWorkspace}
       />
 
       {/* Padding tracks the rail: the 56px icon rail at tablet, and at desktop

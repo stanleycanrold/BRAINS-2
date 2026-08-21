@@ -71,6 +71,7 @@ export function Sidebar({
   mobileOpen,
   onMobileClose,
   isOps = false,
+  publicWorkspace,
 }: {
   ideas: SidebarIdea[];
   collapsed: boolean;
@@ -78,6 +79,7 @@ export function Sidebar({
   mobileOpen: boolean;
   onMobileClose: () => void;
   isOps?: boolean;
+  publicWorkspace?: { token: string; ideaId: string };
 }) {
   const pathname = usePathname();
 
@@ -86,7 +88,7 @@ export function Sidebar({
    * Every screen under /ideas/:id belongs to one, and the layout that renders
    * this sidebar does not know which - the route does.
    */
-  const currentId = pathname.match(/^\/ideas\/([^/]+)/)?.[1] ?? null;
+  const currentId = publicWorkspace?.ideaId ?? pathname.match(/^\/ideas\/([^/]+)/)?.[1] ?? null;
   const isNewIdea = currentId === "new";
   const workspaceId = isNewIdea ? null : currentId;
   const workspace = ideas.find((i) => i.id === workspaceId) ?? null;
@@ -183,19 +185,37 @@ export function Sidebar({
 
         {/* ── Workspace switcher ─────────────────────────────────────── */}
         <div className="shrink-0 px-3 pb-2 md:px-2 lg:px-3">
-          <WorkspaceSwitcher
-            ideas={ideas}
-            currentId={workspaceId}
-            collapsed={collapsed}
-            onNavigate={onMobileClose}
-          />
+          {publicWorkspace ? (
+            <div
+              className={cn(
+                "flex h-9 w-full items-center gap-2 rounded-[8px] border border-line px-2.5",
+                "text-left",
+                collapsed && "md:justify-center md:px-0",
+              )}
+              title={workspace?.title || "Workspace"}
+            >
+              <span className="flex w-[18px] shrink-0 items-center justify-center">
+                <span className={cn("size-2 rounded-full", workspace ? STATUS_DOT[workspace.status] : "bg-brand")} aria-hidden="true" />
+              </span>
+              <span className={cn("type-body-m min-w-0 flex-1 truncate font-medium text-primary", collapsed && "md:hidden")}>
+                {workspace?.title || "Workspace"}
+              </span>
+            </div>
+          ) : (
+            <WorkspaceSwitcher
+              ideas={ideas}
+              currentId={workspaceId}
+              collapsed={collapsed}
+              onNavigate={onMobileClose}
+            />
+          )}
         </div>
 
         {/* ── Primary actions ────────────────────────────────────────── */}
         <div className="shrink-0 space-y-0.5 px-3 pb-2 md:px-2 lg:px-3">
           <Tooltip content={collapsed ? "New idea" : ""} side="right">
             <Link
-              href="/ideas/new"
+              href={publicWorkspace ? `/sign-up?workspace=${publicWorkspace.token}` : "/ideas/new"}
               onClick={onMobileClose}
               title="New idea"
               className={cn(
@@ -221,7 +241,7 @@ export function Sidebar({
               opposite of what you want while working in one, and the workspace
               has its own Overview immediately below. "All ideas" in the
               switcher is the way back out. */}
-          {workspace ? null : (
+          {workspace || publicWorkspace ? null : (
             <NavItem
               href="/dashboard"
               icon={<SquaresFourIcon size={ICON} aria-hidden="true" />}
@@ -251,12 +271,16 @@ export function Sidebar({
               <SectionLabel>Workspace</SectionLabel>
               <ul className="space-y-px">
                 {WORKSPACE_SECTIONS.map((section) => {
-                  const href = `/ideas/${workspace.id}${section.slug}`;
+                  const href = publicWorkspace
+                    ? `/w/${publicWorkspace.token}`
+                    : `/ideas/${workspace.id}${section.slug}`;
                   const reachable = sectionReachable[section.slug] ?? true;
                   const isActive =
-                    section.slug === ""
-                      ? pathname === `/ideas/${workspace.id}`
-                      : pathname.startsWith(href);
+                    publicWorkspace
+                      ? pathname === `/w/${publicWorkspace.token}`
+                      : section.slug === ""
+                        ? pathname === `/ideas/${workspace.id}`
+                        : pathname.startsWith(href);
 
                   return (
                     <li key={section.slug}>
@@ -334,12 +358,21 @@ export function Sidebar({
 
         {/* ── Account ────────────────────────────────────────────────── */}
         <div className="shrink-0 border-t border-line px-3 py-2 md:px-2 lg:px-3">
-          <AccountBlock
-            flexOnly={flexOnly}
-            railOnly={railOnly}
-            onNavigate={onMobileClose}
-            isOps={isOps}
-          />
+          {publicWorkspace ? (
+            <PublicAccountBlock
+              flexOnly={flexOnly}
+              railOnly={railOnly}
+              href={`/sign-up?workspace=${publicWorkspace.token}`}
+              onNavigate={onMobileClose}
+            />
+          ) : (
+            <AccountBlock
+              flexOnly={flexOnly}
+              railOnly={railOnly}
+              onNavigate={onMobileClose}
+              isOps={isOps}
+            />
+          )}
         </div>
       </aside>
     </>
@@ -492,6 +525,57 @@ function IdeaLink({
         ) : null}
       </Link>
     </li>
+  );
+}
+
+function PublicAccountBlock({
+  flexOnly,
+  railOnly,
+  href,
+  onNavigate,
+}: {
+  flexOnly: string;
+  railOnly: string;
+  href: string;
+  onNavigate: () => void;
+}) {
+  const content = (
+    <>
+      <span className={SLOT}>
+        <UserIcon size={ICON} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="type-body-m block truncate font-medium text-primary">
+          Create account
+        </span>
+        <span className="type-caption block truncate text-tertiary">
+          Keep this workspace
+        </span>
+      </span>
+      <CaretUpDownIcon size={14} className="shrink-0 text-tertiary" aria-hidden="true" />
+    </>
+  );
+
+  return (
+    <>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        className={cn(ROW, "text-left transition-colors hover:bg-wash-hover lg:justify-start lg:px-2.5", flexOnly)}
+      >
+        {content}
+      </Link>
+      <Tooltip content="Create account" side="right">
+        <Link
+          href={href}
+          onClick={onNavigate}
+          className={cn(ROW, "transition-colors hover:bg-wash-hover", railOnly)}
+        >
+          <span className={SLOT}><UserIcon size={ICON} aria-hidden="true" /></span>
+          <span className="sr-only">Create account</span>
+        </Link>
+      </Tooltip>
+    </>
   );
 }
 
