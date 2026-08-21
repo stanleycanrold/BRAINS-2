@@ -3,8 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-
-export const WORKSPACE_TOKEN_COOKIE = "brains_workspace_token";
+import { WORKSPACE_TOKEN_COOKIE } from "@/lib/workspace-token";
 
 export async function workspaceAccess() {
   const token = (await cookies()).get(WORKSPACE_TOKEN_COOKIE)?.value;

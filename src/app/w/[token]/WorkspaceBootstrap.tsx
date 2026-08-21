@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { WORKSPACE_TOKEN_COOKIE } from "@/lib/auth";
+import { WORKSPACE_TOKEN_COOKIE } from "@/lib/workspace-token";
 
 export function WorkspaceBootstrap({ token, ideaId }: { token: string; ideaId: string }) {
   React.useEffect(() => {
