@@ -20,7 +20,7 @@ let cachedSearch: SearchProvider | null = null;
 export function getLLM(): LLMProvider {
   if (cachedProvider) return cachedProvider;
 
-  const choice = (process.env.LLM_PROVIDER || "gemini").toLowerCase();
+  const choice = (process.env.LLM_PROVIDER || "groq").toLowerCase();
   if (choice === "groq") {
     cachedProvider = createGroqProvider();
     return cachedProvider;
@@ -30,8 +30,7 @@ export function getLLM(): LLMProvider {
     return cachedProvider;
   }
 
-  // Gemini is the default LLM. Groq remains the automatic fallback until the
-  // Gemini key is configured in local, preview, or production environments.
+  // Gemini remains available explicitly or as a fallback when configured.
   cachedProvider = process.env.GEMINI_API_KEY
     ? withGroqFallback(createGeminiProvider(), createGroqProvider())
     : createGroqProvider();
@@ -59,15 +58,13 @@ function withGroqFallback(primary: LLMProvider, fallback: LLMProvider): LLMProvi
 
 export function getSearch(): SearchProvider {
   if (cachedSearch) return cachedSearch;
-  const choice = (process.env.SEARCH_PROVIDER || "gemini").toLowerCase();
+  const choice = (process.env.SEARCH_PROVIDER || "groq").toLowerCase();
   if (choice === "groq") {
     cachedSearch = createGroqSearchProvider();
     return cachedSearch;
   }
 
-  // Gemini is the default search backend. Keep Groq available automatically
-  // until a Gemini key is configured, so local and preview environments keep
-  // their existing search behavior.
+  // Gemini remains available explicitly and supplements Groq when configured.
   const gemini = createGeminiSearchProvider();
   cachedSearch = gemini.available
     ? withGroqSearchFallback(gemini, createGroqSearchProvider())

@@ -6,9 +6,6 @@ import { db, schema } from "@/lib/db";
 import { WORKSPACE_TOKEN_COOKIE } from "@/lib/workspace-token";
 
 export async function workspaceAccess() {
-  const { userId } = await auth();
-  if (userId) return null;
-
   const token = (await cookies()).get(WORKSPACE_TOKEN_COOKIE)?.value;
   if (!token || token.length < 16) return null;
 

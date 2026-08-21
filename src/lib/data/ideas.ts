@@ -104,11 +104,22 @@ export async function getIdea(
   ideaId: string,
   userId: string,
 ): Promise<IdeaWithState | null> {
-  const rows = await db
+  let rows = await db
     .select()
     .from(schema.ideas)
     .where(and(eq(schema.ideas.id, ideaId), eq(schema.ideas.userId, userId)))
     .limit(1);
+
+  if (rows.length === 0) {
+    const access = await workspaceAccess();
+    if (access?.permission === "edit" && access.id === ideaId) {
+      rows = await db
+        .select()
+        .from(schema.ideas)
+        .where(eq(schema.ideas.id, ideaId))
+        .limit(1);
+    }
+  }
 
   const idea = rows[0];
   if (!idea) return null;
@@ -219,7 +230,7 @@ export async function listIdeas(
     if (!byIdea.has(version.ideaId)) byIdea.set(version.ideaId, version);
   }
 
-  return ideas
+  const ownedIdeas = ideas
     .map((idea) => {
       const current =
         versions.find((v) => v.id === idea.currentVersionId) ??
@@ -227,6 +238,16 @@ export async function listIdeas(
       return current ? hydrate(idea, current) : null;
     })
     .filter((x): x is IdeaWithState => x !== null);
+
+  const access = await workspaceAccess();
+  if (access?.permission === "edit" && access.userId !== userId) {
+    const sharedIdea = await getIdea(access.id, userId);
+    if (sharedIdea && !ownedIdeas.some((idea) => idea.id === sharedIdea.id)) {
+      return [sharedIdea, ...ownedIdeas];
+    }
+  }
+
+  return ownedIdeas;
 }
 
 /**

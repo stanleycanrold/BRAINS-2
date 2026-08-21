@@ -394,10 +394,12 @@ export const fastTrackOrders = pgTable(
      * a dropdown. Blank means no preference.
      */
     locationPreference: text("location_preference").notNull().default(""),
+    customerEmail: text("customer_email").notNull().default(""),
     paymentStatus: paymentStatusEnum("payment_status")
       .notNull()
       .default("pending"),
     paymentRef: text("payment_ref"),
+    paymentReportedAt: timestamp("payment_reported_at", { withTimezone: true }),
     /** True when completed via the simulated-payment path (no Stripe key). */
     simulatedPayment: boolean("simulated_payment").notNull().default(false),
     status: orderStatusEnum("status").notNull().default("pending_sourcing"),

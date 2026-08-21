@@ -22,6 +22,7 @@ export function CheckoutView({
   ideaId: string;
   state: IdeaState;
   initialEstimate: Estimate;
+  initialCustomerEmail: string;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -29,6 +30,7 @@ export function CheckoutView({
   const [serverEstimate, setServerEstimate] = React.useState(initialEstimate);
   const [preparing, setPreparing] = React.useState(false);
   const [location, setLocation] = React.useState("");
+  const [customerEmail, setCustomerEmail] = React.useState(initialCustomerEmail);
   const submitted = false;
 
   const estimate = recalculate(serverEstimate, n);
@@ -62,7 +64,11 @@ export function CheckoutView({
       const response = await fetch(`/api/ideas/${ideaId}/fast-track/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ n, location_preference: location }),
+        body: JSON.stringify({
+          n,
+          location_preference: location,
+          customer_email: customerEmail.trim(),
+        }),
       });
       const body = await response.json();
       if (!response.ok || !body.submitted) {
@@ -160,6 +166,21 @@ export function CheckoutView({
             </dl>
 
             <div className="mt-6 border-t border-line pt-5">
+              <label htmlFor="customer-email" className="type-body-m block font-medium text-primary">
+                Where should we send your payment details? <span className="text-tertiary">Optional</span>
+              </label>
+              <Input
+                id="customer-email"
+                className="mt-2"
+                type="email"
+                value={customerEmail}
+                onChange={(event) => setCustomerEmail(event.target.value)}
+                placeholder="you@example.com"
+                maxLength={320}
+              />
+              <p className="type-caption mt-1.5 text-tertiary">
+                Leave it blank if you prefer us to use the account email.
+              </p>
               <Button
                 variant="primary"
                 size="large"

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireUser, workspaceAccess } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { estimateFastTrack } from "@/lib/pricing";
 import { validationStage } from "@/lib/validation-stage";
@@ -15,6 +15,7 @@ export default async function CheckoutPage({
 }) {
   const { id } = await params;
   const user = await requireUser();
+  const sharedAccess = await workspaceAccess();
   const idea = await getIdea(id, user.id);
   if (!idea) notFound();
 
@@ -44,6 +45,9 @@ export default async function CheckoutPage({
       ideaId={id}
       state={idea.state}
       initialEstimate={estimate}
+      initialCustomerEmail={
+        sharedAccess && sharedAccess.userId !== user.id ? "" : user.email
+      }
     />
   );
 }

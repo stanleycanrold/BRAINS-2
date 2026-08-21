@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
+import { requireUser, workspaceAccess } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { StatusView } from "./StatusView";
@@ -17,6 +17,7 @@ export default async function FastTrackStatusPage({
 }) {
   const { id } = await params;
   const user = await requireUser();
+  const sharedAccess = await workspaceAccess();
   const idea = await getIdea(id, user.id);
   if (!idea) notFound();
 
@@ -51,8 +52,11 @@ export default async function FastTrackStatusPage({
         status: order.status,
         createdAt: order.createdAt.toISOString(),
         locationPreference: order.locationPreference,
+        customerEmail: order.customerEmail,
+        paymentReportedAt: order.paymentReportedAt?.toISOString() ?? null,
         paidAt: order.paidAt?.toISOString() ?? null,
       }}
+      canApprovePayment={!sharedAccess || sharedAccess.userId === user.id}
       scheduled={interviews.filter((i) => i.scheduledAt !== null).length}
       completed={interviews.filter((i) => i.status === "completed").length}
       paymentLink={wisePaymentLink()}

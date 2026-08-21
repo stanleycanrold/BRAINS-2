@@ -57,6 +57,13 @@
       "when": 1787323200000,
       "tag": "0007_founder_workspace_share",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787325000000,
+      "tag": "0008_fast_track_customer_email",
+      "breakpoints": true
     }
   ]
 }

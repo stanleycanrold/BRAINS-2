@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
+import { requireUser, workspaceAccess } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { sendFastTrackPaymentEmails } from "@/lib/fast-track-email";
@@ -20,6 +20,13 @@ export async function POST(
 
   try {
     const user = await requireUser();
+    const access = await workspaceAccess();
+    if (access && access.userId !== user.id) {
+      return NextResponse.json(
+        { error: "Payment reported. The workspace owner must approve it." },
+        { status: 403 },
+      );
+    }
     const idea = await getIdea(id, user.id);
     if (!idea) {
       return NextResponse.json({ error: "Idea not found." }, { status: 404 });
@@ -69,7 +76,7 @@ export async function POST(
       : currentState;
     const panelToken = updatedState.validation.questionnaire.panel_share_token;
     const emailSent = await sendFastTrackPaymentEmails({
-      customerEmail: user.email,
+      customerEmail: order.customerEmail || user.email,
       ideaTitle: idea.title,
       orderId: order.id,
       nRequested: order.nRequested,

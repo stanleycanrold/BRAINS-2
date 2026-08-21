@@ -36,6 +36,8 @@ type Order = {
   createdAt: string;
   paidAt: string | null;
   locationPreference: string;
+  customerEmail: string;
+  paymentReportedAt: string | null;
 };
 
 const STAGES = [
@@ -72,6 +74,7 @@ export function StatusView({
   questionsEditUrl,
   panelUrl,
   founderWebsite,
+  canApprovePayment,
 }: {
   ideaId: string;
   state: IdeaState;
@@ -82,12 +85,14 @@ export function StatusView({
   questionsEditUrl: string;
   panelUrl: string | null;
   founderWebsite: string | null;
+  canApprovePayment: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [copied, setCopied] = React.useState<"link" | null>(null);
   const [confirmingPayment, setConfirmingPayment] = React.useState(false);
+  const [reportingPayment, setReportingPayment] = React.useState(false);
   const [confirmationError, setConfirmationError] = React.useState<string | null>(null);
 
   const paid = order.paymentStatus === "paid";
@@ -180,6 +185,27 @@ export function StatusView({
     }
   }
 
+  async function reportPayment() {
+    setReportingPayment(true);
+    setConfirmationError(null);
+    try {
+      const response = await fetch(`/api/ideas/${ideaId}/fast-track/payment-reported`, {
+        method: "POST",
+      });
+      const body = await response.json();
+      if (!response.ok || !body.reported) {
+        throw new Error(body.error ?? "We couldn't report the payment yet.");
+      }
+      router.refresh();
+    } catch (err) {
+      setConfirmationError(
+        err instanceof Error ? err.message : "We couldn't report the payment yet.",
+      );
+    } finally {
+      setReportingPayment(false);
+    }
+  }
+
   return (
     <>
       <IdeaTopBar
@@ -228,18 +254,41 @@ export function StatusView({
               </button>
             </div>
           </div>
-          <Button
-            className="mt-4"
-            variant="primary"
-            loading={confirmingPayment}
-            onClick={() => void confirmPayment()}
-            iconRight={<CheckCircleIcon size={17} aria-hidden="true" />}
-          >
-            Payment done
-          </Button>
-          <p className="type-caption mt-2 text-tertiary">
-            Click after you have completed payment. We will mark the order paid and begin the work.
-          </p>
+          {canApprovePayment ? (
+            <>
+              <Button
+                className="mt-4"
+                variant="primary"
+                loading={confirmingPayment}
+                onClick={() => void confirmPayment()}
+                iconRight={<CheckCircleIcon size={17} aria-hidden="true" />}
+              >
+                Approve payment
+              </Button>
+              <p className="type-caption mt-2 text-tertiary">
+                Approve after the founder confirms payment.
+              </p>
+            </>
+          ) : order.paymentReportedAt ? (
+            <p className="type-body-m mt-4 rounded-[6px] border border-line bg-raised p-3 text-secondary">
+              Payment reported. We are waiting for the workspace owner to approve it.
+            </p>
+          ) : (
+            <>
+              <Button
+                className="mt-4"
+                variant="primary"
+                loading={reportingPayment}
+                onClick={() => void reportPayment()}
+                iconRight={<CheckCircleIcon size={17} aria-hidden="true" />}
+              >
+                I have paid
+              </Button>
+              <p className="type-caption mt-2 text-tertiary">
+                We will notify the workspace owner for approval.
+              </p>
+            </>
+          )}
           <Link
             href={questionsEditUrl}
             className="type-body-m mt-3 inline-flex text-brand hover:text-primary"

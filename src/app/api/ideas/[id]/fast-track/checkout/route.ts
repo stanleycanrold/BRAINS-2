@@ -17,6 +17,7 @@ export const runtime = "nodejs";
 const bodySchema = z.object({
   n: z.number().int().min(1),
   location_preference: z.string().max(200).default(""),
+  customer_email: z.string().trim().email().max(320).or(z.literal("")).default(""),
 });
 
 export async function POST(
@@ -96,6 +97,7 @@ export async function POST(
         currency: estimate.currency,
         nicheTier: idea.state.structured.niche_tier,
         locationPreference: location,
+        customerEmail: parsed.data.customer_email || user.email,
         paymentStatus: "pending",
         status: "pending_sourcing",
       })
@@ -122,7 +124,8 @@ export async function POST(
       .set({ paymentRef: "contact" })
       .where(eq(schema.fastTrackOrders.id, order.id));
 
-    const canSendEmail = Boolean(process.env.RESEND_API_KEY && emailFromAddress() && user.email);
+    const customerEmail = parsed.data.customer_email || user.email;
+    const canSendEmail = Boolean(process.env.RESEND_API_KEY && emailFromAddress() && customerEmail);
     const emailResponse = canSendEmail
       ? await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -132,7 +135,7 @@ export async function POST(
       },
       body: JSON.stringify({
         from: emailFromAddress(),
-        to: [user.email],
+        to: [customerEmail],
         cc: [paymentContactEmail()],
         subject: `Your BRAINS AI payment details: ${idea.title}`,
         text: [
