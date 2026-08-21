@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requireWorkspaceEditor } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
 import { estimateFastTrack, formatMoney } from "@/lib/pricing";
@@ -34,6 +34,7 @@ export async function POST(
     }
 
     const user = await requireUser();
+    await requireWorkspaceEditor();
     const idea = await getIdea(id, user.id);
     if (!idea) {
       return NextResponse.json({ error: "Idea not found." }, { status: 404 });

@@ -1,7 +1,55 @@
 import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+
+export const WORKSPACE_TOKEN_COOKIE = "brains_workspace_token";
+
+export async function workspaceAccess() {
+  const token = (await cookies()).get(WORKSPACE_TOKEN_COOKIE)?.value;
+  if (!token || token.length < 16) return null;
+
+  const [idea] = await db
+    .select({
+      id: schema.ideas.id,
+      userId: schema.ideas.userId,
+      editorToken: schema.ideas.founderEditorToken,
+      readToken: schema.ideas.founderReadOnlyToken,
+      archived: schema.ideas.archived,
+    })
+    .from(schema.ideas)
+    .where(
+      eq(schema.ideas.founderEditorToken, token),
+    )
+    .limit(1);
+
+  if (!idea || idea.archived) {
+    const [readOnlyIdea] = await db
+      .select({
+        id: schema.ideas.id,
+        userId: schema.ideas.userId,
+        editorToken: schema.ideas.founderEditorToken,
+        readToken: schema.ideas.founderReadOnlyToken,
+        archived: schema.ideas.archived,
+      })
+      .from(schema.ideas)
+      .where(eq(schema.ideas.founderReadOnlyToken, token))
+      .limit(1);
+    if (!readOnlyIdea || readOnlyIdea.archived) return null;
+    return { ...readOnlyIdea, token, permission: "read" as const };
+  }
+
+  return { ...idea, token, permission: "edit" as const };
+}
+
+export async function requireWorkspaceEditor() {
+  const access = await workspaceAccess();
+  if (access && access.permission !== "edit") {
+    throw new Error("This shared workspace is read-only.");
+  }
+  return access;
+}
 
 /**
  * Maps the Clerk identity onto our own `users` row, creating it on first sight.
@@ -10,7 +58,17 @@ import { db, schema } from "@/lib/db";
  */
 export async function requireUser() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) throw new Error("Not authenticated");
+  if (!clerkId) {
+    const access = await workspaceAccess();
+    if (!access) throw new Error("Not authenticated");
+    const [owner] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, access.userId))
+      .limit(1);
+    if (!owner) throw new Error("Workspace owner not found");
+    return owner;
+  }
 
   const existing = await db
     .select()

@@ -1,6 +1,7 @@
 import "server-only";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { workspaceAccess } from "@/lib/auth";
 import {
   emptyIdeaState,
   ideaStateSchema,
@@ -237,6 +238,11 @@ export async function updateCurrentState(
   versionId: string,
   mutate: (state: IdeaState) => IdeaState,
 ): Promise<IdeaState> {
+  const access = await workspaceAccess();
+  if (access?.permission === "read") {
+    throw new Error("This shared workspace is read-only.");
+  }
+
   const rows = await db
     .select()
     .from(schema.ideaStateVersions)
@@ -293,6 +299,11 @@ export async function forkVersion(params: {
   /** Where the new version resumes: research (B3) or validation (B4). */
   resumeAt: "research" | "validation";
 }): Promise<IdeaWithState> {
+  const access = await workspaceAccess();
+  if (access?.permission === "read") {
+    throw new Error("This shared workspace is read-only.");
+  }
+
   const current = await getIdea(params.ideaId, params.userId);
   if (!current) throw new Error("Idea not found");
 

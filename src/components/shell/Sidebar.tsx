@@ -271,9 +271,7 @@ export function Sidebar({
               <SectionLabel>Workspace</SectionLabel>
               <ul className="space-y-px">
                 {WORKSPACE_SECTIONS.map((section) => {
-                  const href = publicWorkspace
-                    ? `/w/${publicWorkspace.token}`
-                    : `/ideas/${workspace.id}${section.slug}`;
+                  const href = `/ideas/${workspace.id}${section.slug}`;
                   const reachable = sectionReachable[section.slug] ?? true;
                   const isActive =
                     publicWorkspace

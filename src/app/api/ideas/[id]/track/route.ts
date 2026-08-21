@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requireWorkspaceEditor } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { runSignalScan } from "@/lib/agents/orchestrator";
 import { trackSchema } from "@/lib/domain/types";
@@ -26,6 +26,7 @@ export async function POST(
 
   try {
     const user = await requireUser();
+    await requireWorkspaceEditor();
     const idea = await getIdea(id, user.id);
     if (!idea) {
       return NextResponse.json({ error: "Idea not found." }, { status: 404 });
