@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowSquareOutIcon,
   CheckIcon,
@@ -15,6 +16,7 @@ import { Card } from "@/components/ui/Card";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Logo } from "@/components/brand/Logo";
 import { QuestionEditor } from "@/components/QuestionEditor";
+import { ProposalCard } from "@/components/ProposalCard";
 import { ResponseMatrix } from "@/components/ResponseMatrix";
 import { cn } from "@/lib/cn";
 import type { JourneyRound, PublicJourney } from "@/lib/data/journey";
@@ -153,12 +155,12 @@ export function SharedWorkspace({
         ) : null}
         {tab === "idea" ? <IdeaTab round={latest} /> : null}
         {tab === "research" && researched ? (
-          <ResearchTab round={researched} />
+          <ResearchTab round={researched} founder={founder} />
         ) : null}
         {tab === "validation" && validated ? (
           <ValidationTab round={validated} journey={journey} />
         ) : null}
-        {tab === "verdict" && scored ? <VerdictTab round={scored} /> : null}
+        {tab === "verdict" && scored ? <VerdictTab round={scored} founder={founder} /> : null}
         {tab === "history" ? <HistoryTab journey={journey} /> : null}
 
         <footer className="mt-16 border-t border-line pt-8">
@@ -269,6 +271,21 @@ function FounderDecisionPanel({ founder }: { founder: FounderShare }) {
       </div>
     </section>
   );
+}
+
+async function decideFounderProposal(
+  token: string,
+  area: "research" | "decision",
+  id: string,
+  status: "accepted" | "rejected" | "edited",
+  editedText?: string,
+) {
+  const response = await fetch(`/api/w/${token}/proposals`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ area, proposal_id: id, status, edited_text: editedText }),
+  });
+  if (!response.ok) throw new Error("We couldn't save that decision.");
 }
 
 /* ── Summary ─────────────────────────────────────────────────────────────
@@ -447,8 +464,15 @@ function IdeaTab({ round }: { round: JourneyRound }) {
 
 /* ── Research ──────────────────────────────────────────────────────────── */
 
-function ResearchTab({ round }: { round: JourneyRound }) {
+function ResearchTab({
+  round,
+  founder,
+}: {
+  round: JourneyRound;
+  founder?: FounderShare;
+}) {
   const research = round.research!;
+  const router = useRouter();
   const citationCount = research.sources.reduce((n, s) => n + s.citations, 0);
 
   return (
@@ -600,24 +624,27 @@ function ResearchTab({ round }: { round: JourneyRound }) {
           defaultOpen
         >
           <ul className="space-y-4">
-            {research.proposedChanges.map((proposal) => (
-              <li
-                key={proposal.text}
-                className="rounded-[8px] border border-line p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <p className="type-body-m min-w-0 font-medium text-primary">
-                    {proposal.text}
-                  </p>
-                  <ProposalStatus status={proposal.status} />
-                </div>
-                {proposal.reasoning ? (
-                  <p className="type-body-m mt-2 text-secondary">
-                    {proposal.reasoning}
-                  </p>
-                ) : null}
-              </li>
-            ))}
+            {research.proposedChanges.map((proposal, index) =>
+              founder?.permission === "edit" ? (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  index={index}
+                  onDecide={async (id, status, editedText) => {
+                    await decideFounderProposal(founder.token, "research", id, status, editedText);
+                    router.refresh();
+                  }}
+                />
+              ) : (
+                <li key={proposal.id} className="rounded-[8px] border border-line p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <p className="type-body-m min-w-0 font-medium text-primary">{proposal.edited_text ?? proposal.text}</p>
+                    <ProposalStatus status={proposal.status} />
+                  </div>
+                  {proposal.reasoning ? <p className="type-body-m mt-2 text-secondary">{proposal.reasoning}</p> : null}
+                </li>
+              ),
+            )}
           </ul>
         </Disclosure>
       ) : null}
@@ -909,8 +936,15 @@ function ValidationTab({
 
 /* ── Verdict ───────────────────────────────────────────────────────────── */
 
-function VerdictTab({ round }: { round: JourneyRound }) {
+function VerdictTab({
+  round,
+  founder,
+}: {
+  round: JourneyRound;
+  founder?: FounderShare;
+}) {
   const score = round.score!;
+  const router = useRouter();
   const isGo = score.signal === "go_ahead";
 
   return (
@@ -981,24 +1015,27 @@ function VerdictTab({ round }: { round: JourneyRound }) {
           defaultOpen
         >
           <ul className="space-y-4">
-            {score.improvements.map((item) => (
-              <li
-                key={item.text}
-                className="rounded-[8px] border border-line p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <p className="type-body-m min-w-0 font-medium text-primary">
-                    {item.text}
-                  </p>
-                  <ProposalStatus status={item.status} />
-                </div>
-                {item.reasoning ? (
-                  <p className="type-body-m mt-2 text-secondary">
-                    {item.reasoning}
-                  </p>
-                ) : null}
-              </li>
-            ))}
+            {score.improvements.map((item, index) =>
+              founder?.permission === "edit" ? (
+                <ProposalCard
+                  key={item.id}
+                  proposal={item}
+                  index={index}
+                  onDecide={async (id, status, editedText) => {
+                    await decideFounderProposal(founder.token, "decision", id, status, editedText);
+                    router.refresh();
+                  }}
+                />
+              ) : (
+                <li key={item.id} className="rounded-[8px] border border-line p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <p className="type-body-m min-w-0 font-medium text-primary">{item.edited_text ?? item.text}</p>
+                    <ProposalStatus status={item.status} />
+                  </div>
+                  {item.reasoning ? <p className="type-body-m mt-2 text-secondary">{item.reasoning}</p> : null}
+                </li>
+              ),
+            )}
           </ul>
         </Disclosure>
       ) : null}

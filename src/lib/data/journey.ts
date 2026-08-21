@@ -6,6 +6,7 @@ import {
   computeConfirmationRate,
   ideaStateSchema,
   type IdeaState,
+  type Proposal,
   type ResearchReport,
 } from "@/lib/domain/types";
 import { countSourcesAcross, sources } from "@/lib/domain/research-sources";
@@ -96,7 +97,7 @@ export type JourneyRound = {
      * the founder did with each. Showing this is the difference between a
      * report that summarises and one that visibly did work.
      */
-    proposedChanges: { text: string; reasoning: string; status: string }[];
+    proposedChanges: Proposal[];
     unsourced: boolean;
   } | null;
   questions: string[];
@@ -128,7 +129,7 @@ export type JourneyRound = {
     reasoning: string;
     riskFactors: { label: string; detail: string; severity: string }[];
     /** What the engine recommended doing next, and the founder's call on it. */
-    improvements: { text: string; reasoning: string; status: string }[];
+    improvements: Proposal[];
     /**
      * Which part failed, on a round that missed the threshold. Absent on a
      * go-ahead, where the agent records it as not_applicable.
@@ -434,11 +435,7 @@ export async function getPublicJourney(
             // Research tab cannot contradict the number above it.
             sources: sources(research),
             openQuestions: research.open_questions,
-            proposedChanges: research.proposed_changes.map((p) => ({
-              text: p.edited_text || p.text,
-              reasoning: p.reasoning,
-              status: p.status,
-            })),
+            proposedChanges: research.proposed_changes,
             unsourced: research.unsourced,
           }
         : null,
@@ -515,11 +512,7 @@ export async function getPublicJourney(
               detail: r.detail,
               severity: r.severity,
             })),
-            improvements: gate.improvement_proposal.map((p) => ({
-              text: p.edited_text || p.text,
-              reasoning: p.reasoning,
-              status: p.status,
-            })),
+            improvements: gate.improvement_proposal,
             diagnostic:
               gate.diagnostic && gate.diagnostic.verdict !== "not_applicable"
                 ? {
