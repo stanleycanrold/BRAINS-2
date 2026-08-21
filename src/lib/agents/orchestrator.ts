@@ -274,9 +274,11 @@ export async function runResearchPipeline(params: {
     `${extraction.problem_statement} forum discussion community thread${where}`,
   ];
 
-  const searchResults = (
-    await Promise.all(queries.map((q) => search.search(q)))
-  ).flat();
+  const searchResults = [];
+  for (let index = 0; index < queries.length; index += 2) {
+    const batch = queries.slice(index, index + 2);
+    searchResults.push(...(await Promise.all(batch.map((q) => search.search(q)))).flat());
+  }
 
   const deduped = dedupeByUrl(searchResults);
 
