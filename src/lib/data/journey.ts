@@ -350,7 +350,13 @@ export async function getPublicJourney(
   const [idea] = await db
     .select()
     .from(schema.ideas)
-    .where(eq(schema.ideas.shareToken, token))
+    .where(
+      or(
+        eq(schema.ideas.shareToken, token),
+        eq(schema.ideas.founderReadOnlyToken, token),
+        eq(schema.ideas.founderEditorToken, token),
+      ),
+    )
     .limit(1);
 
   if (!idea || idea.archived) return null;

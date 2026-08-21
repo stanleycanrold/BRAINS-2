@@ -8,13 +8,17 @@ import {
   WarningIcon,
   XIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Logo } from "@/components/brand/Logo";
+import { QuestionEditor } from "@/components/QuestionEditor";
 import { ResponseMatrix } from "@/components/ResponseMatrix";
 import { cn } from "@/lib/cn";
 import type { JourneyRound, PublicJourney } from "@/lib/data/journey";
+import type { Question } from "@/lib/domain/types";
 
 /**
  * A shared workspace, read-only.
@@ -54,7 +58,21 @@ const STRENGTH_TONE: Record<string, "success" | "caution" | "danger"> = {
   weak: "danger",
 };
 
-export function SharedWorkspace({ journey }: { journey: PublicJourney }) {
+type FounderShare = {
+  token: string;
+  ideaId: string;
+  permission: "read" | "edit";
+  questions: Question[];
+  intro: string;
+};
+
+export function SharedWorkspace({
+  journey,
+  founder,
+}: {
+  journey: PublicJourney;
+  founder?: FounderShare;
+}) {
   const [tab, setTab] = React.useState<TabId>("summary");
 
   // The latest round that actually got somewhere. A freshly opened round has
@@ -86,7 +104,7 @@ export function SharedWorkspace({ journey }: { journey: PublicJourney }) {
         <div className="mx-auto flex h-14 max-w-[1000px] items-center justify-between px-5">
           <Logo />
           <span className="type-caption text-tertiary">
-            Shared, read-only
+            {founder ? "Founder workspace" : "Shared, read-only"}
           </span>
         </div>
       </header>
@@ -99,6 +117,8 @@ export function SharedWorkspace({ journey }: { journey: PublicJourney }) {
             {journey.summary}
           </p>
         ) : null}
+
+        {founder ? <FounderDecisionPanel founder={founder} /> : null}
 
         <div
           role="tablist"
@@ -156,6 +176,84 @@ export function SharedWorkspace({ journey }: { journey: PublicJourney }) {
         </footer>
       </main>
     </div>
+  );
+}
+
+function FounderDecisionPanel({ founder }: { founder: FounderShare }) {
+  const { token, ideaId, permission } = founder;
+  const [questions, setQuestions] = React.useState(founder.questions);
+  const [savedQuestions, setSavedQuestions] = React.useState(founder.questions);
+  const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved] = React.useState(true);
+
+  async function save() {
+    if (permission !== "edit") return;
+    setSaving(true);
+    setSaved(false);
+    try {
+      const response = await fetch(`/api/w/${token}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions, intro: founder.intro }),
+      });
+      if (!response.ok) throw new Error("We couldn't save those questions.");
+      setSavedQuestions(questions);
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-8 rounded-[10px] border border-brand/40 bg-brand-subtle p-5 sm:p-6" aria-labelledby="founder-review-heading">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="danger" dot>Action required</Badge>
+            <span className="type-caption text-tertiary">Founder review</span>
+          </div>
+          <h2 id="founder-review-heading" className="type-display-m mt-3 text-primary">
+            Review the questions before you decide
+          </h2>
+          <p className="type-body-m mt-2 max-w-[60ch] text-secondary">
+            The research and workspace are ready. Check the questions below,
+            then choose whether BRAINS should run the validation or you should.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <ButtonLink
+            href={`/ideas/${ideaId}/validation/fast-track/checkout`}
+            variant="primary"
+            iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+          >
+            Pay & run validation
+          </ButtonLink>
+          <ButtonLink
+            href={`/ideas/${ideaId}/validation/normal`}
+            variant="secondary"
+            iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+          >
+            I&rsquo;ll validate myself
+          </ButtonLink>
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-brand/20 pt-5">
+        <div className="flex items-center justify-between gap-4">
+          <p className="type-caption uppercase text-brand">Questions for your customer panel</p>
+          <span className="type-caption text-tertiary">{saving ? "Saving..." : saved ? "Saved" : "Unsaved"}</span>
+        </div>
+        <QuestionEditor
+          questions={questions}
+          onChange={setQuestions}
+          onSave={() => void save()}
+          saving={saving}
+          dirty={JSON.stringify(questions) !== JSON.stringify(savedQuestions)}
+          storageKey={`brains-founder-shared-questions-${ideaId}`}
+          readOnly={permission !== "edit"}
+        />
+      </div>
+    </section>
   );
 }
 

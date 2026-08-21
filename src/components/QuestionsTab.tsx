@@ -6,28 +6,19 @@ import {
   CopyIcon,
   CheckIcon,
   LinkSimpleIcon,
-  TrashIcon,
-  PlusIcon,
   ArrowSquareOutIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/Button";
-import { Disclosure } from "@/components/ui/Disclosure";
-import { Badge } from "@/components/ui/Badge";
-import { Textarea, Input } from "@/components/ui/Field";
 import { Toggle } from "@/components/ui/Checkbox";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
-import { cn } from "@/lib/cn";
 import { FastTrackTeaser } from "@/components/FastTrackTeaser";
+import { QuestionEditor } from "@/components/QuestionEditor";
 import { LightningIcon } from "@phosphor-icons/react/dist/ssr";
 import { canMarketFastTrack } from "@/lib/validation-stage";
 import {
-  QUESTION_KIND_LABELS,
-  SELECTABLE_QUESTION_KINDS,
-  kindHasOptions,
   type IdeaState,
   type Question,
-  type QuestionKind,
 } from "@/lib/domain/types";
 
 /**
@@ -307,234 +298,15 @@ export function QuestionsTab({
       ) : null}
 
 
-        <Disclosure
-          title="Your questions"
-          count={questions.length}
-          summary="What every respondent is asked"
+        <QuestionEditor
+          questions={questions}
+          onChange={setQuestions}
+          onSave={() => void patch({ questions }, "Questions saved")}
+          onRewrite={() => void generate()}
+          saving={saving || generating}
+          dirty={dirty}
           storageKey={`brains-questions-list-${ideaId}`}
-          flush
-          className="mt-5"
-        >
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <p className="type-body-m max-w-prose flex-1 text-secondary">
-            Built from your research. Edit anything - you know how your people
-            talk better than we do, and questions that sound like a survey get
-            survey-quality answers.
-          </p>
-          <Button
-            variant="secondary"
-            size="compact"
-            loading={generating}
-            onClick={() => void generate()}
-            iconLeft={<SparkleIcon size={14} aria-hidden="true" />}
-          >
-            Rewrite
-          </Button>
-        </div>
-
-        {/* ── Questions ──────────────────────────────────────────────────── */}
-        <ul className="mt-6 space-y-3">
-          {questions.map((question, index) => (
-            <li
-              key={question.id}
-              className="rounded-[8px] border border-line bg-raised p-4"
-            >
-              <div className="flex items-start gap-3">
-                <span className="type-data-s mt-2.5 shrink-0 text-tertiary">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                <div className="min-w-0 flex-1">
-                  <Textarea
-                    value={question.text}
-                    rows={2}
-                    aria-label={`Question ${index + 1}`}
-                    onChange={(e) =>
-                      setQuestions((qs) =>
-                        qs.map((q) =>
-                          q.id === question.id ? { ...q, text: e.target.value } : q,
-                        ),
-                      )
-                    }
-                  />
-
-                  {/* How they answer. The scored question is fixed: its whole
-                      job is to produce a yes/unsure/no the rate is computed
-                      from, so letting it become a paragraph would quietly
-                      break the score. */}
-                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                    {question.kind === "confirmation" ? (
-                      <Badge tone="brand" dot>
-                        Scored question
-                      </Badge>
-                    ) : (
-                      <label className="inline-flex items-center gap-2">
-                        <span className="type-body-m text-tertiary">Answer</span>
-                        <select
-                          aria-label={`Answer type for question ${index + 1}`}
-                          value={question.kind}
-                          onChange={(e) =>
-                            setQuestions((qs) =>
-                              qs.map((q) =>
-                                q.id === question.id
-                                  ? {
-                                      ...q,
-                                      kind: e.target.value as QuestionKind,
-                                      // Seed two blank rows so a choice question
-                                      // never renders with nothing to pick.
-                                      options: kindHasOptions(
-                                        e.target.value as QuestionKind,
-                                      )
-                                        ? q.options.length
-                                          ? q.options
-                                          : ["", ""]
-                                        : q.options,
-                                    }
-                                  : q,
-                              ),
-                            )
-                          }
-                          className="type-body-m rounded-[6px] border border-line bg-page px-2 py-1 text-primary"
-                        >
-                          {SELECTABLE_QUESTION_KINDS.map((k) => (
-                            <option key={k} value={k}>
-                              {QUESTION_KIND_LABELS[k].label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    )}
-                    {question.intent ? (
-                      <span className="type-body-m text-tertiary">
-                        {question.intent}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {kindHasOptions(question.kind) ? (
-                    <div className="mt-3 space-y-2 border-l-2 border-line pl-3">
-                      {question.options.map((option, oi) => (
-                        <div key={oi} className="flex items-center gap-2">
-                          <Input
-                            value={option}
-                            aria-label={`Option ${oi + 1} for question ${index + 1}`}
-                            placeholder={`Option ${oi + 1}`}
-                            onChange={(e) =>
-                              setQuestions((qs) =>
-                                qs.map((q) =>
-                                  q.id === question.id
-                                    ? {
-                                        ...q,
-                                        options: q.options.map((o, i) =>
-                                          i === oi ? e.target.value : o,
-                                        ),
-                                      }
-                                    : q,
-                                ),
-                              )
-                            }
-                          />
-                          <button
-                            type="button"
-                            aria-label={`Remove option ${oi + 1}`}
-                            onClick={() =>
-                              setQuestions((qs) =>
-                                qs.map((q) =>
-                                  q.id === question.id
-                                    ? {
-                                        ...q,
-                                        options: q.options.filter(
-                                          (_, i) => i !== oi,
-                                        ),
-                                      }
-                                    : q,
-                                ),
-                              )
-                            }
-                            className="shrink-0 rounded-[6px] p-1.5 text-tertiary transition-colors hover:bg-wash-hover hover:text-danger"
-                          >
-                            <TrashIcon size={14} aria-hidden="true" />
-                          </button>
-                        </div>
-                      ))}
-                      <Button
-                        variant="ghost"
-                        size="compact"
-                        onClick={() =>
-                          setQuestions((qs) =>
-                            qs.map((q) =>
-                              q.id === question.id
-                                ? { ...q, options: [...q.options, ""] }
-                                : q,
-                            ),
-                          )
-                        }
-                        iconLeft={<PlusIcon size={13} aria-hidden="true" />}
-                      >
-                        Add option
-                      </Button>
-                    </div>
-                  ) : null}
-                </div>
-
-                {/* The confirmation question is what the score is computed from,
-                    so it can't be removed - only reworded. */}
-                {question.kind !== "confirmation" ? (
-                  <button
-                    type="button"
-                    aria-label={`Remove question ${index + 1}`}
-                    onClick={() =>
-                      setQuestions((qs) => qs.filter((q) => q.id !== question.id))
-                    }
-                    className="-mt-1 shrink-0 rounded-[6px] p-1.5 text-tertiary transition-colors hover:bg-wash-hover hover:text-danger"
-                  >
-                    <TrashIcon size={16} aria-hidden="true" />
-                  </button>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button
-            variant="ghost"
-            size="compact"
-            onClick={() =>
-              setQuestions((qs) => [
-                ...qs,
-                {
-                  id: crypto.randomUUID(),
-                  text: "",
-                  kind: "open",
-                  options: [],
-                  intent: "",
-                  required: false,
-                },
-              ])
-            }
-            iconLeft={<PlusIcon size={14} aria-hidden="true" />}
-          >
-            Add a question
-          </Button>
-
-          <Button
-            variant="primary"
-            size="compact"
-            loading={saving}
-            disabled={!dirty || questions.some((q) => !q.text.trim())}
-            onClick={() => void patch({ questions }, "Questions saved")}
-          >
-            Save changes
-          </Button>
-
-          {dirty ? (
-            <span className={cn("type-body-m text-secondary")}>
-              Unsaved changes
-            </span>
-          ) : null}
-        </div>
-        </Disclosure>
+        />
       </div>
 
     </>

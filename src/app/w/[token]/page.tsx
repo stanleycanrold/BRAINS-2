@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getFounderWorkspace } from "@/lib/data/journey";
+import { getFounderWorkspace, getPublicJourney } from "@/lib/data/journey";
 import { FounderWorkspace } from "./FounderWorkspace";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +14,7 @@ export default async function FounderWorkspacePage({
 }) {
   const { token } = await params;
   const workspace = await getFounderWorkspace(token);
-  if (!workspace) notFound();
-  return <FounderWorkspace token={token} workspace={workspace} />;
+  const journey = await getPublicJourney(token);
+  if (!workspace || !journey) notFound();
+  return <FounderWorkspace token={token} workspace={workspace} journey={journey} />;
 }
