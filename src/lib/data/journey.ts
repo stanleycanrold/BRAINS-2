@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
   computeConfirmationRate,
@@ -246,6 +246,7 @@ export type FounderWorkspace = {
   intro: string;
   acceptingResponses: boolean;
   hasResearch: boolean;
+  paymentStatus: "pending" | "paid" | "refunded" | "failed" | null;
 };
 
 export async function createFounderShareToken(
@@ -300,6 +301,12 @@ export async function getFounderWorkspace(
   if (!version) return null;
   const state = ideaStateSchema.parse(version.stateJson);
   const research = state.research_report;
+  const [order] = await db
+    .select({ paymentStatus: schema.fastTrackOrders.paymentStatus })
+    .from(schema.fastTrackOrders)
+    .where(eq(schema.fastTrackOrders.ideaStateVersionId, version.id))
+    .orderBy(desc(schema.fastTrackOrders.createdAt))
+    .limit(1);
 
   return {
     ideaId: row.id,
@@ -315,6 +322,7 @@ export async function getFounderWorkspace(
     intro: state.validation.questionnaire.intro,
     acceptingResponses: state.validation.questionnaire.accepting_responses,
     hasResearch: Boolean(research),
+    paymentStatus: order?.paymentStatus ?? null,
   };
 }
 

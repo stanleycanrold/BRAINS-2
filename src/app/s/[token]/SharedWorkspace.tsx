@@ -64,6 +64,7 @@ type FounderShare = {
   permission: "read" | "edit";
   questions: Question[];
   intro: string;
+  paymentStatus: "pending" | "paid" | "refunded" | "failed" | null;
 };
 
 export function SharedWorkspace({
@@ -220,14 +221,27 @@ function FounderDecisionPanel({ founder }: { founder: FounderShare }) {
             then choose whether BRAINS should run the validation or you should.
           </p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <ButtonLink
-            href={`/ideas/${ideaId}/validation/fast-track/checkout`}
-            variant="primary"
-            iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
-          >
-            Pay & run validation
-          </ButtonLink>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {founder.paymentStatus === "paid" ? (
+            <>
+              <Badge tone="success" dot>Validation paid</Badge>
+              <ButtonLink
+                href={`/ideas/${ideaId}/validation/fast-track/status`}
+                variant="secondary"
+                iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+              >
+                View round status
+              </ButtonLink>
+            </>
+          ) : (
+            <ButtonLink
+              href={`/ideas/${ideaId}/validation/fast-track/checkout`}
+              variant="primary"
+              iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+            >
+              Pay & run validation
+            </ButtonLink>
+          )}
           <ButtonLink
             href={`/ideas/${ideaId}/validation/normal`}
             variant="secondary"

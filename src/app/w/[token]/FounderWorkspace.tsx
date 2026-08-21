@@ -21,6 +21,7 @@ export function FounderWorkspace({
         permission: workspace.permission,
         questions: workspace.questions,
         intro: workspace.intro,
+        paymentStatus: workspace.paymentStatus,
       }}
     />
   );
