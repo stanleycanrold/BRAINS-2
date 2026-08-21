@@ -307,6 +307,8 @@ export default async function IdeaOverviewPage({
             origin={origin}
             initialToken={share?.shareToken ?? null}
             initialIncludesResponses={share?.shareIncludesResponses ?? false}
+            initialFounderReadOnlyToken={share?.founderReadOnlyToken ?? null}
+            initialFounderEditorToken={share?.founderEditorToken ?? null}
           />
         </div>
       </section>

@@ -164,6 +164,9 @@ export const ideas = pgTable(
      * without deleting anything.
      */
     shareToken: text("share_token").unique(),
+    /** Capability tokens for the founder-facing workspace at /w/[token]. */
+    founderReadOnlyToken: text("founder_read_only_token").unique(),
+    founderEditorToken: text("founder_editor_token").unique(),
     /**
      * Whether the shared view includes what respondents actually wrote.
      *
@@ -189,6 +192,8 @@ export const ideas = pgTable(
   (t) => [
     index("ideas_user_id_idx").on(t.userId),
     index("ideas_share_token_idx").on(t.shareToken),
+    index("ideas_founder_read_only_token_idx").on(t.founderReadOnlyToken),
+    index("ideas_founder_editor_token_idx").on(t.founderEditorToken),
   ],
 );
 

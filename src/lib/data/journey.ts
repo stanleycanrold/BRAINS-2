@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
   computeConfirmationRate,
@@ -222,12 +222,100 @@ export async function getShareSettings(ideaId: string, userId: string) {
     .select({
       shareToken: schema.ideas.shareToken,
       shareIncludesResponses: schema.ideas.shareIncludesResponses,
+      founderReadOnlyToken: schema.ideas.founderReadOnlyToken,
+      founderEditorToken: schema.ideas.founderEditorToken,
     })
     .from(schema.ideas)
     .where(and(eq(schema.ideas.id, ideaId), eq(schema.ideas.userId, userId)))
     .limit(1);
 
   return row ?? null;
+}
+
+export type FounderWorkspace = {
+  ideaId: string;
+  versionId: string;
+  title: string;
+  summary: string;
+  permission: "read" | "edit";
+  status: IdeaState["status"];
+  sourcesRead: number;
+  roundsRun: number;
+  questions: IdeaState["validation"]["questionnaire"]["questions"];
+  questionnaireToken: string | null;
+  intro: string;
+  acceptingResponses: boolean;
+  hasResearch: boolean;
+};
+
+export async function createFounderShareToken(
+  ideaId: string,
+  userId: string,
+  permission: "read" | "edit",
+): Promise<string | null> {
+  const token = newToken();
+  const column = permission === "edit" ? "founderEditorToken" : "founderReadOnlyToken";
+  const [row] = await db
+    .update(schema.ideas)
+    .set({ [column]: token, updatedAt: new Date() })
+    .where(and(eq(schema.ideas.id, ideaId), eq(schema.ideas.userId, userId)))
+    .returning({ token: permission === "edit" ? schema.ideas.founderEditorToken : schema.ideas.founderReadOnlyToken });
+
+  return row?.token ?? null;
+}
+
+export async function revokeFounderShareToken(
+  ideaId: string,
+  userId: string,
+  permission: "read" | "edit",
+): Promise<void> {
+  const column = permission === "edit" ? "founderEditorToken" : "founderReadOnlyToken";
+  await db
+    .update(schema.ideas)
+    .set({ [column]: null, updatedAt: new Date() })
+    .where(and(eq(schema.ideas.id, ideaId), eq(schema.ideas.userId, userId)));
+}
+
+export async function getFounderWorkspace(
+  token: string,
+): Promise<FounderWorkspace | null> {
+  if (!token || token.length < 16) return null;
+  const [row] = await db
+    .select()
+    .from(schema.ideas)
+    .where(
+      or(
+        eq(schema.ideas.founderReadOnlyToken, token),
+        eq(schema.ideas.founderEditorToken, token),
+      ),
+    )
+    .limit(1);
+  if (!row || row.archived || !row.currentVersionId) return null;
+
+  const [version] = await db
+    .select()
+    .from(schema.ideaStateVersions)
+    .where(eq(schema.ideaStateVersions.id, row.currentVersionId))
+    .limit(1);
+  if (!version) return null;
+  const state = ideaStateSchema.parse(version.stateJson);
+  const research = state.research_report;
+
+  return {
+    ideaId: row.id,
+    versionId: version.id,
+    title: row.title,
+    summary: row.summary,
+    permission: row.founderEditorToken === token ? "edit" : "read",
+    status: state.status,
+    sourcesRead: research ? sources(research).length : 0,
+    roundsRun: version.versionNumber,
+    questions: state.validation.questionnaire.questions,
+    questionnaireToken: state.validation.questionnaire.share_token,
+    intro: state.validation.questionnaire.intro,
+    acceptingResponses: state.validation.questionnaire.accepting_responses,
+    hasResearch: Boolean(research),
+  };
 }
 
 function diffRound(previous: IdeaState | null, current: IdeaState) {

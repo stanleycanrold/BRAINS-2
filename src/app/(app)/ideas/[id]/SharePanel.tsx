@@ -32,12 +32,16 @@ export function SharePanel({
   origin,
   initialToken,
   initialIncludesResponses,
+  initialFounderReadOnlyToken,
+  initialFounderEditorToken,
 }: {
   ideaId: string;
   /** The origin this request actually arrived on. See lib/app-url.ts. */
   origin: string;
   initialToken: string | null;
   initialIncludesResponses: boolean;
+  initialFounderReadOnlyToken: string | null;
+  initialFounderEditorToken: string | null;
 }) {
   const { toast } = useToast();
   const [token, setToken] = React.useState(initialToken);
@@ -46,6 +50,11 @@ export function SharePanel({
   );
   const [busy, setBusy] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
+  const [founderTokens, setFounderTokens] = React.useState<Record<"read" | "edit", string | null>>({
+    read: initialFounderReadOnlyToken,
+    edit: initialFounderEditorToken,
+  });
+  const [founderBusy, setFounderBusy] = React.useState<"read" | "edit" | null>(null);
 
   const url = token ? `${origin}/s/${token}` : "";
 
@@ -108,6 +117,30 @@ export function SharePanel({
     } catch {
       toast("Copy failed. Select the link and copy it manually.", "danger");
     }
+  }
+
+  async function createFounder(permission: "read" | "edit") {
+    setFounderBusy(permission);
+    const body = await post({ action: "create_founder", permission }, `founder-${permission}`);
+    setFounderBusy(null);
+    if (body) {
+      setFounderTokens((current) => ({ ...current, [permission]: body.token }));
+      toast(`${permission === "edit" ? "Editor" : "Read-only"} founder link created`, "success");
+    }
+  }
+
+  async function revokeFounder(permission: "read" | "edit") {
+    setFounderBusy(permission);
+    const body = await post({ action: "revoke_founder", permission }, `revoke-founder-${permission}`);
+    setFounderBusy(null);
+    if (body) setFounderTokens((current) => ({ ...current, [permission]: null }));
+  }
+
+  async function copyFounder(permission: "read" | "edit") {
+    const token = founderTokens[permission];
+    if (!token) return;
+    await navigator.clipboard.writeText(`${origin}/w/${token}`);
+    toast("Founder workspace link copied", "success");
   }
 
   return (
@@ -180,6 +213,35 @@ export function SharePanel({
               Create share link
             </Button>
           )}
+
+          <div className="mt-6 border-t border-line pt-5">
+            <h3 className="type-body-l font-medium text-primary">Founder workspace</h3>
+            <p className="type-body-m mt-1 text-secondary">
+              Give a founder a private workspace where they can see the work and review the questions before deciding whether to continue.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {(["read", "edit"] as const).map((permission) => {
+                const founderUrl = founderTokens[permission] ? `${origin}/w/${founderTokens[permission]}` : "";
+                return (
+                  <div key={permission} className="rounded-[8px] border border-line p-4">
+                    <p className="type-body-m font-medium text-primary">{permission === "edit" ? "Editor" : "Read-only"}</p>
+                    <p className="type-caption mt-1 text-secondary">{permission === "edit" ? "Can edit questions and approve them." : "Can review the research without changing it."}</p>
+                    {founderUrl ? (
+                      <>
+                        <code className="type-caption mt-3 block truncate text-secondary">{founderUrl}</code>
+                        <div className="mt-3 flex gap-2">
+                          <Button variant="secondary" onClick={() => void copyFounder(permission)} iconLeft={<CopyIcon size={14} aria-hidden="true" />}>Copy</Button>
+                          <Button variant="ghost" loading={founderBusy === permission} onClick={() => void revokeFounder(permission)} iconLeft={<TrashIcon size={14} aria-hidden="true" />}>Revoke</Button>
+                        </div>
+                      </>
+                    ) : (
+                      <Button className="mt-3" variant="secondary" loading={founderBusy === permission} disabled={Boolean(founderBusy)} onClick={() => void createFounder(permission)} iconLeft={<LinkSimpleIcon size={15} aria-hidden="true" />}>Create link</Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </Card>

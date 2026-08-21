@@ -4,7 +4,9 @@ import { requireUser } from "@/lib/auth";
 import { getIdea } from "@/lib/data/ideas";
 import {
   createShareToken,
+  createFounderShareToken,
   getShareSettings,
+  revokeFounderShareToken,
   revokeShareToken,
   setShareIncludesResponses,
 } from "@/lib/data/journey";
@@ -17,6 +19,14 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("set_responses"),
     include: z.boolean(),
+  }),
+  z.object({
+    action: z.literal("create_founder"),
+    permission: z.enum(["read", "edit"]),
+  }),
+  z.object({
+    action: z.literal("revoke_founder"),
+    permission: z.enum(["read", "edit"]),
   }),
 ]);
 
@@ -54,6 +64,16 @@ export async function POST(
     if (parsed.data.action === "revoke") {
       await revokeShareToken(id, user.id);
       return NextResponse.json({ token: null });
+    }
+
+    if (parsed.data.action === "create_founder") {
+      const token = await createFounderShareToken(id, user.id, parsed.data.permission);
+      return NextResponse.json({ token, permission: parsed.data.permission });
+    }
+
+    if (parsed.data.action === "revoke_founder") {
+      await revokeFounderShareToken(id, user.id, parsed.data.permission);
+      return NextResponse.json({ token: null, permission: parsed.data.permission });
     }
 
     await setShareIncludesResponses(id, user.id, parsed.data.include);

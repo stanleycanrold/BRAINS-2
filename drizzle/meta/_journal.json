@@ -50,6 +50,13 @@
       "when": 1787237569115,
       "tag": "0006_exotic_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787323200000,
+      "tag": "0007_founder_workspace_share",
+      "breakpoints": true
     }
   ]
 }
