@@ -268,6 +268,10 @@ export async function runResearchPipeline(params: {
     `how people currently handle ${extraction.problem_statement} workaround spreadsheet manual${where}`,
     `${extraction.niche} complaints frustrations "${extraction.icp}"${where}`,
     `why ${extraction.niche} tools fail OR "not worth it" OR "gave up"`,
+    `site:reddit.com ${extraction.problem_statement} "${extraction.icp}"`,
+    `site:reddit.com ${extraction.niche} complaints OR frustration OR workaround`,
+    `site:news.ycombinator.com ${extraction.problem_statement}`,
+    `${extraction.problem_statement} forum discussion community thread${where}`,
   ];
 
   const searchResults = (
@@ -287,7 +291,7 @@ export async function runResearchPipeline(params: {
       documentExcerpts: state.raw_submission.attachments.filter(
         (a) => a.excerpt,
       ),
-      searchResults: deduped,
+      searchResults: diversifySearchResults(deduped),
     },
     ctx,
   );
@@ -676,6 +680,19 @@ function dedupeByUrl<T extends { url: string }>(items: T[]): T[] {
     seen.add(item.url);
     return true;
   });
+}
+
+/**
+ * Keep community evidence from being crowded out by repeated vendor pages.
+ * Search providers are free to rank, but the research brief needs a chance to
+ * inspect lived experience, workarounds, competitors, and contrary evidence.
+ */
+function diversifySearchResults<T extends { url: string; title: string; snippet: string }>(
+  items: T[],
+): T[] {
+  const community = items.filter((item) => /(^|\.)reddit\.com$|news\.ycombinator\.com|forum|community|discussion/i.test(item.url) || /reddit|forum|community|discussion/i.test(`${item.title} ${item.snippet}`));
+  const other = items.filter((item) => !community.includes(item));
+  return [...community, ...other].slice(0, 24);
 }
 
 /**

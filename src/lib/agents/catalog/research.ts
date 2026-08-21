@@ -93,6 +93,8 @@ HARD RULE: every factual claim you make must come from the supplied search resul
 
 BE THOROUGH. A thin report is worse than no report, because the founder acts on it. Work through every strand below rather than stopping at the first supporting quote you find. Read the results for what people are actually doing, not just what they are saying about this product category.
 
+SOURCE MIX: when the supplied results include Reddit, Hacker News, forums, or other community discussions, use them in the evidence, workarounds, contrary_evidence, and open_questions. Do not let vendor pages or SEO articles stand in for lived experience. Explicitly distinguish independent people describing a problem from companies marketing a solution. If community results are present, mention what they add or contradict rather than silently omitting them.
+
 problem_strength:
   · strong - multiple INDEPENDENT people describing this exact pain unprompted, in their own words, having already tried to solve it
   · moderate - the problem appears, but mostly adjacent, inferred, or voiced by people with something to sell
@@ -148,7 +150,7 @@ proposed_changes: 3-5 changes that would make this idea sharper. Each must:
         "",
         "Search results:",
         searchResults
-          .slice(0, 14)
+          .slice(0, 24)
           .map(
             (r, i) =>
               `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 500)}`,

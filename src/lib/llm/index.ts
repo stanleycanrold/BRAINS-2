@@ -84,10 +84,23 @@ function withGroqSearchFallback(
     model: primary.model,
     available: primary.available || fallback.available,
     async search(query) {
-      const results = await primary.search(query);
-      if (results.length > 0) return results;
-      console.warn(`[search:${primary.name}] no results; trying ${fallback.name}`);
-      return fallback.search(query);
+      const primaryResults = await primary.search(query);
+      // A small Google-grounded result set is often technically successful but
+      // practically weak. Run Groq as a second opinion until we have enough
+      // material for the research agent to compare, especially for forum and
+      // complaint queries where Google may return only vendor pages.
+      if (primaryResults.length >= 5) return primaryResults;
+
+      console.warn(
+        `[search:${primary.name}] only ${primaryResults.length} results; supplementing with ${fallback.name}`,
+      );
+      const fallbackResults = await fallback.search(query);
+      const seen = new Set<string>();
+      return [...primaryResults, ...fallbackResults].filter((result) => {
+        if (!result.url || seen.has(result.url)) return false;
+        seen.add(result.url);
+        return true;
+      });
     },
   };
 }
