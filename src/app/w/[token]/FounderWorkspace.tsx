@@ -1,16 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircleIcon, LockKeyIcon, PencilSimpleIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircleIcon, ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Field";
 import { Logo } from "@/components/brand/Logo";
+import { QuestionEditor } from "@/components/QuestionEditor";
 import type { FounderWorkspace } from "@/lib/data/journey";
 
 export function FounderWorkspace({ token, workspace }: { token: string; workspace: FounderWorkspace }) {
   const [questions, setQuestions] = React.useState(workspace.questions);
+  const [savedQuestions, setSavedQuestions] = React.useState(workspace.questions);
   const [intro, setIntro] = React.useState(workspace.intro);
   const [saving, setSaving] = React.useState(false);
   const [saved, setSaved] = React.useState(true);
@@ -27,17 +29,11 @@ export function FounderWorkspace({ token, workspace }: { token: string; workspac
         body: JSON.stringify({ questions: nextQuestions, intro: nextIntro }),
       });
       if (!response.ok) throw new Error("Save failed");
+      setSavedQuestions(nextQuestions);
       setSaved(true);
     } finally {
       setSaving(false);
     }
-  }
-
-  function updateQuestion(index: number, text: string) {
-    const next = questions.map((question, questionIndex) => questionIndex === index ? { ...question, text } : question);
-    setQuestions(next);
-    window.clearTimeout((updateQuestion as typeof updateQuestion & { timer?: number }).timer);
-    (updateQuestion as typeof updateQuestion & { timer?: number }).timer = window.setTimeout(() => void save(next), 500);
   }
 
   return (
@@ -59,12 +55,21 @@ export function FounderWorkspace({ token, workspace }: { token: string; workspac
             <p className="type-body-l mt-2 max-w-[65ch] text-secondary">{workspace.summary || "BRAINS has prepared the first validation pass for your product."}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            <Button variant="primary" onClick={() => { setAccepted(true); document.getElementById("activate")?.scrollIntoView({ behavior: "smooth" }); }} iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}>
+            <ButtonLink
+              href={`/ideas/${workspace.ideaId}/validation/fast-track/checkout`}
+              variant="primary"
+              iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+              onClick={() => setAccepted(true)}
+            >
               Accept questions & proceed
-            </Button>
-            <a href={workspace.questionnaireToken ? `/q/${workspace.questionnaireToken}` : "#questions"} className="type-body-m inline-flex items-center px-3 py-2 text-secondary hover:text-primary">
+            </ButtonLink>
+            <ButtonLink
+              href={`/ideas/${workspace.ideaId}/validation/normal`}
+              variant="secondary"
+              iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}
+            >
               Do validation yourself
-            </a>
+            </ButtonLink>
           </div>
         </div>
 
@@ -89,20 +94,21 @@ export function FounderWorkspace({ token, workspace }: { token: string; workspac
           <Card className="mt-5 p-5 sm:p-6">
             <label htmlFor="founder-intro" className="type-body-m font-medium text-primary">Panel introduction</label>
             <Textarea id="founder-intro" className="mt-2" value={intro} readOnly={workspace.permission !== "edit"} onChange={(event) => { setIntro(event.target.value); void save(questions, event.target.value); }} />
-            <div className="mt-5 space-y-4">
-              {questions.map((question, index) => (
-                <div key={question.id} className="border-t border-line pt-4 first:border-t-0 first:pt-0">
-                  <div className="flex items-center gap-2"><span className="type-caption text-tertiary">Question {index + 1}</span>{workspace.permission === "edit" ? <PencilSimpleIcon size={14} className="text-brand" aria-hidden="true" /> : <LockKeyIcon size={14} className="text-tertiary" aria-hidden="true" />}</div>
-                  <Textarea className="mt-2" value={question.text} readOnly={workspace.permission !== "edit"} onChange={(event) => updateQuestion(index, event.target.value)} />
-                </div>
-              ))}
-            </div>
           </Card>
+          <QuestionEditor
+            questions={questions}
+            onChange={setQuestions}
+            onSave={() => void save()}
+            saving={saving}
+            dirty={JSON.stringify(questions) !== JSON.stringify(savedQuestions)}
+            storageKey={`brains-founder-questions-${workspace.ideaId}`}
+            readOnly={workspace.permission !== "edit"}
+          />
         </section>
 
         <section id="activate" className="mt-10" aria-labelledby="activate-heading">
           <Card elevation="raised" className="border-brand/40 bg-brand-subtle p-6 sm:p-8">
-            <div className="flex items-start gap-3"><CheckCircleIcon size={22} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" /><div><p className="type-caption uppercase text-brand">{accepted ? "Questions accepted" : "Next step"}</p><h2 id="activate-heading" className="type-display-m mt-2 text-primary">Activate your validation sprint</h2><p className="type-body-l mt-2 max-w-[60ch] text-secondary">BRAINS will recruit the right people, run this question set, and bring the recurring signals back into this workspace.</p><Button className="mt-5" variant="primary" iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}>Choose sprint size</Button></div></div>
+            <div className="flex items-start gap-3"><CheckCircleIcon size={22} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" /><div><p className="type-caption uppercase text-brand">{accepted ? "Questions accepted" : "Next step"}</p><h2 id="activate-heading" className="type-display-m mt-2 text-primary">Activate your validation sprint</h2><p className="type-body-l mt-2 max-w-[60ch] text-secondary">BRAINS will recruit the right people, run this question set, and bring the recurring signals back into this workspace.</p><ButtonLink className="mt-5" variant="primary" href={`/ideas/${workspace.ideaId}/validation/fast-track/checkout`} iconRight={<ArrowRightIcon size={17} aria-hidden="true" />}>Choose sprint size</ButtonLink></div></div>
           </Card>
         </section>
       </main>
