@@ -24,6 +24,16 @@ export async function POST(
     if (!idea) {
       return NextResponse.json({ error: "Idea not found." }, { status: 404 });
     }
+    if (
+      idea.state.fast_track_order?.status !== undefined &&
+      idea.state.fast_track_order.status !== "pending_sourcing" ||
+      idea.state.validation.responses.length > 0
+    ) {
+      return NextResponse.json(
+        { error: "Questions are locked once validation has started." },
+        { status: 409 },
+      );
+    }
 
     const state = await runQuestionnaire({
       versionId: idea.versionId,
@@ -92,6 +102,17 @@ export async function PATCH(
       );
     }
     const body = parsed.data;
+
+    if (
+      idea.state.fast_track_order?.status !== undefined &&
+      idea.state.fast_track_order.status !== "pending_sourcing" ||
+      idea.state.validation.responses.length > 0
+    ) {
+      return NextResponse.json(
+        { error: "Questions are locked once validation has started." },
+        { status: 409 },
+      );
+    }
 
     let token = idea.state.validation.questionnaire.share_token;
 

@@ -248,6 +248,7 @@ export type FounderWorkspace = {
   acceptingResponses: boolean;
   hasResearch: boolean;
   paymentStatus: "pending" | "paid" | "refunded" | "failed" | null;
+  questionsLocked: boolean;
 };
 
 export async function createFounderShareToken(
@@ -324,6 +325,9 @@ export async function getFounderWorkspace(
     acceptingResponses: state.validation.questionnaire.accepting_responses,
     hasResearch: Boolean(research),
     paymentStatus: order?.paymentStatus ?? null,
+    questionsLocked:
+      Boolean(order && order.paymentStatus === "paid") ||
+      state.validation.responses.length > 0,
   };
 }
 

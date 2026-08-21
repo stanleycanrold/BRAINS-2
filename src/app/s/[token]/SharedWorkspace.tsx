@@ -67,6 +67,7 @@ type FounderShare = {
   questions: Question[];
   intro: string;
   paymentStatus: "pending" | "paid" | "refunded" | "failed" | null;
+  questionsLocked: boolean;
 };
 
 export function SharedWorkspace({
@@ -266,8 +267,14 @@ function FounderDecisionPanel({ founder }: { founder: FounderShare }) {
           saving={saving}
           dirty={JSON.stringify(questions) !== JSON.stringify(savedQuestions)}
           storageKey={`brains-founder-shared-questions-${ideaId}`}
-          readOnly={permission !== "edit"}
+          readOnly={permission !== "edit" || founder.questionsLocked}
         />
+        {founder.questionsLocked ? (
+          <p className="type-caption mt-3 text-secondary">
+            Questions are locked because this validation round has started.
+            The approved question set is now being used for responses.
+          </p>
+        ) : null}
       </div>
     </section>
   );

@@ -39,6 +39,7 @@ export async function PATCH(
   const workspace = await getFounderWorkspace(token);
   if (!workspace) return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
   if (workspace.permission !== "edit") return NextResponse.json({ error: "This workspace is read-only." }, { status: 403 });
+  if (workspace.questionsLocked) return NextResponse.json({ error: "Questions are locked once validation has started." }, { status: 409 });
 
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "Those questions don't look right." }, { status: 400 });

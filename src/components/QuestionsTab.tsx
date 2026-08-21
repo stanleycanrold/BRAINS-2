@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { FastTrackTeaser } from "@/components/FastTrackTeaser";
 import { QuestionEditor } from "@/components/QuestionEditor";
+import { validationStage } from "@/lib/validation-stage";
 import { LightningIcon } from "@phosphor-icons/react/dist/ssr";
 import { canMarketFastTrack } from "@/lib/validation-stage";
 import {
@@ -52,6 +53,8 @@ export function QuestionsTab({
   const marketFastTrack = canMarketFastTrack(state);
   const [saving, setSaving] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const questionsLocked =
+    validationStage(state) !== "not_started" || state.validation.responses.length > 0;
 
   const dirty =
     JSON.stringify(questions) !== JSON.stringify(questionnaire.questions);
@@ -306,7 +309,14 @@ export function QuestionsTab({
           saving={saving || generating}
           dirty={dirty}
           storageKey={`brains-questions-list-${ideaId}`}
+          readOnly={questionsLocked}
         />
+        {questionsLocked ? (
+          <p className="type-caption mt-3 text-secondary">
+            Questions are locked because validation has started or responses
+            have been recorded. The approved question set is now being used.
+          </p>
+        ) : null}
       </div>
 
     </>
