@@ -530,6 +530,9 @@ export default function Landing() {
           {/* terms & privacy links go here once drafted */}
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--line)] pt-6">
             <p className="font-mono text-[11px] text-[var(--ink-faint)]">© 2026 BRAINS · nexabrains.io</p>
+            <a href="#/test" className="font-mono text-[11px] transition-colors hover:text-[var(--probe)]" style={{ color: "var(--ink-faint)" }}>
+              engine smoke suite: <span style={{ color: "var(--go)" }}>/test</span>
+            </a>
             <p className="font-mono text-[11px] text-[var(--ink-faint)]">idea_state_versions: append-only · 50% gate: enforced in code</p>
           </div>
         </div>

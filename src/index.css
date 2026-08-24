@@ -336,6 +336,20 @@ body {
   animation: pulseDot 1.6s ease-in-out infinite;
 }
 
+@keyframes scanX {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(340%); }
+}
+
+.scanline {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--probe) 10%, transparent), transparent);
+  animation: scanX 1.3s linear infinite;
+}
+
 @keyframes riseIn {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }

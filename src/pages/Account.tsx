@@ -130,6 +130,10 @@ export default function Account() {
               >
                 Reset demo data
               </button>
+              <div className="mt-4 flex items-center justify-between rounded-lg border border-[var(--line)] bg-[var(--bg2)] px-4 py-3">
+                <span className="text-[13px] text-[var(--ink-dim)]">Verify the engine still holds its invariants</span>
+                <a href="#/test" className="font-mono text-[12px] font-medium" style={{ color: "var(--probe)" }}>run smoke suite →</a>
+              </div>
               <div className="mt-6 border-t border-[var(--line)] pt-4">
                 <KV k="schema" v="brains (namespaced)" />
                 <KV k="versions table" v="append-only" />

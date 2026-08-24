@@ -8,6 +8,7 @@ import IdeaWorkspace from "./pages/IdeaWorkspace";
 import Engage from "./pages/Engage";
 import Account from "./pages/Account";
 import Questionnaire from "./pages/Questionnaire";
+import Smoke from "./pages/Smoke";
 
 function ScrollReset() {
   const { pathname } = useLocation();
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/app/engage" element={<Engage />} />
           <Route path="/app/account" element={<Account />} />
           <Route path="/q/:shareId" element={<Questionnaire />} />
+          <Route path="/test" element={<Smoke />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toasts />

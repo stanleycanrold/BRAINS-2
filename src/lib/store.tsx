@@ -70,6 +70,14 @@ export function computeConfirmationRate(v: IdeaVersion): number {
   return visible.filter((r) => r.confirmed === true).length / visible.length;
 }
 
+/** The public questionnaire contract: a share link exposes the questions
+ *  and nothing else — never the idea, the research, the responses or the
+ *  score. Asserted by the smoke suite (scripts/smoke-questionnaire.ts in
+ *  the backend repo). */
+export function publicShareView(v: IdeaVersion): { questions: { text: string }[] } {
+  return { questions: (v.questions ?? []).map((q) => ({ text: q.text })) };
+}
+
 function makeShareId(title: string) {
   const pre = title.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase() || "IDE";
   return `${pre}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -83,7 +91,7 @@ function hash(s: string) {
   return Math.abs(h);
 }
 
-function synthesizeResearch(v: IdeaVersion, liveSearch: boolean, provider: Config["provider"]): ResearchReport {
+export function synthesizeResearch(v: IdeaVersion, liveSearch: boolean, provider: Config["provider"]): ResearchReport {
   const h = hash(v.title + v.oneLiner);
   const size = 4 + (h % 38);
   const growth = 6 + ((h >> 3) % 24);
@@ -148,7 +156,7 @@ function pickName(h: number, i: number) {
 
 /* ---------------- questionnaire + responses ---------------- */
 
-function synthesizeQuestions(v: IdeaVersion): Question[] {
+export function synthesizeQuestions(v: IdeaVersion): Question[] {
   return [
     { id: "q1", kind: "screen", text: "Walk me through the last time you dealt with this problem. When was it, and what did you do?" },
     { id: "q2", kind: "problem", text: `How painful is "${shorten(v.problem, 80)}" on a 1–10 scale, and what does it cost you today?` },
@@ -159,7 +167,7 @@ function synthesizeQuestions(v: IdeaVersion): Question[] {
   ];
 }
 
-const PERSONAS: { name: string; channel: string; heat: "hot" | "warm" | "cold" | "junk" }[] = [
+export const PERSONAS: { name: string; channel: string; heat: "hot" | "warm" | "cold" | "junk" }[] = [
   { name: "Dana R.", channel: "Cold email — ProductHunt founder", heat: "hot" },
   { name: "Miguel S.", channel: "Community referral", heat: "hot" },
   { name: "Priya K.", channel: "Cold email — ProductHunt founder", heat: "warm" },
@@ -205,7 +213,7 @@ function synthesizeAnswer(v: IdeaVersion, heat: string, q: Question, idx: number
   }
 }
 
-function makeResponse(v: IdeaVersion, p: (typeof PERSONAS)[number], i: number): ResponseRec {
+export function makeResponse(v: IdeaVersion, p: (typeof PERSONAS)[number], i: number): ResponseRec {
   const qs = v.questions ?? synthesizeQuestions(v);
   const confirmed = p.heat === "hot" ? true : p.heat === "cold" || p.heat === "junk" ? false : i % 3 === 0;
   return {
@@ -221,7 +229,7 @@ function makeResponse(v: IdeaVersion, p: (typeof PERSONAS)[number], i: number): 
 
 /* ---------------- scoring — the gate is enforced in code ---------------- */
 
-function computeScore(v: IdeaVersion): ScoreReport {
+export function computeScore(v: IdeaVersion): ScoreReport {
   const visible = founderVisible(v);
   const rate = computeConfirmationRate(v);
   const r = v.research!;
@@ -254,7 +262,7 @@ function computeScore(v: IdeaVersion): ScoreReport {
 
 /* ---------------- seed ---------------- */
 
-function seed(): DB {
+export function seed(): DB {
   const versions: Record<string, IdeaVersion> = {};
   const ideas: Idea[] = [];
 
@@ -478,7 +486,7 @@ function seed(): DB {
   };
 }
 
-function mkRun(ideaId: string, versionId: string, agent: string, provider: "groq" | "anthropic", inputDigest: string, outputDigest: string, at: number, latencyMs: number): AgentRun {
+export function mkRun(ideaId: string, versionId: string, agent: string, provider: "groq" | "anthropic", inputDigest: string, outputDigest: string, at: number, latencyMs: number): AgentRun {
   const def = AGENTS.find((a) => a.id === agent)!;
   return { id: uuid(), ideaId, versionId, agent, promptVersion: def.promptVersion, model: modelFor(provider), provider, inputDigest, outputDigest, latencyMs, status: "ok", at };
 }
