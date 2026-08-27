@@ -2,7 +2,9 @@ import "server-only";
 import { after } from "next/server";
 import { eq, or } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import type { RespondentProfile, StructuredAnswer } from "@/lib/db/schema";
 import { screenResponse } from "@/lib/screening";
+import { extractRespondentProfile, extractResponseQuotes, updateRespondentWtp } from "@/lib/response-enrichment";
 import { formatAnswers } from "@/lib/domain/response-notes";
 import {
   computeConfirmationRate,
@@ -98,6 +100,7 @@ export async function submitPublicResponse(params: {
   respondentLocation: string;
   respondentEmail: string;
   respondentPhone: string;
+  respondentProfile?: RespondentProfile;
 }): Promise<{ ok: boolean; error?: string }> {
   const resolved = await resolveToken(params.token);
   if (!resolved) return { ok: false, error: "This link isn't valid." };
@@ -112,20 +115,28 @@ export async function submitPublicResponse(params: {
 
   // Answers are folded into readable notes rather than a parallel structure,
   // because the Synthesis Agent reads notes - one shape for every channel
-  // means one thing to reason about downstream.
+  // means one thing to reason about downstream. The structured copy goes in
+  // alongside for the agents that need per-question access (quote
+  // extraction, ICP fit) without changing what synthesis reads.
   const byId = new Map(questionnaire.questions.map((q) => [q.id, q]));
+  const pairs: { question: Question; answer: string }[] = [];
+  for (const a of params.answers) {
+    const question = byId.get(a.questionId);
+    if (question && a.answer.trim()) pairs.push({ question, answer: a.answer });
+  }
+
   const notes = formatAnswers(
-    params.answers
-      .map((a) => {
-        const question = byId.get(a.questionId);
-        return question ? { question: question.text, answer: a.answer } : null;
-      })
-      .filter(
-        (pair): pair is { question: string; answer: string } => pair !== null,
-      ),
+    pairs.map((p) => ({ question: p.question.text, answer: p.answer })),
   );
 
   if (!notes) return { ok: false, error: "Answer at least one question." };
+
+  const answersJson: StructuredAnswer[] = pairs.map((p) => ({
+    question_id: p.question.id,
+    question: p.question.text,
+    kind: p.question.kind,
+    answer: p.answer.trim(),
+  }));
 
   const [stored] = await db
     .insert(schema.validationResponses)
@@ -142,6 +153,8 @@ export async function submitPublicResponse(params: {
       respondentLocation: params.respondentLocation,
       respondentEmail: params.respondentEmail,
       respondentPhone: params.respondentPhone,
+      answersJson,
+      respondentProfile: params.respondentProfile ?? {},
     })
     .returning();
 
@@ -195,6 +208,15 @@ export async function submitPublicResponse(params: {
    */
   after(async () => {
     await screenResponse({ responseId: stored.id, versionId: version.id });
+    // Enrichment runs after screening, each with its own try/catch inside -
+    // failure never costs an answer. Profile extraction is the one agent that
+    // fills roles/sizes/tools/purchase-power from the transcript itself when
+    // the form was left blank (headteacher → decision maker without asking).
+    await Promise.all([
+      extractResponseQuotes({ responseId: stored.id, versionId: version.id }),
+      extractRespondentProfile({ responseId: stored.id, versionId: version.id }),
+      updateRespondentWtp({ responseId: stored.id, versionId: version.id }),
+    ]);
   });
 
   return { ok: true };

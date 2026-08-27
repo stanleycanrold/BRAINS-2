@@ -32,13 +32,13 @@ export function useTheme() {
 const THEMES = ["light", "dark"] as const;
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Dark is the product's default. A founder reading a long report is sitting
-  // with this screen for a while, and the warm dark canvas is the more
-  // comfortable place to do that; light remains one click away.
+  // Light is the default - the empirical marketing & studio surfaces are
+  // designed around the light palette, and §1.8 ships light as v1 default.
+  // Dark remains one click away in Account settings.
   const [theme, setTheme] = usePersistedValue<Theme>(
     STORAGE_KEY,
     THEMES,
-    "dark",
+    "light",
   );
 
   // Mirrors the stored preference onto the root element, which is what the
@@ -64,7 +64,7 @@ export function ThemeScript() {
   // Because it mutates <html> ahead of hydration, the root element carries
   // suppressHydrationWarning - React would otherwise flag the attribute it
   // finds as a server/client mismatch.
-  const script = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}");document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}})();`;
+  const script = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){document.documentElement.setAttribute("data-theme","light")}})();`;
   return (
     <script
       id="brains-theme"

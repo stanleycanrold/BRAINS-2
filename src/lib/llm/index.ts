@@ -82,22 +82,24 @@ function withGroqSearchFallback(
     available: primary.available || fallback.available,
     async search(query) {
       const primaryResults = await primary.search(query);
-      // A small Google-grounded result set is often technically successful but
-      // practically weak. Run Groq as a second opinion until we have enough
-      // material for the research agent to compare, especially for forum and
-      // complaint queries where Google may return only vendor pages.
-      if (primaryResults.length >= 5) return primaryResults;
+      // Community/pricing queries often return 2-3 vendor pages that pass the
+      // technical check but are practically thin. Supplement until we have a
+      // decent mixed set for the diversifier to rank.
+      if (primaryResults.length >= 8) return primaryResults;
 
-      console.warn(
-        `[search:${primary.name}] only ${primaryResults.length} results; supplementing with ${fallback.name}`,
-      );
       const fallbackResults = await fallback.search(query);
       const seen = new Set<string>();
-      return [...primaryResults, ...fallbackResults].filter((result) => {
+      const merged = [...primaryResults, ...fallbackResults].filter((result) => {
         if (!result.url || seen.has(result.url)) return false;
         seen.add(result.url);
         return true;
       });
+      if (fallbackResults.length > 0) {
+        console.warn(
+          `[search:${primary.name}] ${primaryResults.length} results; supplemented with ${fallback.name} → ${merged.length}`,
+        );
+      }
+      return merged;
     },
   };
 }

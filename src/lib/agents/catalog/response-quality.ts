@@ -58,6 +58,13 @@ export const responseQualityOutput = z.object({
    * Gives the founder something readable without opening every response.
    */
   substance: z.string(),
+  /**
+   * How well this respondent fits the researched ICP. An audience signal,
+   * never a quality verdict: an outside-ICP answer can still be excellent
+   * and still counts. Unknown when the profile says too little to judge.
+   */
+  icp_fit: z.enum(["match", "adjacent", "outside", "unknown"]),
+  icp_fit_reasoning: z.string(),
 });
 
 export const responseQualityAgent = defineAgent<
@@ -69,14 +76,16 @@ export const responseQualityAgent = defineAgent<
     confirmed: "yes" | "no" | "unsure";
     /** Other answers in the pool, to catch near-duplicates. */
     existingAnswers?: string[];
+    /** The respondent's own profile fields, as collected. May be sparse. */
+    respondentProfile?: string;
   },
   z.infer<typeof responseQualityOutput>
 >({
   name: "response_quality",
-  promptVersion: "1.0.0",
+  promptVersion: "2.0.0",
   outputSchema: responseQualityOutput,
   temperature: 0,
-  maxTokens: 700,
+  maxTokens: 900,
   system: `${VOICE}
 
 You screen interview responses before they are allowed to affect a founder's
@@ -121,7 +130,21 @@ HOW TO DECIDE
 
 Reserve high confidence for cases you would defend to the person who wrote
 the answer. When the answer is short, be slower to reject: brevity is not
-evidence of anything.`,
+evidence of anything.
+
+ICP FIT - a separate judgment from answer quality
+
+Judge how well this respondent fits the target audience described above,
+from their profile and, when the profile is sparse, from what the answer
+reveals about their situation.
+- match: clearly inside the described audience.
+- adjacent: near it - an adjacent role, a similar situation, part of the
+  same industry but not the described person.
+- outside: clearly not in the audience.
+- unknown: too little information to judge. Do not guess.
+Fit never changes the verdict: a sharp, honest answer from outside the ICP
+is still accepted and still counts. icp_fit_reasoning is one line on what
+drove the call.`,
   buildMessages: (input) => [
     {
       role: "user",
@@ -134,7 +157,11 @@ ${input.questionText}
 
 THEIR ANSWER TO THE SCORED QUESTION: ${input.confirmed}
 
-THEIR WRITTEN RESPONSE
+${
+  input.respondentProfile
+    ? `ABOUT THEM (profile they shared)\n${input.respondentProfile}\n\n`
+    : ""
+}THEIR WRITTEN RESPONSE
 """
 ${input.answer}
 """

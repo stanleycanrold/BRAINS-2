@@ -1,155 +1,144 @@
 import type { Metadata } from "next";
-import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckIcon, SparkleIcon } from "@phosphor-icons/react/dist/ssr";
 import { requireUser, isOpsUser } from "@/lib/auth";
 import { listIdeas } from "@/lib/data/ideas";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { AccountTopBar } from "./AccountTopBar";
 
-export const metadata: Metadata = { title: "Billing & account" };
+export const metadata: Metadata = { title: "Account & billing" };
 
-/** B12 - Account & Billing (design system §4.12). */
 export default async function AccountPage() {
   const user = await requireUser();
-  // Archived included: this page totals up what was worked on and charged
-  // for, and killing an idea does not undo the spend.
   const ideas = await listIdeas(user.id, { includeArchived: true });
   const ops = await isOpsUser();
-
   const decided = ideas.filter((i) => i.state.decision_gate?.signal).length;
-  const paymentsLive = Boolean(process.env.stripe_private);
+
+  // New billing placeholder — Stripe still wired but UI now reflects upcoming methods
+  const TOKENS = {
+    card: "#FFFFFF",
+    canvas: "#FAFAFC",
+    border: "#E2E8F0",
+    subdued: "#F1F3F9",
+    primary: "#7E22CE",
+    textHeading: "#0F172A",
+    textBody: "#334155",
+    textSubdued: "#64748B",
+    success: "#059669",
+  } as const;
 
   return (
     <>
       <AccountTopBar />
-
-      <header>
-        <h1 className="type-display-l text-primary">Billing &amp; account</h1>
-        <p className="type-body-l mt-1 text-secondary">
-          Your plan, your usage, and everything you&rsquo;ve been charged.
-        </p>
-      </header>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Card elevation="raised" className="p-5">
-          <h2 className="type-caption text-tertiary uppercase">Signed in as</h2>
-          <p className="type-body-l mt-2 font-medium text-primary">
-            {user.name || "-"}
+      <div className="max-w-[960px]">
+        <header className="mb-6">
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: TOKENS.textHeading }}>
+            Account &amp; billing
+          </h1>
+          <p className="text-sm mt-1" style={{ color: TOKENS.textSubdued }}>
+            Manage profile via Clerk, view usage, and see what’s next for billing. New methods coming soon — current Stripe checkout still works.
           </p>
-          <p className="type-body-m text-secondary">{user.email}</p>
-          {ops ? (
-            <Badge tone="brand" className="mt-3">
-              Ops access
-            </Badge>
-          ) : null}
-        </Card>
+        </header>
 
-        <Card elevation="raised" className="p-5">
-          <h2 className="type-caption text-tertiary uppercase">Usage</h2>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="type-data-l text-[28px] text-primary">
-              {ideas.length}
-            </span>
-            <span className="type-body-m text-secondary">
-              {ideas.length === 1 ? "idea" : "ideas"}
-            </span>
-          </div>
-          <p className="type-body-m mt-1 text-secondary">
-            {decided} taken all the way to a decision.
-          </p>
-        </Card>
-      </div>
-
-      <section className="mt-10">
-        <h2 className="type-display-m text-primary">Your plan</h2>
-
-        <Card elevation="raised" className="mt-4 p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h3 className="type-display-m text-primary">Free</h3>
-                <Badge tone="success" dot>
-                  Active
-                </Badge>
-              </div>
-              <p className="type-body-m mt-1 text-secondary">
-                Everything you need to validate an idea yourself.
-              </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border p-5" style={{ background: TOKENS.card, borderColor: TOKENS.border }}>
+            <div className="text-[11px] font-bold tracking-widest uppercase" style={{ color: TOKENS.textSubdued }}>
+              Signed in as
             </div>
-            <span className="type-data-l text-[28px] text-primary">$0</span>
-          </div>
-
-          <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
-            {[
-              "Unlimited ideas",
-              "Research with real sources",
-              "Community and script generation",
-              "Scoring and decision gate",
-              "Unlimited rework rounds",
-              "Full version history",
-            ].map((feature) => (
-              <li
-                key={feature}
-                className="type-body-m flex items-start gap-2.5 text-primary"
-              >
-                <CheckIcon
-                  size={16}
-                  weight="bold"
-                  className="mt-1 shrink-0 text-success"
-                  aria-hidden="true"
-                />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card className="mt-4 p-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="type-body-l font-medium text-primary">
-                Fast Track &amp; Continued Social Scan
-              </h3>
-              <p className="type-body-m mt-1 max-w-prose text-secondary">
-                Paid options - we run the interviews, or keep scanning
-                communities for you between rounds.
-              </p>
-            </div>
-            <Badge tone={paymentsLive ? "brand" : "neutral"}>
-              {paymentsLive ? "Available" : "Not connected"}
-            </Badge>
-          </div>
-          {!paymentsLive ? (
-            <p className="type-body-m mt-3 border-t border-line pt-3 text-tertiary">
-              Pricing is live and itemised on any idea&rsquo;s validation
-              screen. Checkout switches on once Stripe keys are added.
+            <p className="text-sm font-semibold mt-2" style={{ color: TOKENS.textHeading }}>
+              {user.name || "—"}
             </p>
-          ) : null}
-        </Card>
-      </section>
+            <p className="text-xs" style={{ color: TOKENS.textSubdued }}>
+              {user.email}
+            </p>
+            <div className="mt-3 flex gap-2">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold" style={{ background: TOKENS.subdued, color: TOKENS.textBody }}>
+                {ops ? "Ops access" : "Founder"}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium text-white" style={{ background: TOKENS.success }}>
+                Active
+              </span>
+            </div>
+          </div>
 
-      <section className="mt-10">
-        <h2 className="type-display-m text-primary">Invoices</h2>
-        <div className="mt-4 rounded-[8px] border border-line bg-raised">
-          <Table>
-            <Thead>
-              <tr>
-                <Th>Date</Th>
-                <Th>Description</Th>
-                <Th align="right">Amount</Th>
-              </tr>
-            </Thead>
-            <Tbody>
-              <Tr>
-                <Td colSpan={3} className="py-6 text-center text-tertiary">
-                  Nothing billed yet - you haven&rsquo;t bought anything.
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
+          <div className="rounded-xl border p-5" style={{ background: TOKENS.card, borderColor: TOKENS.border }}>
+            <div className="text-[11px] font-bold tracking-widest uppercase" style={{ color: TOKENS.textSubdued }}>
+              Usage
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-[28px] font-bold mono" style={{ color: TOKENS.textHeading }}>
+                {ideas.length}
+              </span>
+              <span className="text-sm" style={{ color: TOKENS.textSubdued }}>
+                {ideas.length === 1 ? "idea" : "ideas"}
+              </span>
+            </div>
+            <p className="text-xs mt-1" style={{ color: TOKENS.textSubdued }}>
+              {decided} taken to decision · {ideas.length - decided} in progress
+            </p>
+          </div>
         </div>
-      </section>
+
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold" style={{ color: TOKENS.textHeading }}>
+            Your plan
+          </h2>
+          <div className="mt-3 rounded-xl border p-6" style={{ background: TOKENS.card, borderColor: TOKENS.border }}>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[18px] font-bold" style={{ color: TOKENS.textHeading }}>
+                    Free
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white" style={{ background: TOKENS.success }}>
+                    Active
+                  </span>
+                </div>
+                <p className="text-xs mt-1" style={{ color: TOKENS.textSubdued }}>
+                  Everything to validate yourself — upgrades for done-for-you research.
+                </p>
+              </div>
+              <span className="text-[28px] font-bold" style={{ color: TOKENS.textHeading }}>
+                $0
+              </span>
+            </div>
+            <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
+              {["Unlimited ideas", "Research with real sources", "Community + script generation", "Scoring & decision gate", "Unlimited rework rounds", "Full version history"].map((f) => (
+                <li key={f} className="text-xs flex items-start gap-2" style={{ color: TOKENS.textBody }}>
+                  <CheckIcon size={14} weight="bold" className="mt-0.5 shrink-0" style={{ color: TOKENS.success }} aria-hidden="true" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-4 rounded-xl border p-5 flex gap-3" style={{ background: "#FFFBEB", borderColor: "#FDE68A" }}>
+            <SparkleIcon size={16} className="shrink-0 mt-0.5" style={{ color: "#D97706" }} />
+            <div>
+              <h3 className="text-xs font-semibold" style={{ color: "#92400E" }}>
+                New billing methods — coming soon
+              </h3>
+              <p className="text-xs mt-1 leading-5" style={{ color: "#92400E" }}>
+                We’re moving beyond the old card-only flow. Upcoming: credits, invoices, and team billing. Current Stripe checkout still works for Fast Track — new options will appear here without you losing history.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold" style={{ color: TOKENS.textHeading }}>
+            Invoices
+          </h2>
+          <div className="mt-3 rounded-xl border overflow-hidden" style={{ background: TOKENS.card, borderColor: TOKENS.border }}>
+            <div className="grid grid-cols-3 gap-2 px-4 py-2 text-[11px] font-bold tracking-widest uppercase border-b" style={{ background: TOKENS.subdued, color: TOKENS.textSubdued, borderColor: TOKENS.border }}>
+              <span>Date</span>
+              <span>Description</span>
+              <span className="text-right">Amount</span>
+            </div>
+            <div className="px-4 py-8 text-center text-xs" style={{ color: TOKENS.textSubdued }}>
+              Nothing billed yet — you haven’t bought anything. New billing will show here.
+            </div>
+          </div>
+        </section>
+      </div>
     </>
   );
 }

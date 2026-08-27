@@ -447,3 +447,29 @@ body {
   background: var(--accent-brand-subtle-strong);
   color: var(--text-primary);
 }
+
+/* ---------------------------------------------------------------------------
+   Empirical UI layer - utilities ported from the BRAINS marketing/studio UI.
+   Tokens above already share the palette; these add the few extra names the
+   ported components reference (brand-mark blue + ink helpers).
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* The logo mark's own blue (matches brains-icon-master.png) */
+  --brand-blue: #2563eb;
+  --brand-blue-hover: #1d4ed8;
+}
+
+.border-default { border-color: var(--border-default); }
+.border-strong { border-color: var(--border-strong); }
+.text-primary-ink { color: var(--text-primary); }
+.text-secondary-ink { color: var(--text-secondary); }
+.text-tertiary-ink { color: var(--text-tertiary); }
+.text-brand-ink { color: var(--accent-brand); }
+.bg-brand-ink { background-color: var(--accent-brand); }
+.bg-brand-blue { background-color: var(--brand-blue); }
+.bg-brand-blue:hover { background-color: var(--brand-blue-hover); }
+.text-brand-blue { color: var(--brand-blue); }
+
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

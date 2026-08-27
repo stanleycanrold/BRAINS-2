@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { fontVariables } from "@/lib/fonts";
-import { Nav } from "@/components/Nav";
-import { Footer } from "@/components/Footer";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
-import { ChromeGate } from "@/components/ChromeGate";
-import { MainRegion } from "@/components/MainRegion";
+import { ThemeProvider, ThemeScript } from "@/components/ThemeProvider";
 import "./globals.css";
 import { SITE_URL } from "@/lib/urls";
 
@@ -46,28 +43,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark" className={`${fontVariables} h-full`}>
+    <html
+      lang="en"
+      data-theme="light"
+      className={`${fontVariables} h-full`}
+      suppressHydrationWarning
+    >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="flex min-h-full flex-col antialiased">
         <SiteJsonLd />
-        {/* Hidden until focused - lets a keyboard or screen-reader user skip
-            the nav that repeats on every page (UX guide, Part 14). */}
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-[8px] focus:bg-brand focus:px-4 focus:py-2 focus:text-on-accent"
-        >
-          Skip to content
-        </a>
-        <Nav />
-        {/* Bottom padding below `md` clears the sticky mobile CTA bar, which
-            is fixed to the viewport and was covering the last element on every
-            page. It is applied per-route inside, because the one screen that
-            renders no CTA bar is also the one that must not gain height.
-            `min-h-0` lets that screen claim an exact viewport height rather
-            than being stretched by its own content. */}
-        <MainRegion>{children}</MainRegion>
-        <ChromeGate>
-          <Footer />
-        </ChromeGate>
+        {/* Page chrome (nav/footer) lives one level down: the (site) group
+            wraps the content pages in the shared shell, and the landing
+            mounts the same nav and footer itself. The whole site is one
+            theme at a time; the nav toggle flips every token at once. */}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

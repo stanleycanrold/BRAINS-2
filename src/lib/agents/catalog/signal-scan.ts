@@ -65,10 +65,10 @@ Format as markdown with numbered questions.`,
         `Problem: ${problemStatement}`,
         `Target user: ${icp}`,
         "",
-        "Search results:",
+        "Search results (community + pricing aware, 20 max):",
         searchResults
-          .slice(0, 14)
-          .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 400)}`)
+          .slice(0, 20)
+          .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 600)}`)
           .join("\n\n"),
       ].join("\n"),
     },

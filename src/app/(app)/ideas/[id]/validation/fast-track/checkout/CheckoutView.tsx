@@ -18,6 +18,7 @@ export function CheckoutView({
   ideaId,
   state,
   initialEstimate,
+  initialCustomerEmail,
 }: {
   ideaId: string;
   state: IdeaState;

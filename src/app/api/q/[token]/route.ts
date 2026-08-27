@@ -14,6 +14,12 @@ const bodySchema = z.object({
   respondent_location: z.string().trim().min(1).max(160),
   respondent_email: z.string().trim().email().max(320),
   respondent_phone: z.string().trim().min(7).max(40),
+  // Optional context about the respondent, used for ICP fit only. Contact
+  // fields stay private; these never identify anyone on their own.
+  company_size: z.string().trim().max(80).optional(),
+  industry: z.string().trim().max(160).optional(),
+  decision_maker: z.boolean().optional(),
+  current_tools: z.array(z.string().trim().max(120)).max(20).optional(),
 });
 
 /**
@@ -47,6 +53,12 @@ export async function POST(
       respondentLocation: parsed.data.respondent_location,
       respondentEmail: parsed.data.respondent_email,
       respondentPhone: parsed.data.respondent_phone,
+      respondentProfile: {
+        company_size: parsed.data.company_size,
+        industry: parsed.data.industry,
+        decision_maker: parsed.data.decision_maker,
+        current_tools: parsed.data.current_tools?.filter(Boolean) ?? [],
+      },
     });
 
     if (!result.ok) {

@@ -369,7 +369,19 @@ export async function forkVersion(params: {
       confirmation_rate: 0,
       synthesis_summary: { themes: [], notable_points: [], objections: [], narrative: "" },
       forced_early_analysis: false,
+      verbatim_quotes: [],
+      pricing_intelligence: null,
     },
+    // Hypotheses carry forward as the bets this idea stands on, but a new
+    // round re-tests them: statuses reset until fresh responses speak.
+    hypotheses: previous.hypotheses.map((h) => ({
+      ...h,
+      status: "Testing" as const,
+      confidence: 0,
+      supporting: [],
+      counter: [],
+      takeaway: "",
+    })),
     social_engagement: { drafted_posts: [], drafted_comments: [] },
     fast_track_order: null,
     decision_gate: null,

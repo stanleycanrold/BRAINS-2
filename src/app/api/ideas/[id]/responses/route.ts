@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { db, schema } from "@/lib/db";
+import { extractRespondentProfile, extractResponseQuotes } from "@/lib/response-enrichment";
 import {
   channelSchema,
   computeConfirmationRate,
@@ -52,7 +53,7 @@ export async function POST(
     const now = new Date().toISOString();
 
     // Relational row for reporting and cross-idea analysis…
-    await db.insert(schema.validationResponses).values({
+    const [stored] = await db.insert(schema.validationResponses).values({
       ideaStateVersionId: idea.versionId,
       track,
       channel: parsed.data.channel,
@@ -63,7 +64,7 @@ export async function POST(
       // exists for answers arriving from strangers through a public link, not
       // for someone reporting what they were told to their face.
       reviewStatus: "approved",
-    });
+    }).returning();
 
     // …and into the idea-state object every agent reads from.
     const state = await updateCurrentState(idea.versionId, (s) => {
@@ -93,6 +94,22 @@ export async function POST(
           confirmation_rate: computeConfirmationRate(responses),
         },
       };
+    });
+
+    // Quotes + profile from a founder-logged interview. The profile agent
+    // fills role/size/tools/purchase-power from the transcript itself when
+    // the form was left blank — headteacher → decision maker without asking.
+    after(async () => {
+      await Promise.all([
+        extractResponseQuotes({
+          responseId: stored.id,
+          versionId: idea.versionId,
+        }),
+        extractRespondentProfile({
+          responseId: stored.id,
+          versionId: idea.versionId,
+        }),
+      ]);
     });
 
     return NextResponse.json({ state });

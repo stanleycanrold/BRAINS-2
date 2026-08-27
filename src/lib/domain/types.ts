@@ -213,6 +213,20 @@ export const evidenceSchema = z.object({
 });
 export type Evidence = z.infer<typeof evidenceSchema>;
 
+/**
+ * A verbatim thing a real person said in a community thread, captured during
+ * research. Direct quotes with their exact source rather than paraphrase, so
+ * the founder can open the thread and read the context themselves.
+ */
+export const communitySignalSchema = z.object({
+  quote: z.string(),
+  platform: z.string().default(""),
+  source_url: z.string().default(""),
+  source_title: z.string().default(""),
+  theme: z.string().default(""),
+});
+export type CommunitySignal = z.infer<typeof communitySignalSchema>;
+
 export const researchReportSchema = z.object({
   problem_strength: problemStrengthSchema.default("moderate"),
   problem_strength_reasoning: z.string().default(""),
@@ -236,6 +250,11 @@ export const researchReportSchema = z.object({
     .default([]),
   /** What search could not settle. Feeds the interview questions. */
   open_questions: z.array(z.string()).default([]),
+  /**
+   * Verbatim community quotes found during research - the lived-experience
+   * voice of the market, each with its exact thread so it can be checked.
+   */
+  community_signals: z.array(communitySignalSchema).default([]),
   proposed_changes: z.array(proposalSchema).default([]),
   /** True when the run had no live search available; surfaced in the UI. */
   unsourced: z.boolean().default(false),
@@ -283,6 +302,98 @@ export const synthesisSummarySchema = z.object({
   narrative: z.string().default(""),
 });
 export type SynthesisSummary = z.infer<typeof synthesisSummarySchema>;
+
+/**
+ * A verbatim quote the quote-extraction agent pulled out of one response.
+ *
+ * Verbatim means the respondent's own words, trimmed but never rewritten -
+ * the whole point of a quote is that a founder can trust it was actually
+ * said. `why_it_matters` is the agent's one line on what makes this one
+ * worth reading; `question_id` ties it back to the question that drew it.
+ */
+export const QUOTE_CATEGORIES = [
+  "Problem Urgency",
+  "Willingness to Pay",
+  "Existing Friction",
+  "Feature Requirement",
+  "Objection & Risk",
+] as const;
+export const quoteCategorySchema = z.enum(QUOTE_CATEGORIES);
+
+export const verbatimQuoteSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  response_id: z.string().default(""),
+  question_id: z.string().nullable().default(null),
+  category: quoteCategorySchema.default("Problem Urgency"),
+  why_it_matters: z.string().default(""),
+  created_at: z.string().default(""),
+});
+export type VerbatimQuote = z.infer<typeof verbatimQuoteSchema>;
+
+/**
+ * A falsifiable assumption about the business, generated from research and
+ * then judged against what respondents actually said. Status and confidence
+ * only ever move with evidence - the evaluation agent re-reads the pool and
+ * updates them at the decision gate.
+ */
+export const hypothesisCategorySchema = z.enum([
+  "Problem",
+  "Pricing",
+  "Go-To-Market",
+  "Tech Feasibility",
+]);
+export type HypothesisCategory = z.infer<typeof hypothesisCategorySchema>;
+
+export const hypothesisStatusSchema = z.enum([
+  "Testing",
+  "Validated",
+  "Partially Validated",
+  "Disproven",
+]);
+export type HypothesisStatus = z.infer<typeof hypothesisStatusSchema>;
+
+export const hypothesisSchema = z.object({
+  id: z.string(),
+  statement: z.string(),
+  category: hypothesisCategorySchema.default("Problem"),
+  /** Which well the hypothesis came from: the research pass or live feedback. */
+  basis: z.enum(["research", "feedback"]).default("research"),
+  status: hypothesisStatusSchema.default("Testing"),
+  /** 0-100, how strongly current evidence supports the statement. */
+  confidence: z.number().default(0),
+  /** Short evidence pointers FOR the statement. */
+  supporting: z.array(z.string()).default([]),
+  /** Short evidence pointers AGAINST it. Kept visible, never netted away. */
+  counter: z.array(z.string()).default([]),
+  /** What validation so far says, in one line. Empty while untested. */
+  takeaway: z.string().default(""),
+  /** The observable outcome that would confirm it. Shown as test method. */
+  testable_expectation: z.string().default(""),
+  generated_at: z.string().default(""),
+});
+export type Hypothesis = z.infer<typeof hypothesisSchema>;
+
+/**
+ * An empirical willingness-to-pay estimate, grounded in money people already
+ * spend (competitor prices, current workarounds' cost, stated budgets) rather
+ * than in what they say they would pay. When no money anchor exists the agent
+ * must say so - `model: "anchor_missing"` - instead of inventing a number.
+ * All amounts are whole currency units, matching what the studio displays.
+ */
+export const pricingIntelligenceSchema = z.object({
+  wtp_point: z.number().default(0),
+  wtp_range_low: z.number().default(0),
+  wtp_range_high: z.number().default(0),
+  currency: z.string().default("usd"),
+  basis: z
+    .enum(["competitor_price", "current_spend", "stated_budget", "none"])
+    .default("none"),
+  reasoning: z.string().default(""),
+  model: z.enum(["anchored", "anchor_missing"]).default("anchor_missing"),
+  generated_at: z.string().default(""),
+});
+export type PricingIntelligence = z.infer<typeof pricingIntelligenceSchema>;
 
 /**
  * One interview / questionnaire question, generated from the researched idea.
@@ -396,6 +507,17 @@ export const validationSchema = z.object({
   }),
   responses: z.array(responseSchema).default([]),
   confirmation_rate: z.number().default(0),
+  /**
+   * Quotes the quote-extraction agent pulled from responses, newest last.
+   * Verbatim and tied back to the response and question they came from -
+   * the evidence the studio's surface is built on.
+   */
+  verbatim_quotes: z.array(verbatimQuoteSchema).default([]),
+  /**
+   * Empirical willingness-to-pay, computed only from money anchors. Null
+   * until the pricing-intelligence agent has run at least once.
+   */
+  pricing_intelligence: pricingIntelligenceSchema.nullable().default(null),
   synthesis_summary: synthesisSummarySchema.default({
     themes: [],
     notable_points: [],
@@ -510,6 +632,11 @@ export const ideaStateSchema = z.object({
   raw_submission: rawSubmissionSchema,
   structured: structuredSchema,
   research_report: researchReportSchema.nullable().default(null),
+  /**
+   * The assumption ledger. Seeded by the hypothesis agent after research,
+   * added to by the founder, and re-judged against responses at the gate.
+   */
+  hypotheses: z.array(hypothesisSchema).default([]),
   validation: validationSchema,
   social_engagement: socialEngagementSchema,
   fast_track_order: fastTrackOrderStateSchema.nullable().default(null),

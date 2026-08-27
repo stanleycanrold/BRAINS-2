@@ -18,8 +18,8 @@
  * staging domains work without touching code.
  */
 
-const PRODUCTION_SITE = "https://nexabrains.io";
-const PRODUCTION_APP = "https://app.nexabrains.io";
+const PRODUCTION_SITE = "https://brains.im";
+const PRODUCTION_APP = "https://app.brains.im";
 
 /** Only `next dev` sets this. A production build resolves to the real domains. */
 const isDev = process.env.NODE_ENV === "development";
@@ -34,14 +34,14 @@ function resolve(configured: string | undefined, production: string, dev: string
 export const SITE_URL = resolve(
   process.env.NEXT_PUBLIC_SITE_URL,
   PRODUCTION_SITE,
-  "http://localhost:3000",
+  "http://localhost:3001",
 );
 
 /** The product. Every Log in, Sign up, and composer submission lands here. */
 export const APP_URL = resolve(
   process.env.NEXT_PUBLIC_APP_URL,
   PRODUCTION_APP,
-  "http://localhost:3001",
+  "http://localhost:3000",
 );
 
 export const signInUrl = `${APP_URL}/sign-in`;

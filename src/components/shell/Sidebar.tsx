@@ -151,9 +151,9 @@ export function Sidebar({
         >
           {/* Wide: the lockup, with the toggle at the trailing edge. */}
           <Link
-            href="/dashboard"
+            href="/ideas"
             onClick={onMobileClose}
-            aria-label="BRAINS AI - go to dashboard"
+            aria-label="BRAINS AI - go to your ideas"
             className={cn("items-center rounded px-1", wideOnly)}
           >
             <Logo size={17} priority />
@@ -243,12 +243,12 @@ export function Sidebar({
               switcher is the way back out. */}
           {workspace || publicWorkspace ? null : (
             <NavItem
-              href="/dashboard"
+              href="/ideas"
               icon={<SquaresFourIcon size={ICON} aria-hidden="true" />}
-              label="Dashboard"
+              label="Ideas"
               labelOnly={labelOnly}
               collapsed={collapsed}
-              active={pathname === "/dashboard"}
+              active={pathname === "/ideas"}
               onNavigate={onMobileClose}
             />
           )}

@@ -31,7 +31,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        data-theme="dark"
+        data-theme="light"
         className={`${fontVariables} h-full`}
         suppressHydrationWarning
       >

@@ -7,7 +7,11 @@ const nextConfig: NextConfig = {
     qualities: [75, 100],
     // Clerk-hosted profile images, rendered as our own avatar element so the
     // sidebar controls its geometry rather than Clerk's wrapper.
-    remotePatterns: [{ protocol: "https", hostname: "img.clerk.com" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "img.clerk.com" },
+      // Empirical UI avatar imagery served from Unsplash (mock respondents).
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
   },
 };
 

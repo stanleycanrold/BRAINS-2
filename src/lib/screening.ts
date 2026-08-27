@@ -47,6 +47,24 @@ export async function screenResponse(params: {
       .filter((r) => r.id !== params.responseId && r.notes)
       .map((r) => r.notes);
 
+    const profile = response.respondentProfile ?? {};
+    const profileLines = [
+      response.respondentCareer
+        ? `Role: ${response.respondentCareer}`
+        : "",
+      response.respondentLocation
+        ? `Location: ${response.respondentLocation}`
+        : "",
+      profile.company_size ? `Company size: ${profile.company_size}` : "",
+      profile.industry ? `Industry: ${profile.industry}` : "",
+      profile.decision_maker != null
+        ? `Purchase decisions: ${profile.decision_maker ? "decides or influences" : "does not decide"}`
+        : "",
+      profile.current_tools?.length
+        ? `Tools today: ${profile.current_tools.join(", ")}`
+        : "",
+    ].filter(Boolean);
+
     const verdict = await runAgent(
       responseQualityAgent,
       {
@@ -58,6 +76,7 @@ export async function screenResponse(params: {
         answer: response.notes,
         confirmed: response.confirmed,
         existingAnswers: existing,
+        respondentProfile: profileLines.join("\n"),
       },
       { ideaStateVersionId: params.versionId },
     );
@@ -78,6 +97,8 @@ export async function screenResponse(params: {
         qualityFlags: verdict.flags,
         qualityReasoning: verdict.reasoning,
         qualityConfidence: verdict.confidence,
+        icpFit: verdict.icp_fit,
+        icpFitReasoning: verdict.icp_fit_reasoning,
       })
       .where(eq(schema.validationResponses.id, params.responseId));
 

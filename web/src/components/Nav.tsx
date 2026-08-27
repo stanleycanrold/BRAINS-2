@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ListIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
+import { ListIcon, XIcon, SunIcon, MoonIcon } from "@phosphor-icons/react/dist/ssr";
 import { Logo } from "./Logo";
 import { Button } from "./Button";
 import { Container } from "./Container";
 import { signInUrl, signUpUrl } from "@/lib/urls";
+import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/cn";
 
 /**
@@ -40,6 +41,49 @@ const LINKS = [
   { href: "/pricing", label: "Pricing" },
   { href: "/validation", label: "Validation" },
 ];
+
+/**
+ * One consistent theme at a time, switchable. The toggle flips `data-theme`
+ * on the root element, which swaps every semantic token at once - the site
+ * never renders a mix of the two palettes.
+ */
+function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
+  const { theme, setTheme } = useTheme();
+  const next = theme === "dark" ? "light" : "dark";
+
+  if (withLabel) {
+    return (
+      <button
+        type="button"
+        onClick={() => setTheme(next)}
+        className="type-body-l rounded-[8px] px-2 py-3 text-primary hover:bg-wash-hover flex items-center justify-between"
+      >
+        {next === "dark" ? "Dark mode" : "Light mode"}
+        {next === "dark" ? (
+          <MoonIcon size={18} aria-hidden="true" />
+        ) : (
+          <SunIcon size={18} aria-hidden="true" />
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(next)}
+      aria-label={`Switch to ${next} theme`}
+      title={`Switch to ${next} theme`}
+      className="rounded-[8px] p-2 text-secondary hover:text-primary transition-colors duration-[120ms]"
+    >
+      {next === "dark" ? (
+        <MoonIcon size={18} aria-hidden="true" />
+      ) : (
+        <SunIcon size={18} aria-hidden="true" />
+      )}
+    </button>
+  );
+}
 
 export function Nav() {
   const [open, setOpen] = React.useState(false);
@@ -138,6 +182,7 @@ export function Nav() {
             Everywhere else this bar IS the primary action, because content
             pages offer the composer instead of a button, and it stays solid. */}
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <Button href={signInUrl} variant="ghost" size="compact">
             Log in
           </Button>
@@ -188,6 +233,7 @@ export function Nav() {
             </Link>
           ))}
           <div className="mt-3 flex flex-col gap-2 border-t border-line pt-4">
+            <ThemeToggle withLabel />
             <Button href={signInUrl} variant="secondary">
               Log in
             </Button>

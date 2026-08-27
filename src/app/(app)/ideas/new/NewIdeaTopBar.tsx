@@ -7,10 +7,10 @@ export function NewIdeaTopBar() {
   return (
     <TopBar>
       <Link
-        href="/dashboard"
+        href="/ideas"
         className="type-body-m text-secondary transition-colors hover:text-primary"
       >
-        Dashboard
+        Ideas
       </Link>
       <span className="type-body-m text-tertiary" aria-hidden="true">
         /

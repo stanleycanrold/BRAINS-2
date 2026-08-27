@@ -52,6 +52,10 @@ export function QuestionnaireForm({
     location: "",
     email: "",
     phone: "",
+    companySize: "",
+    industry: "",
+    decisionMaker: false,
+    currentTools: "",
   });
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
@@ -85,6 +89,15 @@ export function QuestionnaireForm({
           respondent_location: profile.location,
           respondent_email: profile.email,
           respondent_phone: profile.phone,
+          company_size: profile.companySize || undefined,
+          industry: profile.industry || undefined,
+          decision_maker: profile.decisionMaker,
+          current_tools: profile.currentTools
+            ? profile.currentTools
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : undefined,
           answers: Object.entries(answers).map(([questionId, answer]) => ({
             questionId,
             answer,
@@ -196,6 +209,67 @@ export function QuestionnaireForm({
             <ProfileField id="respondent-location" label="Where are you based?" type="text" value={profile.location} onChange={(value) => setProfile((p) => ({ ...p, location: value }))} />
             <ProfileField id="respondent-email" label="Email" type="email" value={profile.email} onChange={(value) => setProfile((p) => ({ ...p, email: value }))} />
             <ProfileField id="respondent-phone" label="Phone number" type="tel" value={profile.phone} onChange={(value) => setProfile((p) => ({ ...p, phone: value }))} />
+          </div>
+
+          {/* All optional - they tell the founder whether the people answering
+              are the people the product is for, without identifying anyone. */}
+          <div className="mt-6 rounded-[10px] border border-line bg-surface p-4">
+            <p className="type-body-m font-medium text-primary">
+              A little context{" "}
+              <span className="font-normal text-tertiary">(all optional)</span>
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <label htmlFor="respondent-company-size" className="type-body-m block font-medium text-primary">
+                Company or team size
+                <select
+                  id="respondent-company-size"
+                  className="mt-2 w-full rounded-[8px] border border-line bg-raised px-3 py-2 text-primary outline-none focus:border-line-strong"
+                  value={profile.companySize}
+                  onChange={(e) => setProfile((p) => ({ ...p, companySize: e.target.value }))}
+                >
+                  <option value="">Prefer not to say</option>
+                  <option value="Just me">Just me</option>
+                  <option value="2-10 people">2&ndash;10 people</option>
+                  <option value="11-50 people">11&ndash;50 people</option>
+                  <option value="51-200 people">51&ndash;200 people</option>
+                  <option value="201-1000 people">201&ndash;1000 people</option>
+                  <option value="1000+ people">1000+ people</option>
+                </select>
+              </label>
+              <label htmlFor="respondent-industry" className="type-body-m block font-medium text-primary">
+                Industry
+                <Input
+                  id="respondent-industry"
+                  type="text"
+                  className="mt-2"
+                  placeholder="e.g. logistics, healthcare"
+                  value={profile.industry}
+                  onChange={(e) => setProfile((p) => ({ ...p, industry: e.target.value }))}
+                />
+              </label>
+              <label htmlFor="respondent-tools" className="type-body-m block font-medium text-primary sm:col-span-2">
+                Tools you use today for this
+                <Input
+                  id="respondent-tools"
+                  type="text"
+                  className="mt-2"
+                  placeholder="Comma separated - e.g. spreadsheets, Slack, a freelancer"
+                  value={profile.currentTools}
+                  onChange={(e) => setProfile((p) => ({ ...p, currentTools: e.target.value }))}
+                />
+              </label>
+            </div>
+            <label className="mt-4 flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                checked={profile.decisionMaker}
+                onChange={(e) => setProfile((p) => ({ ...p, decisionMaker: e.target.checked }))}
+                className="size-4 shrink-0 accent-[var(--accent-brand)]"
+              />
+              <span className="type-body-m text-primary">
+                I decide or influence purchases like this at my organisation
+              </span>
+            </label>
           </div>
         </fieldset>
 

@@ -90,3 +90,34 @@ export function formatMoney(cents: number, currency = "usd"): string {
     maximumFractionDigits: 0,
   }).format(cents / 100);
 }
+
+/** Parse $ / € / £ strings into monthly USD cents, filtering implausible values. */
+export function parseMoneyValues(snippets: string[]): number[] {
+  const values: number[] = [];
+  for (const s of snippets) {
+    const matches = s.matchAll(/\$?\s?(\d[\d,]*\.?\d*)\s*(k)?\s*(\/|\sper\s|\sa\s)?\s*(mo|month|yr|year)?/gi);
+    for (const m of matches) {
+      let n = Number(m[1].replace(/,/g, ""));
+      if (m[2]?.toLowerCase() === "k") n *= 1000;
+      const period = (m[4] || "").toLowerCase();
+      if (period.startsWith("yr") || period.startsWith("year")) n = n / 12;
+      if (n >= 5 && n <= 10000) values.push(Math.round(n));
+    }
+  }
+  return [...new Set(values)].sort((a, b) => a - b);
+}
+
+/** Lightweight Van Westendorp bounds from observed monthly values. */
+export function vanWestendorpBounds(values: number[]): { point: number; low: number; high: number } | null {
+  if (values.length === 0) return null;
+  if (values.length === 1) return { point: values[0], low: Math.round(values[0] * 0.6), high: Math.round(values[0] * 1.4) };
+  const sorted = [...values].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  const q1 = sorted[Math.floor(sorted.length * 0.25)];
+  const q3 = sorted[Math.floor(sorted.length * 0.75)];
+  return {
+    point: median,
+    low: Math.max(5, Math.round(q1 * 0.85)),
+    high: Math.round(q3 * 1.15),
+  };
+}

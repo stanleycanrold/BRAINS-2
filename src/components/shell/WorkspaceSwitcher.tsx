@@ -146,7 +146,7 @@ export function WorkspaceSwitcher({
 
           <div className="max-h-[320px] overflow-y-auto p-1.5">
             <Link
-              href="/dashboard"
+              href="/ideas"
               onClick={close}
               role="menuitem"
               className={cn(

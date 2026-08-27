@@ -519,7 +519,7 @@ export function ResearchView({
                 Next: find where these people are, and go ask them.
               </p>
               <Link
-                href="/dashboard"
+                href="/ideas"
                 className="type-body-m ml-auto text-secondary hover:text-primary"
               >
                 Save for later

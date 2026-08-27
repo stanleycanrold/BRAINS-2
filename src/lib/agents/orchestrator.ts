@@ -13,7 +13,11 @@ import {
   commentDraftingAgent,
   questionnaireAgent,
   monitorAgent,
+  hypothesisAgent,
+  hypothesisEvaluationAgent,
+  pricingIntelligenceAgent,
 } from "./catalog";
+import { budgetSnippets, moneySnippets } from "@/lib/pricing-anchors";
 import { updateCurrentState } from "@/lib/data/ideas";
 import {
   computeConfirmationRate,
@@ -272,6 +276,12 @@ export async function runResearchPipeline(params: {
     `site:reddit.com ${extraction.niche} complaints OR frustration OR workaround`,
     `site:news.ycombinator.com ${extraction.problem_statement}`,
     `${extraction.problem_statement} forum discussion community thread${where}`,
+    // Expanded source coverage — pricing & alternatives (feeds pricing intelligence directly)
+    `${extraction.niche} pricing per month OR \"starting at\" site:g2.com OR site:capterra.com OR site:trustpilot.com`,
+    `${extraction.niche} alternatives to site:producthunt.com OR site:alternativeto.net`,
+    `site:indiehackers.com ${extraction.problem_statement} OR ${extraction.niche} build`,
+    `site:youtube.com ${extraction.problem_statement} review OR pricing OR tutorial`,
+    `${extraction.problem_statement} \"${extraction.icp}\" community story frustration budget cost`,
   ];
 
   const searchResults = [];
@@ -308,6 +318,7 @@ export async function runResearchPipeline(params: {
       current_workarounds: research.current_workarounds,
       contrary_evidence: research.contrary_evidence,
       open_questions: research.open_questions,
+      community_signals: research.community_signals,
       proposed_changes: research.proposed_changes.map((change) => ({
         id: randomUUID(),
         text: change.text,
@@ -323,6 +334,54 @@ export async function runResearchPipeline(params: {
       generated_at: new Date().toISOString(),
     },
   }));
+
+  // ── Hypothesis Agent ─────────────────────────────────────────────────────
+  // The research report becomes the bets the validation round tests. Seeded
+  // here (status Testing, basis research) and re-evaluated at the decision
+  // gate once the response pool is in. A hypothesis failure here must not
+  // kill the research that just succeeded.
+  try {
+    const generated = await runAgent(
+      hypothesisAgent,
+      {
+        problemStatement: extraction.problem_statement,
+        icp: extraction.icp,
+        valueProp: extraction.value_prop,
+        problemStrength: research.problem_strength,
+        evidence: research.evidence.map((e) => e.claim),
+        contraryEvidence: research.contrary_evidence.map((e) => e.claim),
+        competitors: research.competitors.map((c) => `${c.name}: ${c.summary}`),
+        workarounds: research.current_workarounds.map((w) => w.description),
+        communityQuotes: research.community_signals.map((s) => s.quote),
+      },
+      ctx,
+    );
+
+    const now = new Date().toISOString();
+    state = await updateCurrentState(versionId, (s) => ({
+      ...s,
+      hypotheses: [
+        // Founder-added hypotheses (basis feedback) survive a re-research;
+        // research-basis ones are regenerated from the fresh report.
+        ...s.hypotheses.filter((h) => h.basis === "feedback"),
+        ...generated.hypotheses.map((h) => ({
+          id: randomUUID(),
+          statement: h.statement,
+          category: h.category,
+          basis: "research" as const,
+          status: "Testing" as const,
+          confidence: 0,
+          supporting: [],
+          counter: [],
+          takeaway: "",
+          testable_expectation: h.testable_expectation,
+          generated_at: now,
+        })),
+      ],
+    }));
+  } catch (err) {
+    console.error("[orchestrator] hypothesis generation failed", err);
+  }
 
   return state;
 }
@@ -344,6 +403,12 @@ export async function runSignalScan(params: {
         ),
         search.search(
           `reddit forum thread ${state.structured.problem_statement}`,
+        ),
+        search.search(
+          `site:producthunt.com OR site:indiehackers.com OR site:news.ycombinator.com ${state.structured.problem_statement} ${state.structured.niche}`,
+        ),
+        search.search(
+          `site:g2.com OR site:capterra.com ${state.structured.niche} pricing alternatives`,
         ),
       ])
     ).flat(),
@@ -428,6 +493,104 @@ export async function runDecisionGate(params: {
     responses.map((r) => r.source.trim().toLowerCase()).filter(Boolean),
   ).size;
 
+  // ── Hypothesis Evaluation Agent ────────────────────────────────────────────
+  // The whole pool is in, so every standing hypothesis gets judged against it.
+  // Failures here leave hypotheses as they were - the gate itself still runs.
+  let evaluatedHypotheses = state.hypotheses;
+  if (state.hypotheses.length > 0) {
+    try {
+      const evalResult = await runAgent(
+        hypothesisEvaluationAgent,
+        {
+          problemStatement: state.structured.problem_statement,
+          hypotheses: state.hypotheses.map((h) => ({
+            id: h.id,
+            statement: h.statement,
+            category: h.category,
+            testable_expectation: h.testable_expectation,
+          })),
+          confirmationRate,
+          responseCount: responses.length,
+          responses: responses.map((r) => ({
+            confirmed: r.confirmed,
+            channel: r.channel,
+            notes: r.notes,
+          })),
+          synthesis: {
+            themes: synthesis.themes,
+            objections: synthesis.objections,
+            narrative: synthesis.narrative,
+          },
+        },
+        ctx,
+      );
+
+      const byId = new Map(evalResult.evaluations.map((e) => [e.id, e]));
+      evaluatedHypotheses = state.hypotheses.map((h) => {
+        const e = byId.get(h.id);
+        if (!e) return h;
+        return {
+          ...h,
+          status: e.status,
+          confidence: Math.max(0, Math.min(100, Math.round(e.confidence))),
+          supporting: e.supporting,
+          counter: e.counter,
+          takeaway: e.takeaway,
+        };
+      });
+    } catch (err) {
+      console.error("[orchestrator] hypothesis evaluation failed", err);
+    }
+  }
+
+  // ── Pricing Intelligence Agent ────────────────────────────────────────────
+  // Anchors only: competitor prices from research plus the money respondents
+  // actually described. With none of those the agent returns anchor_missing
+  // and the studio says "no grounded estimate" instead of showing a guess.
+  let pricingIntelligence = state.validation.pricing_intelligence;
+  try {
+    // Gather every money-bearing sentence we have — evidence claims, workaround
+    // costs, community quotes and raw response notes. The pricing agent is
+    // deliberately hungry for anchors; a thin anchor set is surfaced as
+    // anchor_missing rather than guessed.
+    const researchText = [
+      ...(state.research_report?.evidence.map((e) => `${e.claim} ${e.source_title} ${e.source_url}`) ?? []),
+      ...(state.research_report?.competitors.map((c) => `${c.name}: ${c.summary} ${c.source_url}`) ?? []),
+      ...(state.research_report?.current_workarounds.map((w) => `${w.description} ${w.why_it_persists ?? ""} ${w.source_url}`) ?? []),
+      ...(state.research_report?.contrary_evidence.map((e) => e.claim) ?? []),
+      ...(state.research_report?.community_signals.map((s) => `${s.quote} ${s.source_title} ${s.platform}`) ?? []),
+    ];
+    const responseText = responses.map((r) => r.notes).join("\n\n");
+    // Separate explicit budgets (wider range) from general spend mentions
+    const competitorAnchors = moneySnippets(researchText.join("\n"));
+    const spendAnchors = moneySnippets(responseText);
+    // If still thin, fall back to any money in report reasoning as weak anchor (still better than inventing)
+    const fallbackAnchors =
+      competitorAnchors.length === 0 && state.research_report?.problem_strength_reasoning
+        ? moneySnippets(state.research_report.problem_strength_reasoning)
+        : [];
+
+    pricingIntelligence = {
+      ...(await runAgent(
+        pricingIntelligenceAgent,
+        {
+          problemStatement: state.structured.problem_statement,
+          icp: state.structured.icp,
+          valueProp: state.structured.value_prop,
+          niche: state.structured.niche,
+          nicheTier: state.structured.niche_tier,
+          competitorPrices: [...competitorAnchors, ...fallbackAnchors],
+          costSignals: spendAnchors,
+          statedBudgets: budgetSnippets(responseText),
+        },
+        ctx,
+      )),
+      generated_at: new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error("[orchestrator] pricing intelligence failed", err);
+  }
+
   // ── 6.7 Decision Gate Agent ──────────────────────────────────────────────
   const gate = await runAgent(
     decisionGateAgent,
@@ -471,10 +634,12 @@ export async function runDecisionGate(params: {
   return updateCurrentState(versionId, (s) => ({
     ...s,
     status: "gate_review",
+    hypotheses: evaluatedHypotheses,
     validation: {
       ...s.validation,
       confirmation_rate: confirmationRate,
       forced_early_analysis: forcedEarly,
+      pricing_intelligence: pricingIntelligence,
       synthesis_summary: {
         themes: synthesis.themes,
         notable_points: synthesis.notable_points,
@@ -688,13 +853,33 @@ function dedupeByUrl<T extends { url: string }>(items: T[]): T[] {
  * Keep community evidence from being crowded out by repeated vendor pages.
  * Search providers are free to rank, but the research brief needs a chance to
  * inspect lived experience, workarounds, competitors, and contrary evidence.
+ *
+ * Expanded to recognise Product Hunt, Indie Hackers, G2/Capterra, YouTube etc
+ * so pricing and alternative pages are not demoted as "other".
  */
 function diversifySearchResults<T extends { url: string; title: string; snippet: string }>(
   items: T[],
 ): T[] {
-  const community = items.filter((item) => /(^|\.)reddit\.com$|news\.ycombinator\.com|forum|community|discussion/i.test(item.url) || /reddit|forum|community|discussion/i.test(`${item.title} ${item.snippet}`));
-  const other = items.filter((item) => !community.includes(item));
-  return [...community, ...other].slice(0, 24);
+  const isCommunity = (item: T) =>
+    /(^|\.)reddit\.com$|news\.ycombinator\.com|producthunt\.com|alternativeto\.net|indiehackers\.com|youtube\.com|youtu\.be|g2\.com|capterra\.com|trustpilot\.com|forum|community|discussion/i.test(item.url) ||
+    /reddit|product ?hunt|indie ?hackers|g2|capterra|youtube|trustpilot|forum|community|discussion/i.test(`${item.title} ${item.snippet}`);
+  const community = items.filter(isCommunity);
+  const pricing = items.filter(
+    (item) => !community.includes(item) && /pricing|price|per month|\$\s?\d+|plan|tier/i.test(`${item.title} ${item.snippet} ${item.url}`),
+  );
+  const other = items.filter((item) => !community.includes(item) && !pricing.includes(item));
+  // Prioritise lived experience, then pricing anchors (feeds WTP), then general
+  return [...community, ...pricing, ...other].slice(0, 48);
+}
+
+function credibilityTier(url: string): number {
+  // Lower = more credible for lived experience / pricing. Used for rerank hint, not filter.
+  if (/(^|\.)reddit\.com$|news\.ycombinator\.com|indiehackers\.com/i.test(url)) return 0;
+  if (/youtube\.com|youtu\.be/i.test(url)) return 1;
+  if (/producthunt\.com|alternativeto\.net/i.test(url)) return 1;
+  if (/g2\.com|capterra\.com|trustpilot\.com/i.test(url)) return 1;
+  if (/forum|community/i.test(url)) return 1;
+  return 2;
 }
 
 /**

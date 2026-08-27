@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineAgent } from "../types";
 import {
+  communitySignalSchema,
   competitorSchema,
   evidenceSchema,
   problemStrengthSchema,
@@ -55,6 +56,11 @@ export const researchOutput = z.object({
   ),
   /** Questions the search could not settle, for the interviews to answer. */
   open_questions: z.array(z.string()),
+  /**
+   * Verbatim things real people said in community threads found by the
+   * search. The market's own voice, each quote tied to its exact thread.
+   */
+  community_signals: z.array(communitySignalSchema),
   proposed_changes: z.array(
     z.object({
       text: z.string(),
@@ -80,11 +86,12 @@ export const researchAgent = defineAgent<
   z.infer<typeof researchOutput>
 >({
   name: "research_strengthening",
-  promptVersion: "2.0.0",
+  promptVersion: "3.0.0",
   outputSchema: researchOutput,
   // Raised with the brief: the extra strands need room to be answered
-  // properly rather than truncated into a thin report.
-  maxTokens: 4500,
+  // properly rather than truncated into a thin report. Raised again for
+  // community_signals, which quote real threads verbatim.
+  maxTokens: 5500,
   system: `${VOICE}
 
 You assess how real a problem is, map who already solves it, and propose concrete ways to sharpen the idea - all before the founder spends anything on validation.
@@ -110,6 +117,13 @@ current_workarounds: what people do TODAY without any product. Spreadsheets, an 
 contrary_evidence: the strongest case against this idea that the results support. If you found none, return an empty array rather than inventing balance - but look properly first.
 
 open_questions: what the search genuinely could not settle. These become interview questions, so make them answerable by a person describing their own situation, not by more searching.
+
+community_signals: 3-8 verbatim quotes from real people in the community results - Reddit posts and comments, Hacker News comments, forum replies. Rules:
+  · quote text that actually appears in the supplied snippets. Trim a long passage down to the telling sentence, but never rewrite it, and never stitch words from different places together.
+  · source_url is the exact URL of the thread the quote sits in. Never invent one.
+  · platform is Reddit, Hacker News, or the forum named in the result.
+  · theme is two or three words on what the quote shows: "workaround cost", "tool abandonment", "time lost", and so on.
+  · Prefer first-person lived experience over opinions about the market. If no community results contain usable first-person quotes, return an empty array rather than paraphrasing claims as quotes.
 
 proposed_changes: 3-5 changes that would make this idea sharper. Each must:
   · be specific and actionable ("narrow to X", "cut Y", "reframe around Z") - never "do more research"
@@ -148,12 +162,12 @@ proposed_changes: 3-5 changes that would make this idea sharper. Each must:
           ? `The founder's own product already tells us: ${existingProductContext}`
           : "",
         "",
-        "Search results:",
+        "Search results (48 max, community + pricing prioritized):",
         searchResults
-          .slice(0, 24)
+          .slice(0, 48)
           .map(
             (r, i) =>
-              `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 500)}`,
+              `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 800)}`,
           )
           .join("\n\n"),
       ]

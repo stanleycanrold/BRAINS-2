@@ -13,6 +13,26 @@ import {
 import { relations } from "drizzle-orm";
 import type { IdeaState } from "@/lib/domain/types";
 
+/** One structured answer to one questionnaire question. */
+export type StructuredAnswer = {
+  question_id: string;
+  question: string;
+  kind: string;
+  answer: string;
+};
+
+/**
+ * The optional "About you" context a respondent shares. Professional
+ * descriptors only - identity fields (name/email/phone) stay on their own
+ * columns and are never projected to the founder.
+ */
+export type RespondentProfile = {
+  company_size?: string;
+  industry?: string;
+  decision_maker?: boolean;
+  current_tools?: string[];
+};
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * BRAINS AI - data model (PRD §7)
@@ -310,6 +330,35 @@ export const validationResponses = pgTable(
     /** Set when a human accepts or overturns the machine's verdict. */
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     reviewedBy: text("reviewed_by").notNull().default(""),
+    /**
+     * Structured per-question answers for questionnaire submissions, so an
+     * agent or the studio can read each answer against the question that
+     * drew it. Notes remain the canonical prose shape every channel shares;
+     * this is the way back into its structure. Empty for interviews logged
+     * as prose.
+     */
+    answersJson: jsonb("answers_json")
+      .$type<StructuredAnswer[]>()
+      .notNull()
+      .default([]),
+    /** Optional professional context collected alongside the answers. */
+    respondentProfile: jsonb("respondent_profile")
+      .$type<RespondentProfile>()
+      .notNull()
+      .default({}),
+    /**
+     * How well this respondent fits the researched ICP, judged by the
+     * quality screen. Drives audience-fit in the studio; never filters a
+     * response out of the pool on its own.
+     */
+    icpFit: text("icp_fit").notNull().default("unknown"),
+    icpFitReasoning: text("icp_fit_reasoning").notNull().default(""),
+    /**
+     * Empirical willingness-to-pay for this respondent in whole currency
+     * units, set only when their answers carry a money anchor (stated
+     * budget, current spend). 0 means no anchor, not "$0".
+     */
+    wtpEstimate: integer("wtp_estimate").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

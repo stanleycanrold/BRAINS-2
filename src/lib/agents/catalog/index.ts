@@ -21,3 +21,8 @@ export * from "./post-drafting";
 export * from "./comment-drafting";
 export * from "./monitor";
 export * from "./response-quality";
+export * from "./copilot";
+export * from "./quote-extraction";
+export * from "./hypothesis";
+export * from "./pricing-intelligence";
+export * from "./respondent-profile";
