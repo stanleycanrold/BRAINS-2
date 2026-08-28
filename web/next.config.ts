@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Web is a separate Next app inside the monorepo (web/). When Vercel's
+  // Root Directory = "web", process.cwd() is that folder; explicitly set it
+  // so Turbopack doesn't pick the parent BRAINS-AI lockfile as root.
+  turbopack: {
+    root: process.cwd(),
+  },
   images: {
     // Matches the app's own config — the logo mark is fine detail rendered
     // small, so it's served at full quality rather than the default 75.
