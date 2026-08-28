@@ -15,7 +15,7 @@ import {
   Loader2,
   SlidersHorizontal,
 } from 'lucide-react';
-import { FullWorkspaceData } from '../data/mockData';
+import type { FullWorkspaceData } from "@/lib/domain/empirical-types";
 
 interface IdeaComposerModalProps {
   isOpen: boolean;
@@ -157,6 +157,54 @@ export const IdeaComposerModal: React.FC<IdeaComposerModalProps> = ({
       }
     } catch (err) {
       console.warn('Backend validation call error, utilizing local resilient agent fallback', err);
+    }
+
+    // Fallback if network or timeout
+    setTimeout(() => {
+      completePipelineFallback();
+    }, 4500);
+  };
+
+  const handleRunSimulation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ideaTitle.trim()) {
+      onShowToast('Missing Idea Name', 'Please provide a name or concept to test.', 'error');
+      return;
+    }
+    setIsRunningPipeline(true);
+    setCurrentStepIndex(0);
+
+    const parsedPrice = parseInt(targetPrice) || 249;
+
+    try {
+      const response = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ideaTitle: ideaTitle.trim(),
+          targetIcp: targetIcp.trim(),
+          coreProblem: coreProblem.trim(),
+          targetPrice: parsedPrice,
+        }),
+      });
+
+      if (response.ok) {
+        const generatedData = await response.json();
+        // Give the visual agent steps a moment to complete
+        setTimeout(() => {
+          setIsRunningPipeline(false);
+          onWorkspaceCreated(generatedData);
+          onShowToast(
+            'Simulation Complete!',
+            `Simulated validation workspace generated for "${ideaTitle}". All data is simulated — run real validation for real data.`,
+            'info'
+          );
+          onClose();
+        }, 1200);
+        return;
+      }
+    } catch (err) {
+      console.warn('Simulation call error, using fallback', err);
     }
 
     // Fallback if network or timeout
@@ -573,6 +621,14 @@ export const IdeaComposerModal: React.FC<IdeaComposerModalProps> = ({
                   className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRunSimulation}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md shadow-amber-500/20 transition-all cursor-pointer"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 fill-current" />
+                  <span>Run Simulation (Preview)</span>
                 </button>
                 <button
                   type="submit"

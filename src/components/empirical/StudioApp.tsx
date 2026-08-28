@@ -9,8 +9,8 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FullWorkspaceData } from "./data/mockData";
 import { Respondent, Hypothesis } from "./types";
+import type { FullWorkspaceData } from "@/lib/domain/empirical-types";
 import { OverviewTab } from "./components/OverviewTab";
 import { AudienceTab } from "./components/AudienceTab";
 import { EvidenceTab } from "./components/EvidenceTab";

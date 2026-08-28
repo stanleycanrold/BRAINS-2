@@ -292,6 +292,12 @@ export const EvidenceTab: React.FC<EvidenceTabProps> = ({
                          Verbatim Social Quote
                       </span>
                     )}
+
+                    {(q as any).isSimulation && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                         SIMULATED
+                      </span>
+                    )}
                   </div>
 
                   <span className="text-[11px] font-semibold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">

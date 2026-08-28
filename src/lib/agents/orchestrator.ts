@@ -339,6 +339,43 @@ export async function runResearchPipeline(params: {
 
   const deduped = dedupeByUrl(searchResults);
 
+  // If no real search results, do NOT run the research agent.
+  // Return explicit "no real data found" state instead of letting the agent
+  // generate from model knowledge (which would be simulation).
+  if (deduped.length === 0) {
+    console.warn("[orchestrator] No real search results found - skipping research agent, setting unsourced state");
+    state = await updateCurrentState(versionId, (s) => ({
+      ...s,
+      research_report: {
+        problem_strength: "weak" as const,
+        problem_strength_reasoning: "No public discussion of this problem found in live search. No real sources available.",
+        competitors: [],
+        evidence: [],
+        current_workarounds: [],
+        contrary_evidence: [],
+        open_questions: ["No public data found — what specific situations have you encountered this problem?"],
+        community_signals: [],
+        proposed_changes: [],
+        sources_searched: { review_platforms: [], social_platforms: [], general_web: false },
+        intent_breakdown: {
+          pain_complaint: 0,
+          workaround_evidence: 0,
+          switching_intent: 0,
+          feature_request: 0,
+          churn_signal: 0,
+          price_sensitivity: 0,
+          satisfaction_praise: 0,
+          confusion_seeking_advice: 0,
+        },
+        notable_findings: [],
+        contradictions_flagged: [],
+        unsourced: true,
+        generated_at: new Date().toISOString(),
+      },
+    }));
+    return state;
+  }
+
   const diversified = diversifySearchResults(deduped);
 
   const research = await runAgent(
@@ -408,7 +445,7 @@ export async function runResearchPipeline(params: {
       contradictions_flagged: research.contradictions_flagged ?? [],
       // Honesty rule: when live search returned nothing, say so rather than
       // presenting model recall as researched fact (PRD §4.2).
-      unsourced: deduped.length === 0,
+      unsourced: false,
       generated_at: new Date().toISOString(),
     },
   }));

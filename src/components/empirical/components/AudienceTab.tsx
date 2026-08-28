@@ -223,12 +223,14 @@ export const AudienceTab: React.FC<AudienceTabProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-slate-500">
-              {filteredRespondents.map((resp) => (
-                <tr
-                  key={resp.id}
-                  onClick={() => onOpenRespondent(resp)}
-                  className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                >
+              {filteredRespondents.map((resp) => {
+                const isSim = (resp as any).isSimulation;
+                return (
+                  <tr
+                    key={resp.id}
+                    onClick={() => onOpenRespondent(resp)}
+                    className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                  >
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-3">
                       <img
@@ -237,8 +239,15 @@ export const AudienceTab: React.FC<AudienceTabProps> = ({
                         className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200"
                       />
                       <div>
-                        <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                          {resp.name}
+                        <div className="flex items-center gap-2">
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            {resp.name}
+                          </div>
+                          {isSim && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                               SIMULATED
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-slate-500">{resp.role}</div>
                         {resp.icpFit && resp.icpFit !== 'unknown' && (
@@ -326,7 +335,8 @@ export const AudienceTab: React.FC<AudienceTabProps> = ({
                     </button>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>

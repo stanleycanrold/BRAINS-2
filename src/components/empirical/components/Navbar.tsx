@@ -15,7 +15,7 @@ import {
   Eye,
   ShieldCheck,
 } from 'lucide-react';
-import { ALL_WORKSPACES, FullWorkspaceData } from '../data/mockData';
+import type { FullWorkspaceData } from "@/lib/domain/empirical-types";
 import { Logo } from './brand/Logo';
 
 interface NavbarProps {

@@ -173,8 +173,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug flex items-center gap-2">
               {workspace.name}
+              {(workspace as any).isSimulation && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/50">
+                   SIMULATED
+                </span>
+              )}
             </h2>
 
             <p className="text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">

@@ -18,17 +18,24 @@ export const CompetitorTab: React.FC<CompetitorTabProps> = ({
   const tools = competitors.filter((c) => c.category !== 'Manual Workflow');
   const workarounds = competitors.filter((c) => c.category === 'Manual Workflow');
 
-  const renderCard = (comp: CompetitorWorkaround) => (
-    <div
-      key={comp.id}
-      className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
-    >
+  const renderCard = (comp: CompetitorWorkaround) => {
+    const isSim = (comp as any).isSimulation;
+    return (
+      <div
+        key={comp.id}
+        className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+      >
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500">
               {comp.category}
             </span>
+            {isSim && (
+              <span className="ml-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                 SIMULATED
+              </span>
+            )}
             <h3 className="text-base font-bold text-slate-900 mt-1.5">{comp.name}</h3>
           </div>
           {/* Stats the research never produced stay hidden, not zeroed. */}
@@ -113,7 +120,8 @@ export const CompetitorTab: React.FC<CompetitorTabProps> = ({
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
