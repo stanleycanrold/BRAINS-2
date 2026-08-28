@@ -66,7 +66,7 @@ export const WebHero: React.FC<WebHeroProps> = ({
           </h1>
 
           <p className="mk-rise mk-delay-1 type-body-xl text-secondary max-w-2xl mx-auto">
-            Unbiased feedback and empirical willingness-to-pay from verified ICPs before writing code.
+            Unbiased feedback and empirical willingness-to-pay from verified ICPs — so you know what to build next.
           </p>
         </div>
 

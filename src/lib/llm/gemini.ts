@@ -26,9 +26,26 @@ type GeminiResponse = {
   error?: { message?: string };
 };
 
+function getGeminiKeys(): string[] {
+  // Supports GEMINI_API_KEY=key1,key2  or GEMINI_API_KEYS=key1,key2
+  const raw = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "";
+  return raw
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+}
+let keyIndex = 0;
+function nextKey(keys: string[]): string {
+  const k = keys[keyIndex % keys.length];
+  keyIndex = (keyIndex + 1) % keys.length;
+  return k;
+}
+function isQuotaError(msg: string): boolean {
+  return /429|quota|exhausted|rate.?limit|resource.?exhausted/i.test(msg);
+}
+
 /** Gemini structured-output adapter used by the agent pipeline. */
 export function createGeminiProvider(): LLMProvider {
-  const apiKey = process.env.GEMINI_API_KEY;
   const configuredModel = process.env.GEMINI_MODEL;
   const model =
     configuredModel === "gemini-2.5-flash"
@@ -42,10 +59,15 @@ export function createGeminiProvider(): LLMProvider {
     async structured<T>(
       req: StructuredRequest<T>,
     ): Promise<StructuredResult<T>> {
-      if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+      const keys = getGeminiKeys();
+      if (keys.length === 0) throw new Error("GEMINI_API_KEY is not set.");
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      let lastErr: unknown;
+      for (let attempt = 0; attempt < keys.length; attempt++) {
+        const apiKey = nextKey(keys);
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -68,26 +90,37 @@ export function createGeminiProvider(): LLMProvider {
         },
       );
 
-      const payload = (await response.json()) as GeminiResponse;
-      if (!response.ok) {
-        throw new Error(payload.error?.message || `HTTP ${response.status}`);
-      }
+          const payload = (await response.json()) as GeminiResponse;
+          if (!response.ok) {
+            throw new Error(payload.error?.message || `HTTP ${response.status}`);
+          }
 
-      const raw = payload.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text || "")
-        .join("")
-        .trim();
-      if (!raw) throw new Error(`Gemini returned no content for "${req.name}".`);
+          const raw = payload.candidates?.[0]?.content?.parts
+            ?.map((part) => part.text || "")
+            .join("")
+            .trim();
+          if (!raw) throw new Error(`Gemini returned no content for "${req.name}".`);
 
-      try {
-        return { data: req.schema.parse(JSON.parse(raw)), model, raw };
-      } catch (error) {
-        throw new Error(
-          `Gemini returned output that did not match schema "${req.name}": ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
+          try {
+            return { data: req.schema.parse(JSON.parse(raw)), model, raw };
+          } catch (error) {
+            throw new Error(
+              `Gemini returned output that did not match schema "${req.name}": ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
+        } catch (e) {
+          lastErr = e;
+          const msg = e instanceof Error ? e.message : String(e);
+          if (isQuotaError(msg) && attempt < keys.length - 1) {
+            console.warn(`[gemini] key ${attempt + 1}/${keys.length} failed (${msg}), rotating...`);
+            continue;
+          }
+          throw e;
+        }
       }
+      throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
     },
   };
 }
@@ -98,13 +131,13 @@ export function createGeminiProvider(): LLMProvider {
  * research pipeline as evidence.
  */
 export function createGeminiSearchProvider(): SearchProvider {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const keys = getGeminiKeys();
   const configuredModel = process.env.GEMINI_SEARCH_MODEL;
   const model =
     configuredModel === "gemini-2.5-flash"
       ? "gemini-3.6-flash"
       : configuredModel || "gemini-3.6-flash";
-  const available = Boolean(apiKey);
+  const available = keys.length > 0;
 
   return {
     name: "gemini-google-search",
@@ -112,33 +145,42 @@ export function createGeminiSearchProvider(): SearchProvider {
     available,
 
     async search(query: string): Promise<SearchResult[]> {
-      if (!apiKey) return [];
+      if (keys.length === 0) return [];
 
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: query }] }],
-              tools: [{ google_search: {} }],
-              generationConfig: { temperature: 0.2, maxOutputTokens: 700 },
-            }),
-            signal: AbortSignal.timeout(30_000),
-          },
-        );
+      for (let attempt = 0; attempt < keys.length; attempt++) {
+        const apiKey = nextKey(keys);
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: query }] }],
+                tools: [{ google_search: {} }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 1200 },
+              }),
+              signal: AbortSignal.timeout(30_000),
+            },
+          );
 
-        const payload = (await response.json()) as GeminiResponse;
-        if (!response.ok) {
-          throw new Error(payload.error?.message || `HTTP ${response.status}`);
+          const payload = (await response.json()) as GeminiResponse;
+          if (!response.ok) {
+            throw new Error(payload.error?.message || `HTTP ${response.status}`);
+          }
+
+          return parseGroundedResults(payload);
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          if (isQuotaError(msg) && attempt < keys.length - 1) {
+            console.warn(`[gemini-search] key ${attempt + 1}/${keys.length} failed, rotating...`);
+            continue;
+          }
+          console.error(`[gemini-search] query failed: ${query}`, error);
+          return [];
         }
-
-        return parseGroundedResults(payload);
-      } catch (error) {
-        console.error(`[gemini-search] query failed: ${query}`, error);
-        return [];
       }
+      return [];
     },
   };
 }
@@ -168,7 +210,7 @@ function parseGroundedResults(payload: GeminiResponse): SearchResult[] {
       {
         title: chunk.web?.title?.trim() || url,
         url,
-        snippet: (snippets.get(index) ?? []).join(" ").slice(0, 1200),
+        snippet: (snippets.get(index) ?? []).join(" ").slice(0, 2000),
       },
     ];
   });
