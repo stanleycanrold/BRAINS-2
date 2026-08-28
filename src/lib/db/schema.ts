@@ -133,6 +133,44 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "past_due",
 ]);
 
+// ── roles ────────────────────────────────────────────────────────────────────
+
+export const roleEnum = pgEnum("role", [
+  "ADMIN",
+  "REVIEWER",
+  "FREELANCER",
+  "FOUNDER",
+]);
+
+export const roles = pgTable("roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: roleEnum("name").notNull().unique(),
+  description: text("description").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const userRoles = pgTable(
+  "user_roles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("user_roles_user_id_idx").on(t.userId),
+    index("user_roles_role_id_idx").on(t.roleId),
+  ],
+);
+
 // ── users ──────────────────────────────────────────────────────────────────
 
 export const users = pgTable(
@@ -577,10 +615,6 @@ export const agentRunLogs = pgTable(
 
 // ── Relations ──────────────────────────────────────────────────────────────
 
-export const usersRelations = relations(users, ({ many }) => ({
-  ideas: many(ideas),
-}));
-
 export const ideasRelations = relations(ideas, ({ one, many }) => ({
   user: one(users, { fields: [ideas.userId], references: [users.id] }),
   versions: many(ideaStateVersions),
@@ -637,3 +671,17 @@ export const fastTrackInterviewsRelations = relations(
     }),
   }),
 );
+
+export const rolesRelations = relations(roles, ({ many }) => ({
+  userRoles: many(userRoles),
+}));
+
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, { fields: [userRoles.userId], references: [users.id] }),
+  role: one(roles, { fields: [userRoles.roleId], references: [roles.id] }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  ideas: many(ideas),
+  userRoles: many(userRoles),
+}));

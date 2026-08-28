@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireUser } from "@/lib/auth";
+import { requireUser, getUserRoles } from "@/lib/auth";
 import { listIdeas } from "@/lib/data/ideas";
 import { projectWorkspace } from "@/lib/studio/projection";
 import type { FullWorkspaceData } from "@/components/empirical/data/mockData";
@@ -17,6 +17,7 @@ export const metadata: Metadata = { title: "Studio" };
  */
 export default async function StudioDashboardPage() {
   const user = await requireUser();
+  const roles = await getUserRoles(user.id);
   const ideas = await listIdeas(user.id);
 
   const map: Record<string, FullWorkspaceData> = {};
@@ -32,6 +33,6 @@ export default async function StudioDashboardPage() {
   const initialId = firstId ?? WORKSPACE_AUTOAUDIT.meta.id;
 
   return (
-    <StudioApp initialWorkspaces={workspaces} initialWorkspaceId={initialId} />
+    <StudioApp initialWorkspaces={workspaces} initialWorkspaceId={initialId} userRoles={roles} />
   );
 }

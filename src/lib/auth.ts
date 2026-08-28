@@ -1,7 +1,7 @@
 import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { WORKSPACE_TOKEN_COOKIE } from "@/lib/workspace-token";
 
@@ -119,4 +119,60 @@ export async function isOpsUser(): Promise<boolean> {
 
   const user = await requireUser();
   return allowed.includes(user.email.toLowerCase());
+}
+
+/** Role hierarchy: ADMIN > REVIEWER > FREELANCER > FOUNDER */
+const ROLE_HIERARCHY = ["ADMIN", "REVIEWER", "FREELANCER", "FOUNDER"] as const;
+type RoleName = (typeof ROLE_HIERARCHY)[number];
+
+/** Get all role names for a user (including inherited from hierarchy) */
+export async function getUserRoles(userId: string): Promise<RoleName[]> {
+  const userRoles = await db
+    .select({ name: schema.roles.name })
+    .from(schema.userRoles)
+    .innerJoin(schema.roles, eq(schema.userRoles.roleId, schema.roles.id))
+    .where(eq(schema.userRoles.userId, userId));
+
+  const directRoles = userRoles.map((r) => r.name as RoleName);
+  
+  // Expand via hierarchy: ADMIN gets REVIEWER + FREELANCER, REVIEWER gets FREELANCER
+  const expanded = new Set<RoleName>();
+  for (const role of directRoles) {
+    const idx = ROLE_HIERARCHY.indexOf(role);
+    for (let i = idx; i < ROLE_HIERARCHY.length; i++) {
+      expanded.add(ROLE_HIERARCHY[i]);
+    }
+  }
+  return Array.from(expanded);
+}
+
+/** Check if user has a specific role (or higher in hierarchy) */
+export async function hasRole(userId: string, requiredRole: RoleName): Promise<boolean> {
+  const roles = await getUserRoles(userId);
+  const requiredIdx = ROLE_HIERARCHY.indexOf(requiredRole);
+  return roles.some((r) => ROLE_HIERARCHY.indexOf(r) <= requiredIdx);
+}
+
+/** Require a specific role, redirect if not authorized */
+export async function requireRole(
+  requiredRole: RoleName,
+  redirectTo = "/dashboard"
+) {
+  const { redirect } = await import("next/navigation");
+  const { userId } = await auth();
+  const workspace = await workspaceAccess();
+  if (!userId && !workspace) redirect("/sign-in");
+  const user = await requireUser();
+  const authorized = await hasRole(user.id, requiredRole);
+  if (!authorized) {
+    redirect(redirectTo);
+  }
+  return user;
+}
+
+/** Get current user with their roles attached */
+export async function getUserWithRoles() {
+  const user = await requireUser();
+  const roles = await getUserRoles(user.id);
+  return { ...user, roles };
 }

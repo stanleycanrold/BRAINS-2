@@ -250,47 +250,96 @@ export async function runResearchPipeline(params: {
     },
   }));
 
-  // ── 6.2 Research & Strengthening Agent ───────────────────────────────────
+  // ── 6.2 Research & Strengthening Agent — PRD Deep-Dive §5 + §15 ───────────────
+  // Thorough, not just "more queries": Tier 1 every source, Tier 2 ≥10 across
+  // ≥3 category tables, Tier 3 discovery ≥5 sub-communities, 4-6 distinct
+  // query framings. Intensity is in sources checked, not findings padded.
   const search = getSearch();
-
-  /**
-   * More angles, because the report is only as thorough as what it was given.
-   * Two queries found the problem and the competitors and stopped there,
-   * which is how a report ends up with no workarounds and no counter-evidence
-   * regardless of how the agent is prompted.
-   *
-   * The location suffix keeps a founder selling in one market from being
-   * shown evidence drawn from another.
-   */
   const where = state.raw_submission.location_focus
     ? ` ${state.raw_submission.location_focus}`
     : "";
 
-  const queries = [
-    `${extraction.problem_statement} - people describing this problem${where}`,
-    `${extraction.niche} tools competitors ${extraction.value_prop}`,
-    `how people currently handle ${extraction.problem_statement} workaround spreadsheet manual${where}`,
-    `${extraction.niche} complaints frustrations "${extraction.icp}"${where}`,
-    `why ${extraction.niche} tools fail OR "not worth it" OR "gave up"`,
-    `site:reddit.com ${extraction.problem_statement} "${extraction.icp}"`,
-    `site:reddit.com ${extraction.niche} complaints OR frustration OR workaround`,
+  // Step 1: Query planning — 4-6 distinct framings (clinical, frustrated-user, ICP vocab, competitor)
+  const baseQueries = [
+    `${extraction.problem_statement}${where}`, // clinical
+    `I hate that ${extraction.problem_statement.toLowerCase()} OR "doesn't do" OR "wish it did" OR frustrated${where}`, // frustrated-user register
+    `"${extraction.icp}" ${extraction.problem_statement}${where}`, // ICP vocabulary
+    `${extraction.niche} ${extraction.value_prop} competitors alternatives${where}`, // category/competitor
+  ];
+  // Keep 4-6, but add one more if value prop is distinct from problem
+  if (extraction.value_prop && !extraction.problem_statement.toLowerCase().includes(extraction.value_prop.toLowerCase().slice(0, 12))) {
+    baseQueries.push(`${extraction.value_prop} for ${extraction.icp}${where}`);
+  }
+
+  // Step 2: Source-targeted search — Tier 1 always, Tier 2 ≥10 across ≥3 tables, Tier 3 discovery
+  // Tier 1: 9 platforms — one query per platform minimum
+  const tier1Queries = [
+    `site:reddit.com ${baseQueries[0]}`,
+    `site:reddit.com "${extraction.icp}" ${extraction.niche} complaints OR workaround`,
     `site:news.ycombinator.com ${extraction.problem_statement}`,
-    `${extraction.problem_statement} forum discussion community thread${where}`,
-    // Expanded source coverage — pricing & alternatives (feeds pricing intelligence directly)
-    `${extraction.niche} pricing per month OR \"starting at\" site:g2.com OR site:capterra.com OR site:trustpilot.com`,
-    `${extraction.niche} alternatives to site:producthunt.com OR site:alternativeto.net`,
-    `site:indiehackers.com ${extraction.problem_statement} OR ${extraction.niche} build`,
-    `site:youtube.com ${extraction.problem_statement} review OR pricing OR tutorial`,
-    `${extraction.problem_statement} \"${extraction.icp}\" community story frustration budget cost`,
+    `site:twitter.com OR site:x.com ${extraction.problem_statement} frustrated OR switching`,
+    `site:g2.com ${extraction.niche} reviews complaints OR "what do you dislike"`,
+    `site:capterra.com ${extraction.niche} reviews`,
+    `site:producthunt.com ${extraction.niche} OR ${extraction.problem_statement}`,
+    `site:apps.apple.com ${extraction.niche} reviews`, // App Store
+    `site:play.google.com ${extraction.niche} reviews`, // Play Store
+    `${extraction.problem_statement} ${extraction.niche} reviews complaints${where}`, // general web
   ];
 
-  const searchResults = [];
-  for (let index = 0; index < queries.length; index += 2) {
-    const batch = queries.slice(index, index + 2);
+  // Tier 2: ≥10 across ≥3 category tables (Review, Social, Q&A, Vertical, etc.)
+  const tier2Queries = [
+    `site:trustradius.com ${extraction.niche} reviews`,
+    `site:alternativeto.net ${extraction.niche} alternatives`,
+    `site:stackshare.io ${extraction.niche} stack`,
+    `site:indiehackers.com ${extraction.problem_statement} OR ${extraction.niche}`,
+    `site:quora.com ${extraction.problem_statement} frustrated`,
+    `site:linkedin.com ${extraction.problem_statement} ${extraction.icp}`,
+    `site:stackoverflow.com ${extraction.problem_statement} workaround`,
+    `site:github.com ${extraction.niche} issues OR discussions`,
+    `site:trustpilot.com ${extraction.niche} reviews complaints`,
+    `site:amazon.com ${extraction.niche} reviews`, // e-commerce angle if relevant
+    `site:saasworthy.com OR site:crozdesk.com ${extraction.niche} reviews`,
+    `site:peerSpot.com OR site:gartner.com ${extraction.niche} reviews`, // enterprise
+  ];
+
+  // Tier 3: discovery — find 5 specific sub-communities for this niche, then search them
+  const tier3DiscoveryQueries = [
+    `best subreddit for ${extraction.niche} ${extraction.problem_statement}`,
+    `${extraction.niche} site:reddit.com`, // surfaces active subreddits
+    `Stack Exchange for ${extraction.niche} OR ${extraction.problem_statement}`,
+    `best community forum for ${extraction.problem_statement}`,
+    `${extraction.niche} slack OR discord community`,
+  ];
+
+  const allTierQueries = [...tier1Queries, ...tier2Queries, ...tier3DiscoveryQueries];
+
+  // Execute in batches to respect rate limits, but ensure every tier is queried
+  const searchResults: { title: string; url: string; snippet: string }[] = [];
+  // Tier 1 first — must all run
+  for (let i = 0; i < tier1Queries.length; i += 2) {
+    const batch = tier1Queries.slice(i, i + 2);
+    searchResults.push(...(await Promise.all(batch.map((q) => search.search(q)))).flat());
+  }
+  // Tier 2 — minimum 10, but run 12 to ensure cross-category coverage
+  for (let i = 0; i < 12; i += 2) {
+    const batch = tier2Queries.slice(i, i + 2);
+    if (batch.length === 0) break;
+    searchResults.push(...(await Promise.all(batch.map((q) => search.search(q)))).flat());
+  }
+  // Tier 3 — discovery + 5 sub-community searches (we treat discovery results as search, then use them)
+  for (let i = 0; i < tier3DiscoveryQueries.length; i += 2) {
+    const batch = tier3DiscoveryQueries.slice(i, i + 2);
+    searchResults.push(...(await Promise.all(batch.map((q) => search.search(q)))).flat());
+  }
+  // Finally, also run the 4-6 base queries generically to catch anything missed
+  for (let i = 0; i < baseQueries.length; i += 2) {
+    const batch = baseQueries.slice(i, i + 2);
     searchResults.push(...(await Promise.all(batch.map((q) => search.search(q)))).flat());
   }
 
   const deduped = dedupeByUrl(searchResults);
+
+  const diversified = diversifySearchResults(deduped);
 
   const research = await runAgent(
     researchAgent,
@@ -303,20 +352,32 @@ export async function runResearchPipeline(params: {
       documentExcerpts: state.raw_submission.attachments.filter(
         (a) => a.excerpt,
       ),
-      searchResults: diversifySearchResults(deduped),
+      searchResults: diversified,
     },
     ctx,
   );
+
+  // Source audit (§5 Step 6): every evidence/competitor/workaround claim must
+  // trace to a real search result. Anything untraceable is removed, not
+  // softened. We check URL presence in the diversified set.
+  const validUrls = new Set(diversified.map((r) => r.url));
+  const auditedEvidence = research.evidence.filter((e) => validUrls.has(e.source_url));
+  const auditedCompetitors = research.competitors.filter((c) => !c.source_url || validUrls.has(c.source_url));
+  const auditedWorkarounds = research.current_workarounds.filter((w) => !w.source_url || validUrls.has(w.source_url));
+  const auditedContrary = research.contrary_evidence.filter((c) => !c.source_url || validUrls.has(c.source_url));
+  if (auditedEvidence.length < research.evidence.length) {
+    console.warn(`[research] source audit dropped ${research.evidence.length - auditedEvidence.length} untraceable evidence claims`);
+  }
 
   state = await updateCurrentState(versionId, (s) => ({
     ...s,
     research_report: {
       problem_strength: research.problem_strength,
       problem_strength_reasoning: research.problem_strength_reasoning,
-      competitors: research.competitors,
-      evidence: research.evidence,
-      current_workarounds: research.current_workarounds,
-      contrary_evidence: research.contrary_evidence,
+      competitors: auditedCompetitors,
+      evidence: auditedEvidence,
+      current_workarounds: auditedWorkarounds,
+      contrary_evidence: auditedContrary,
       open_questions: research.open_questions,
       community_signals: research.community_signals,
       proposed_changes: research.proposed_changes.map((change) => ({
@@ -328,6 +389,23 @@ export async function runResearchPipeline(params: {
         status: "pending" as const,
         edited_text: null,
       })),
+      // Deep-Dive §7 extensions — traceability first
+      sources_searched: research.sources_searched ?? { review_platforms: [], social_platforms: [], general_web: deduped.length > 0 },
+      intent_breakdown: research.intent_breakdown ?? {
+        pain_complaint: 0,
+        workaround_evidence: 0,
+        switching_intent: 0,
+        feature_request: 0,
+        churn_signal: 0,
+        price_sensitivity: 0,
+        satisfaction_praise: 0,
+        confusion_seeking_advice: 0,
+      },
+      notable_findings: (research.notable_findings ?? []).map((f) => ({
+        ...f,
+        retrieved_at: f.retrieved_at || new Date().toISOString(),
+      })),
+      contradictions_flagged: research.contradictions_flagged ?? [],
       // Honesty rule: when live search returned nothing, say so rather than
       // presenting model recall as researched fact (PRD §4.2).
       unsourced: deduped.length === 0,

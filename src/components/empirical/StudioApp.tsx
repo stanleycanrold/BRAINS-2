@@ -58,10 +58,12 @@ import {
   Moon,
   LogOut,
 } from "lucide-react";
+import { SharedAccountMenu } from "@/components/shell/SharedAccountMenu";
 
 interface StudioAppProps {
   initialWorkspaces: Record<string, FullWorkspaceData>;
   initialWorkspaceId: string;
+  userRoles?: string[];
 }
 
 const TOKENS = {
@@ -92,7 +94,7 @@ function statusLabel(score: number, hasFeedback?: boolean, count?: number) {
   return "RETHINK";
 }
 
-export function StudioApp({ initialWorkspaces, initialWorkspaceId }: StudioAppProps) {
+export function StudioApp({ initialWorkspaces, initialWorkspaceId, userRoles = [] }: StudioAppProps) {
   const router = useRouter();
   const [workspacesMap, setWorkspacesMap] = useState<Record<string, FullWorkspaceData>>(initialWorkspaces);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string>(initialWorkspaceId);
@@ -197,9 +199,12 @@ export function StudioApp({ initialWorkspaces, initialWorkspaceId }: StudioAppPr
               {mobileOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
             <div className="flex items-center gap-1.5 shrink-0">
-              <img src="/brains-icon-128.png" alt="" width={22} height={22} className="rounded-md shrink-0 object-contain" style={{ width: 22, height: 22 }} />
-              <span className="text-[15px] font-bold tracking-[0.14em]" style={{ color: TOKENS.textHeading, lineHeight: 1 }}>
+              <img src="/brains-icon-128.png" alt="" width={20} height={20} className="rounded-md shrink-0 object-contain" style={{ width: 20, height: 20 }} />
+              <span className="text-[13px] font-bold tracking-[0.12em]" style={{ color: TOKENS.textHeading, lineHeight: 1 }}>
                 BRAINS
+              </span>
+              <span className="text-[13px] font-medium tracking-[0.12em]" style={{ color: TOKENS.textHeading, lineHeight: 1, opacity: 0.7 }}>
+                WORKSPACE
               </span>
             </div>
             {/* Ideas switcher — now the primary top control, Default_Workspace removed */}
@@ -339,7 +344,7 @@ export function StudioApp({ initialWorkspaces, initialWorkspaceId }: StudioAppPr
                   </button>
                 </div>
               )}
-              <StudioAccountBlock collapsed={collapsed} />
+              <StudioAccountBlock collapsed={collapsed} userRoles={userRoles} />
             </div>
           </aside>
 
@@ -542,7 +547,7 @@ export function StudioApp({ initialWorkspaces, initialWorkspaceId }: StudioAppPr
 }
 
 // Studio account block — Clerk-wired, screenshot-faithful dark menu, blue-active row
-function StudioAccountBlock({ collapsed }: { collapsed: boolean }) {
+function StudioAccountBlock({ collapsed, userRoles = [] }: { collapsed: boolean; userRoles?: string[] }) {
   const { user, isLoaded } = useUser();
   const { openUserProfile, signOut } = useClerk();
   const { theme, setTheme } = useTheme();
@@ -580,33 +585,21 @@ function StudioAccountBlock({ collapsed }: { collapsed: boolean }) {
     </span>
   );
 
-  // Collapsed rail — avatar only with tooltip, menu still anchored
   if (collapsed) {
     return (
       <div ref={ref} className="relative flex flex-col items-center">
         {open && (
-          <div role="menu" className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-[224px] rounded-xl border shadow-xl overflow-hidden" style={{ background: "#0F172A", borderColor: "#1E293B" }}>
-            <div className="px-3 py-2.5 border-b" style={{ borderColor: "#1E293B" }}>
-              <p className="text-xs font-semibold truncate text-white">{name}</p>
-              <p className="text-[11px] truncate text-slate-400">{email}</p>
-            </div>
-            <div className="p-1">
-              <button onClick={() => { setOpen(false); openUserProfile(); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/10 hover:text-white text-left">
-                <User size={14} /> Manage profile
-              </button>
-              <a href="/account" onClick={() => setOpen(false)} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/10 hover:text-white">
-                <CreditCard size={14} /> Plan & billing
-              </a>
-              <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/10 hover:text-white text-left">
-                {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />} {theme === "dark" ? "Light mode" : "Dark mode"}
-              </button>
-            </div>
-            <div className="border-t p-1" style={{ borderColor: "#1E293B" }}>
-              <button onClick={() => void signOut({ redirectUrl: "/sign-in" })} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-slate-300 hover:bg-white/10 hover:text-white text-left">
-                <LogOut size={14} /> Sign out
-              </button>
-            </div>
-          </div>
+          <SharedAccountMenu
+            name={name}
+            email={email}
+            isLoaded={!!isLoaded}
+            userRoles={userRoles}
+            onManageProfile={() => { setOpen(false); openUserProfile(); }}
+            onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
+            theme={theme}
+            onSignOut={() => void signOut({ redirectUrl: "/sign-in" })}
+            centered
+          />
         )}
         <button onClick={() => setOpen((v) => !v)} className="p-1 rounded-full hover:bg-white/10" title={name}>
           {avatar}
@@ -618,28 +611,16 @@ function StudioAccountBlock({ collapsed }: { collapsed: boolean }) {
   return (
     <div ref={ref} className="relative">
       {open && (
-        <div role="menu" aria-label="Account" className="absolute bottom-full left-0 right-0 mb-2 rounded-xl border shadow-xl overflow-hidden animate-in fade-in zoom-in-95" style={{ background: "#0F172A", borderColor: "#1E293B" }}>
-          <div className="px-3 py-2.5 border-b" style={{ borderColor: "#1E293B" }}>
-            <p className="text-xs font-semibold truncate text-white">{isLoaded ? name : "Stanley canrold"}</p>
-            <p className="text-[11px] truncate text-slate-400">{isLoaded ? email : "stanleycanrold@gmail.com"}</p>
-          </div>
-          <div className="p-1">
-            <button onClick={() => { setOpen(false); openUserProfile(); }} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer">
-              <User size={14} /> Manage profile
-            </button>
-            <a href="/account" onClick={() => setOpen(false)} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors">
-              <CreditCard size={14} /> Plan & billing
-            </a>
-            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer">
-              {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />} {theme === "dark" ? "Light mode" : "Dark mode"}
-            </button>
-          </div>
-          <div className="border-t p-1" style={{ borderColor: "#1E293B" }}>
-            <button onClick={() => void signOut({ redirectUrl: "/sign-in" })} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer">
-              <LogOut size={14} /> Sign out
-            </button>
-          </div>
-        </div>
+        <SharedAccountMenu
+          name={name}
+          email={email}
+          isLoaded={!!isLoaded}
+          userRoles={userRoles}
+          onManageProfile={() => { setOpen(false); openUserProfile(); }}
+          onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
+          theme={theme}
+          onSignOut={() => void signOut({ redirectUrl: "/sign-in" })}
+        />
       )}
       <button
         onClick={() => setOpen((v) => !v)}

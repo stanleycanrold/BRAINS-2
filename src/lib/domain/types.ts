@@ -259,6 +259,62 @@ export const researchReportSchema = z.object({
   /** True when the run had no live search available; surfaced in the UI. */
   unsourced: z.boolean().default(false),
   generated_at: z.string().default(""),
+  // ── PRD §7 additions — thorough research extensions (all optional for back-compat) ──
+  /** Which source families were actually queried, for the coverage gate. */
+  sources_searched: z
+    .object({
+      review_platforms: z.array(z.string()).default([]),
+      social_platforms: z.array(z.string()).default([]),
+      general_web: z.boolean().default(false),
+    })
+    .default({ review_platforms: [], social_platforms: [], general_web: false }),
+  /** Distribution across the 8 intent categories (§6). Founder sees shape, not collapsed sentiment. */
+  intent_breakdown: z
+    .object({
+      pain_complaint: z.number().default(0),
+      workaround_evidence: z.number().default(0),
+      switching_intent: z.number().default(0),
+      feature_request: z.number().default(0),
+      churn_signal: z.number().default(0),
+      price_sensitivity: z.number().default(0),
+      satisfaction_praise: z.number().default(0),
+      confusion_seeking_advice: z.number().default(0),
+    })
+    .default({
+      pain_complaint: 0,
+      workaround_evidence: 0,
+      switching_intent: 0,
+      feature_request: 0,
+      churn_signal: 0,
+      price_sensitivity: 0,
+      satisfaction_praise: 0,
+      confusion_seeking_advice: 0,
+    }),
+  /** Paraphrased findings with intent tags, source, and retrieval time — traceability first. */
+  notable_findings: z
+    .array(
+      z.object({
+        summary: z.string(),
+        intent_tags: z.array(
+          z.enum([
+            "pain_complaint",
+            "workaround_evidence",
+            "switching_intent",
+            "feature_request",
+            "churn_signal",
+            "price_sensitivity",
+            "satisfaction_praise",
+            "confusion_seeking_advice",
+          ]),
+        ),
+        source_platform: z.string(),
+        source_url: z.string(),
+        retrieved_at: z.string(),
+      }),
+    )
+    .default([]),
+  /** Where sources disagree — required, not edge-case. Hiding contradiction is worse than an ugly report. */
+  contradictions_flagged: z.array(z.string()).default([]),
 });
 export type ResearchReport = z.infer<typeof researchReportSchema>;
 
