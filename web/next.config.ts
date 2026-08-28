@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Web is a separate Next app inside the monorepo (web/). When Vercel's
-  // Root Directory = "web", process.cwd() is that folder; explicitly set it
-  // so Turbopack doesn't pick the parent BRAINS-AI lockfile as root.
+  // Web is isolated in web/ — when Vercel Root Directory = "web", both
+  // tracing roots must point to web itself, not the parent repo. Otherwise
+  // Vercel's default outputFileTracingRoot=/vercel/path0 pulls in
+  // ../src/proxy.ts (which needs @clerk/nextjs) and fails.
+  outputFileTracingRoot: process.cwd(),
   turbopack: {
     root: process.cwd(),
   },
