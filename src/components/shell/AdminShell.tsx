@@ -42,7 +42,7 @@ export function AdminShell({ children, userRoles = [] }: { children: React.React
           <div className="flex items-center gap-1.5 shrink-0">
             <img src="/brains-icon-128.png" alt="" width={20} height={20} className="rounded-md object-contain" style={{ width: 20, height: 20 }} />
             <span className="text-[13px] font-bold tracking-[0.12em]" style={{ color: TOKENS.textHeading, lineHeight: 1 }}>BRAINS</span>
-            <span className="text-[13px] font-medium tracking-[0.12em]" style={{ color: TOKENS.textHeading, lineHeight: 1, opacity: 0.7 }}>WORKSPACE</span>
+            <span className="text-[13px] font-medium tracking-[0.12em]" style={{ color: TOKENS.textHeading, lineHeight: 1, opacity: 0.7 }}>Workspace</span>
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0" />

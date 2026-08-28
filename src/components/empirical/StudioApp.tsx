@@ -204,7 +204,7 @@ export function StudioApp({ initialWorkspaces, initialWorkspaceId, userRoles = [
                 BRAINS
               </span>
               <span className="text-[13px] font-medium tracking-[0.12em]" style={{ color: TOKENS.textHeading, lineHeight: 1, opacity: 0.7 }}>
-                WORKSPACE
+                Workspace
               </span>
             </div>
             {/* Ideas switcher — now the primary top control, Default_Workspace removed */}
@@ -327,23 +327,7 @@ export function StudioApp({ initialWorkspaces, initialWorkspaceId, userRoles = [
                 );
               })}
             </nav>
-            <div className="p-3 border-t space-y-3 shrink-0 sticky bottom-0 z-10" style={{ background: TOKENS.surfaceCard, borderColor: TOKENS.borderNeutral }}>
-              {!collapsed && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] font-medium">
-                    <span style={{ color: TOKENS.textSubdued }}>Credits</span>
-                    <span className="mono" style={{ color: TOKENS.textHeading }}>
-                      $140
-                    </span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: TOKENS.surfaceSubdued }}>
-                    <div className="h-full rounded-full" style={{ width: "71%", background: TOKENS.primary }} />
-                  </div>
-                  <button className="w-full py-1.5 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity" style={{ background: TOKENS.primary }}>
-                    Upgrade Plan
-                  </button>
-                </div>
-              )}
+            <div className="p-3 border-t shrink-0 sticky bottom-0 z-10" style={{ background: TOKENS.surfaceCard, borderColor: TOKENS.borderNeutral }}>
               <StudioAccountBlock collapsed={collapsed} userRoles={userRoles} />
             </div>
           </aside>
