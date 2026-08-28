@@ -1,11 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Web is isolated in web/ — when Vercel Root Directory = "web", both
-  // tracing roots must point to web itself, not the parent repo. Otherwise
-  // Vercel's default outputFileTracingRoot=/vercel/path0 pulls in
-  // ../src/proxy.ts (which needs @clerk/nextjs) and fails.
-  outputFileTracingRoot: process.cwd(),
+  // Monorepo: web lives in web/. Vercel must have Root Directory = "web"
+  // for this project — then turbopack correctly uses web/ as root and
+  // doesn't pull in ../src/proxy.ts (app's Clerk middleware).
   turbopack: {
     root: process.cwd(),
   },
