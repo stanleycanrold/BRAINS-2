@@ -4,13 +4,17 @@ import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL;
 
+// Do NOT throw at import — Vercel runs `Collecting page data` at build without
+// runtime env, and every API route imports `auth` → `db`. Throwing here
+// breaks `next build` even when the route will never query at build time.
+// Fail only when a query actually runs without a real URL.
 if (!connectionString) {
-  throw new Error(
-    "DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.",
+  console.warn(
+    "[db] DATABASE_URL not set — using dummy connection for build. Set it in Vercel Project Settings → Environment Variables.",
   );
 }
 
-const sql = neon(connectionString);
+const sql = neon(connectionString || "postgresql://dummy:dummy@localhost:5432/dummy");
 
 export const db = drizzle(sql, { schema });
 export { schema };

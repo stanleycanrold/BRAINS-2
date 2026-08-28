@@ -6,6 +6,8 @@ import type { FullWorkspaceData } from "@/components/empirical/data/mockData";
 import { StudioApp } from "@/components/empirical/StudioApp";
 import { WORKSPACE_AUTOAUDIT } from "@/components/empirical/data/mockData";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Studio" };
 
 /**

@@ -3,6 +3,7 @@ import { PDFParse } from "pdf-parse";
 import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * Reads uploaded documents into text.
