@@ -1,4 +1,4 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 /**
  * Clerk only attaches the auth context here - it deliberately does NOT gate
@@ -9,8 +9,19 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
  * the query to the signed-in user. Path matching in a proxy can diverge from
  * how Next actually routes a request and leave a protected resource reachable;
  * checking at the point of data access cannot.
+ *
+ * Dynamic import so `web` (which has no Clerk) can still build when
+ * outputFileTracingRoot=/vercel/path0 incorrectly pulls in ../src/proxy.ts.
  */
-export default clerkMiddleware();
+export default async function proxy(req: any, event: any) {
+  try {
+    const mod: any = await import("@clerk/nextjs/server");
+    const handler = mod.clerkMiddleware();
+    return handler(req, event);
+  } catch {
+    return NextResponse.next();
+  }
+}
 
 /**
  * Note: `/q/:token` and `/api/q/:token` are intentionally public. Respondents
