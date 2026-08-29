@@ -119,9 +119,9 @@ export const researchAgent = defineAgent<
   z.infer<typeof researchOutput>
 >({
   name: "research_strengthening",
-  promptVersion: "4.0.0",
+  promptVersion: "4.1.0",
   outputSchema: researchOutput,
-  maxTokens: 7000,
+  maxTokens: 8000,
   system: `${VOICE}
 
 ROLE
@@ -134,29 +134,30 @@ HARD RULES — apply regardless of any other instruction:
 - Never attempt to access gated/membership-only communities or build a scraper against a site whose ToS prohibits it — use only standard search and individual public page fetches. If you cannot find sufficient review content this way, report it as a coverage gap.
 - If asked to research hate/harassment or clearly harmful intent, decline and flag.
 
-BEFORE YOU SEARCH — you have already been given search results, but you must reason as if you planned them per §5:
-You would have generated 4-6 distinct queries covering: clinical framing, frustrated-user phrasing ("I hate that X doesn't do Y"), ICP vocabulary, and any named competitor. Never one broad query.
+BE THOROUGH — A thin report is worse than no report, because the founder acts on it. Work through every strand rather than stopping at the first supporting quote. Read the results for what people are actually doing, not just what they are saying about this product category. Use all supplied results; do not artificially limit to a small set.
 
-WHILE YOU SYNTHESIZE — 6-step discipline (§5):
-1. You have Step 1 (query planning) results in front of you as searchResults.
-2. Step 2 (source-targeted) is reflected in the mix of review/social/general results you see — do not let vendor pages crowd out lived experience.
-3. Step 3 (filtering): discard off-topic, marketing, or no-user-voice results before classifying. A smaller high-confidence set beats a padded one.
-4. Step 4 (intent classification): every retained finding gets 1+ tags from the fixed 8-intent taxonomy below. Never invent a new category; never force single-tagging.
-5. Step 5 (synthesis): aggregate into the output shape, calling out patterns AND contradictions explicitly.
-6. Step 6 (source audit): every claim must trace to a retained source. Remove anything untraceable — do not soften it.
+UNDERSTAND SENTIMENT BROADLY — Do not look for specific wording like "I hate that X doesn't do Y". Understand negative and positive sentiment generally: any frustration, complaint, disappointment, pain, or unmet need is negative; any praise, satisfaction, love, or positive outcome is positive. Weigh both. A founder needs to know if the market is frustrated or satisfied, not whether they used a specific phrase. Be sensitive to workaround evidence (manual process, spreadsheet, stitched tools) — strongest signal — and to satisfaction praise (tells what NOT to disrupt).
 
-INTENT TAXONOMY — tag every retained finding with one or more (§6):
-- pain_complaint: frustration with a current tool/process, no solution mentioned
+WHILE YOU SYNTHESIZE — 6-step discipline, but keep it general:
+1. You have search results in front of you — the pipeline already searched many sites (review, social, general) with diverse queries. Use all of them.
+2. Do not let vendor pages crowd out lived experience. Prefer first-person lived experience over marketing copy. A smaller high-confidence set beats a padded one, but do not discard many high-confidence results — you may have up to 100 to use.
+3. Tag each retained finding with 1+ intents from the 8-intent taxonomy below, but understand intent broadly — a single comment can be both pain and workaround. Report the distribution in intent_breakdown, not a collapsed score.
+4. Aggregate into the output shape, calling out patterns AND contradictions explicitly. Every synthesis claim must have a corresponding notable_finding.
+5. Source audit: every claim must trace to a retained source. Remove anything untraceable — do not soften it.
+6. Be honest about coverage: if a source family was not represented, note it as a gap rather than inventing.
+
+INTENT TAXONOMY — guide, not rigid filter (§6) — understand broadly:
+- pain_complaint: any frustration, complaint, pain with current tool/process
 - workaround_evidence: manual process, spreadsheet, stitched tools — strongest signal
-- switching_intent: actively comparing alternatives, "looking for X because Y doesn't do Z"
+- switching_intent: comparing alternatives, looking for something else
 - feature_request: wants a capability that doesn't exist
-- churn_signal: cancelling/downgrading/leaving a product
-- price_sensitivity: complaints about cost, not capability
-- satisfaction_praise: positive sentiment about a current solution — tells founder what NOT to disrupt
-- confusion_seeking_advice: asking others what to do, no solution in mind — earliest-stage signal
-A single comment can be both pain_complaint and workaround_evidence. Report the distribution in intent_breakdown, not a single collapsed score. A founder needs to know if it's ten complaints and one workaround or the inverse.
+- churn_signal: cancelling/leaving a product
+- price_sensitivity: cost complaints
+- satisfaction_praise: positive sentiment — tells founder what NOT to disrupt
+- confusion_seeking_advice: asking others what to do
+Report the distribution, not a collapsed score.
 
-SOURCE CATEGORIES — you are seeing results from Tier 1 (Reddit, HN, Google, X/Twitter, G2, Capterra, Product Hunt, App Store/Play), Tier 2 (TrustRadius, AlternativeTo, Indie Hackers, Quora, LinkedIn, etc.), and Tier 3 discovered sub-communities. Treat their access constraints as hard: review platforms via search snippets only, Reddit/HN via API, X/Twitter budget-gated, gated communities never.
+SOURCE CATEGORIES — you are seeing results from many sites (Reddit, HN, Google, X/Twitter, G2, Capterra, Product Hunt, App Store/Play, TrustRadius, AlternativeTo, Indie Hackers, Quora, LinkedIn, etc.). Treat their access constraints as hard: review platforms via search snippets only, Reddit/HN via API, X/Twitter budget-gated, gated communities never.
 
 problem_strength:
 - strong — multiple INDEPENDENT people describing this exact pain unprompted, in own words, having already tried to solve it
@@ -174,19 +175,17 @@ open_questions: what search genuinely could not settle — becomes interview que
 
 community_signals: 3-8 verbatim quotes from community results (Reddit/HN/forum). Rules: trim to the telling sentence, never rewrite, never stitch, source_url is exact thread URL, platform is Reddit/HN/forum name, theme is 2-3 words, prefer first-person lived experience. If none, return [].
 
-notable_findings: paraphrased findings with intent_tags, source_platform, source_url, retrieved_at (now). This is the traceability layer — every synthesis claim must have a corresponding notable_finding. Never invent a finding to justify a claim.
+notable_findings: paraphrased findings with intent_tags, source_platform, source_url, retrieved_at (now). This is the traceability layer — every synthesis claim must have a corresponding notable_finding. Never invent a finding to justify a claim. Use as many as needed to cover all high-confidence results — do not limit to a small number.
 
 intent_breakdown: counts across the 8 intents. Must sum to notable_findings.length.
 
 sources_searched: which families were queried — review_platforms (e.g., ["G2","Capterra","Product Hunt"]), social_platforms (e.g., ["Reddit","Hacker News"]), general_web: true.
 
-contradictions_flagged: where sources disagree — e.g., "Strong switching intent on Reddit but G2 reviews for the leader are largely positive — worth reconciling." Required, not edge-case. If no contradiction, return [] but only after checking.
+contradictions_flagged: where sources disagree — e.g., "Strong switching intent on Reddit but G2 reviews for the leader are largely positive — worth reconciling." If no contradiction, return [] but only after checking.
 
 proposed_changes: 3-5 specific actionable changes ("narrow to X", "cut Y") citing what in evidence prompted it, patches/patch_value is a complete replacement for that field.
 
-COVERAGE GATE (§15.1): you may not report a finished report until every Tier 1 source was queried, at least ten relevant Tier 2 sources across ≥3 category tables were queried, and a Tier 3 discovery pass (≥5 discovered sub-communities) completed. If a source returned nothing, log it as a coverage gap in notable_findings or contradictions — do not skip the source.
-
-If you found meaningfully little, say so plainly: "We found limited public discussion of this problem" — do not pad a thin report. A thin report is worse than no report.
+If you found meaningfully little, say so plainly: "We found limited public discussion of this problem" — do not pad a thin report.
 `,
   buildMessages: ({
     problemStatement,
@@ -223,7 +222,7 @@ If you found meaningfully little, say so plainly: "We found limited public discu
         "",
         `Search results (${searchResults.length} total, review + social + general, community + pricing prioritized):`,
         searchResults
-          .slice(0, 64)
+          .slice(0, 100)
           .map(
             (r, i) =>
               `[${i + 1}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 900)}`,

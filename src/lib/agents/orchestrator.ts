@@ -259,10 +259,10 @@ export async function runResearchPipeline(params: {
     ? ` ${state.raw_submission.location_focus}`
     : "";
 
-  // Step 1: Query planning — 4-6 distinct framings (clinical, frustrated-user, ICP vocab, competitor)
+  // Step 1: Query planning — 4-6 distinct framings, general not phrase-specific
   const baseQueries = [
     `${extraction.problem_statement}${where}`, // clinical
-    `I hate that ${extraction.problem_statement.toLowerCase()} OR "doesn't do" OR "wish it did" OR frustrated${where}`, // frustrated-user register
+    `${extraction.problem_statement} frustration OR complaints OR problems OR issues OR workaround${where}`, // general negative sentiment
     `"${extraction.icp}" ${extraction.problem_statement}${where}`, // ICP vocabulary
     `${extraction.niche} ${extraction.value_prop} competitors alternatives${where}`, // category/competitor
   ];
@@ -272,34 +272,34 @@ export async function runResearchPipeline(params: {
   }
 
   // Step 2: Source-targeted search — Tier 1 always, Tier 2 ≥10 across ≥3 tables, Tier 3 discovery
-  // Tier 1: 9 platforms — one query per platform minimum
+  // Tier 1: 9 platforms — one query per platform minimum, general language (no specific phrase hunting)
   const tier1Queries = [
     `site:reddit.com ${baseQueries[0]}`,
-    `site:reddit.com "${extraction.icp}" ${extraction.niche} complaints OR workaround`,
+    `site:reddit.com ${extraction.niche} ${extraction.problem_statement}`,
     `site:news.ycombinator.com ${extraction.problem_statement}`,
-    `site:twitter.com OR site:x.com ${extraction.problem_statement} frustrated OR switching`,
-    `site:g2.com ${extraction.niche} reviews complaints OR "what do you dislike"`,
+    `site:twitter.com OR site:x.com ${extraction.problem_statement}`,
+    `site:g2.com ${extraction.niche} reviews`,
     `site:capterra.com ${extraction.niche} reviews`,
     `site:producthunt.com ${extraction.niche} OR ${extraction.problem_statement}`,
     `site:apps.apple.com ${extraction.niche} reviews`, // App Store
     `site:play.google.com ${extraction.niche} reviews`, // Play Store
-    `${extraction.problem_statement} ${extraction.niche} reviews complaints${where}`, // general web
+    `${extraction.problem_statement} ${extraction.niche} reviews${where}`, // general web — broad
   ];
 
-  // Tier 2: ≥10 across ≥3 category tables (Review, Social, Q&A, Vertical, etc.)
+  // Tier 2: ≥10 across ≥3 category tables — general queries, no specific phrase hunting
   const tier2Queries = [
     `site:trustradius.com ${extraction.niche} reviews`,
     `site:alternativeto.net ${extraction.niche} alternatives`,
     `site:stackshare.io ${extraction.niche} stack`,
     `site:indiehackers.com ${extraction.problem_statement} OR ${extraction.niche}`,
-    `site:quora.com ${extraction.problem_statement} frustrated`,
+    `site:quora.com ${extraction.problem_statement}`,
     `site:linkedin.com ${extraction.problem_statement} ${extraction.icp}`,
-    `site:stackoverflow.com ${extraction.problem_statement} workaround`,
+    `site:stackoverflow.com ${extraction.problem_statement}`,
     `site:github.com ${extraction.niche} issues OR discussions`,
-    `site:trustpilot.com ${extraction.niche} reviews complaints`,
-    `site:amazon.com ${extraction.niche} reviews`, // e-commerce angle if relevant
+    `site:trustpilot.com ${extraction.niche} reviews`,
+    `site:amazon.com ${extraction.niche} reviews`,
     `site:saasworthy.com OR site:crozdesk.com ${extraction.niche} reviews`,
-    `site:peerSpot.com OR site:gartner.com ${extraction.niche} reviews`, // enterprise
+    `site:peerSpot.com OR site:gartner.com ${extraction.niche} reviews`,
   ];
 
   // Tier 3: discovery — find 5 specific sub-communities for this niche, then search them
@@ -984,7 +984,8 @@ function diversifySearchResults<T extends { url: string; title: string; snippet:
   );
   const other = items.filter((item) => !community.includes(item) && !pricing.includes(item));
   // Prioritise lived experience, then pricing anchors (feeds WTP), then general
-  return [...community, ...pricing, ...other].slice(0, 48);
+  // Keep up to 100 for thorough summaries — we need enough evidence for verbatims
+  return [...community, ...pricing, ...other].slice(0, 100);
 }
 
 function credibilityTier(url: string): number {
