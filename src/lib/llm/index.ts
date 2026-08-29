@@ -7,6 +7,7 @@ import type {
 import { createGroqProvider, createGroqSearchProvider } from "./groq";
 import { createAnthropicProvider } from "./anthropic";
 import { createGeminiProvider, createGeminiSearchProvider } from "./gemini";
+import { createOpenRouterProvider } from "./openrouter";
 
 /**
  * Provider selection. This function is the single switch between LLM backends
@@ -29,11 +30,21 @@ export function getLLM(): LLMProvider {
     cachedProvider = createAnthropicProvider();
     return cachedProvider;
   }
+  if (choice === "openrouter") {
+    cachedProvider = createOpenRouterProvider();
+    return cachedProvider;
+  }
 
   // Gemini remains available explicitly or as a fallback when configured.
   cachedProvider = process.env.GEMINI_API_KEY
     ? withGroqFallback(createGeminiProvider(), createGroqProvider())
     : createGroqProvider();
+
+  // OpenRouter as final fallback if configured and primary failed is not already openrouter
+  if (process.env.OPENROUTER_API_KEY && choice !== "openrouter") {
+    const base = cachedProvider;
+    cachedProvider = withGroqFallback(base, createOpenRouterProvider());
+  }
 
   return cachedProvider;
 }
