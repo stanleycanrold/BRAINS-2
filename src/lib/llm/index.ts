@@ -7,7 +7,7 @@ import type {
 import { createGroqProvider, createGroqSearchProvider } from "./groq";
 import { createAnthropicProvider } from "./anthropic";
 import { createGeminiProvider, createGeminiSearchProvider } from "./gemini";
-import { createOpenRouterProvider } from "./openrouter";
+import { createOpenRouterProvider, createOpenRouterSearchProvider } from "./openrouter";
 
 /**
  * Provider selection. This function is the single switch between LLM backends
@@ -74,12 +74,24 @@ export function getSearch(): SearchProvider {
     cachedSearch = createGroqSearchProvider();
     return cachedSearch;
   }
+  if (choice === "openrouter") {
+    const ors = createOpenRouterSearchProvider();
+    cachedSearch = ors.available ? ors : createGroqSearchProvider();
+    return cachedSearch;
+  }
 
   // Gemini remains available explicitly and supplements Groq when configured.
   const gemini = createGeminiSearchProvider();
-  cachedSearch = gemini.available
-    ? withGroqSearchFallback(gemini, createGroqSearchProvider())
-    : createGroqSearchProvider();
+  if (gemini.available) {
+    // If OpenRouter also available, use it as secondary fallback for Gemini
+    const ors = createOpenRouterSearchProvider();
+    const primary = ors.available ? withGroqSearchFallback(gemini, ors) : gemini;
+    cachedSearch = withGroqSearchFallback(primary, createGroqSearchProvider());
+    return cachedSearch;
+  }
+  // No Gemini — try OpenRouter before Groq
+  const ors = createOpenRouterSearchProvider();
+  cachedSearch = ors.available ? ors : createGroqSearchProvider();
   return cachedSearch;
 }
 
