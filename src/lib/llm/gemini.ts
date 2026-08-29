@@ -44,13 +44,10 @@ function isQuotaError(msg: string): boolean {
   return /429|quota|exhausted|rate.?limit|resource.?exhausted/i.test(msg);
 }
 
-/** Gemini structured-output adapter used by the agent pipeline. */
+/** Gemini structured-output adapter — plug & play via GEMINI_MODEL env (AI Studio keys, no other Google keys needed). */
 export function createGeminiProvider(): LLMProvider {
-  const configuredModel = process.env.GEMINI_MODEL;
-  const model =
-    configuredModel === "gemini-2.5-flash"
-      ? "gemini-3.6-flash"
-      : configuredModel || "gemini-3.6-flash";
+  // Plug-and-play: just set GEMINI_MODEL to any AI Studio model (gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash). No code change.
+  const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 
   return {
     name: "gemini",
@@ -132,11 +129,8 @@ export function createGeminiProvider(): LLMProvider {
  */
 export function createGeminiSearchProvider(): SearchProvider {
   const keys = getGeminiKeys();
-  const configuredModel = process.env.GEMINI_SEARCH_MODEL;
-  const model =
-    configuredModel === "gemini-2.5-flash"
-      ? "gemini-3.6-flash"
-      : configuredModel || "gemini-3.6-flash";
+  // Plug-and-play: GEMINI_SEARCH_MODEL can be any AI Studio model that supports google_search grounding
+  const model = process.env.GEMINI_SEARCH_MODEL || "gemini-1.5-flash";
   const available = keys.length > 0;
 
   return {
