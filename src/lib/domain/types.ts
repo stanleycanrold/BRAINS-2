@@ -177,6 +177,102 @@ export const structuredSchema = z.object({
 });
 export type Structured = z.infer<typeof structuredSchema>;
 
+export const roundGoalSchema = z.enum(["G1","G2","G3","G4","G5"]);
+export type RoundGoal = z.infer<typeof roundGoalSchema>;
+
+export const testingContextSchema = z.object({
+  round_goal: z.object({ primary: roundGoalSchema.default("G1"), secondary: roundGoalSchema.nullable().default(null) }).default({ primary: "G1", secondary: null }),
+  access: z.object({
+    mode: z.enum(["none","web_url","app_store","testflight_apk","prototype_url","physical"]).default("none"),
+    urls: z.object({
+      web_url: z.string().nullable().default(null),
+      app_store_url: z.string().nullable().default(null),
+      play_store_url: z.string().nullable().default(null),
+      testflight_or_apk_url: z.string().nullable().default(null),
+      prototype_url: z.string().nullable().default(null),
+      variant_a_url: z.string().nullable().default(null),
+      variant_b_url: z.string().nullable().default(null),
+    }).default({}),
+    physical: z.object({
+      required: z.boolean().default(false),
+      location: z.string().nullable().default(null),
+      ships_to_tester: z.boolean().nullable().default(null),
+      logistics_notes: z.string().nullable().default(null),
+    }).default({ required: false, location: null, ships_to_tester: null, logistics_notes: null }),
+  }).default({ mode: "none", urls: {}, physical: { required: false, location: null, ships_to_tester: null, logistics_notes: null } }),
+  formats: z.array(z.enum(["interview","open_review","guided_task","variant_choice"])).default(["interview"]),
+  ongoing: z.boolean().default(false),
+  freelancer_requirements: z.object({
+    needs_geographic_proximity: z.boolean().default(false),
+    device_or_os_requirements: z.string().nullable().default(null),
+    special_instructions: z.string().nullable().default(null),
+  }).default({}),
+  confidence: z.enum(["high","medium","low"]).default("medium"),
+  unresolved: z.array(z.string()).default([]),
+});
+export type TestingContext = z.infer<typeof testingContextSchema>;
+
+export const productModelSchema = z.object({
+  what_it_does: z.string().default(""),
+  core_flows: z.array(z.string()).default([]),
+  key_screens: z.array(z.string()).default([]),
+  stated_icp: z.string().default(""),
+  candidate_test_surfaces: z.array(z.string()).default([]),
+  variant_candidates: z.array(z.string()).default([]),
+  confidence: z.enum(["high","medium","low"]).default("low"),
+  sources: z.array(z.object({ url: z.string(), fetched_at: z.string() })).default([]),
+  fetched_at: z.string().default(""),
+});
+export type ProductModel = z.infer<typeof productModelSchema>;
+
+export const testSpecSchema = z.object({
+  version: z.number().default(1),
+  estimated_tester_minutes: z.number().default(6),
+  variant_choice: z.object({
+    variants: z.array(z.object({ id: z.string(), label: z.string(), url: z.string() })).default([]),
+    exposure: z.enum(["sequential_randomized","side_by_side"]).default("sequential_randomized"),
+    primary_question: z.string().default("Which version would you actually use?"),
+    reason_prompt: z.string().default("Why?"),
+    per_variant_question: z.string().default("How clear was this version? (1-5)"),
+  }).nullable().default(null),
+  interview: z.object({
+    goal: roundGoalSchema.default("G1"),
+    evidence_slots_covered: z.array(z.string()).default([]),
+    questions: z.array(questionSchema).default([]),
+    adaptive_probes: z.boolean().default(true),
+  }).nullable().default(null),
+  guided_task: z.object({
+    goal: roundGoalSchema.default("G3"),
+    tasks: z.array(z.object({ step: z.string(), success_criterion: z.string(), probe: z.string().default("What did you expect to happen?") })).default([]),
+  }).nullable().default(null),
+  open_review: z.object({
+    goal: roundGoalSchema.default("G2"),
+    prompts: z.array(z.string()).default([]),
+  }).nullable().default(null),
+});
+export type TestSpec = z.infer<typeof testSpecSchema>;
+
+export const taskStatusSchema = z.enum(["draft","founder_review","qa","ready","live","done","paused","blocked"]);
+export type TaskStatus = z.infer<typeof taskStatusSchema>;
+
+export const taskSchema = z.object({
+  id: z.string(),
+  idea_id: z.string(),
+  format: z.enum(["interview","open_review","guided_task","variant_choice"]),
+  goal: roundGoalSchema,
+  spec_version: z.number().default(1),
+  status: taskStatusSchema.default("draft"),
+  assigned_to: z.string().nullable().default(null),
+  qa: z.object({
+    automated: z.record(z.boolean()).default({}),
+    dry_run: z.object({ passed: z.boolean().default(false), tester: z.string().nullable().default(null) }).default({}),
+    founder_preview: z.object({ approved: z.boolean().default(false), at: z.string().nullable().default(null) }).default({}),
+  }).default({}),
+  launch_gate: z.record(z.boolean()).default({}),
+  responses: z.object({ count: z.number().default(0), target: z.number().default(19) }).default({}),
+});
+export type Task = z.infer<typeof taskSchema>;
+
 export const competitorSchema = z.object({
   name: z.string(),
   summary: z.string(),
@@ -687,6 +783,16 @@ export const ideaStateSchema = z.object({
   version_note: z.string().default(""),
   raw_submission: rawSubmissionSchema,
   structured: structuredSchema,
+  testing_context: testingContextSchema.default({}),
+  product_model: productModelSchema.nullable().default(null),
+  test_spec: testSpecSchema.nullable().default(null),
+  tasks: z.array(taskSchema).default([]),
+  market_scans: z.array(researchReportSchema).default([]),
+  onboarding_output: z.object({
+    draft_test_spec: z.any().nullable().default(null),
+    tier_choice: z.enum(["self_serve","fast_track"]).nullable().default(null),
+    share_link: z.object({ url: z.string().nullable().default(null), status: z.enum(["inactive","live","paused"]).default("inactive"), activated_at: z.string().nullable().default(null) }).default({}),
+  }).default({}),
   research_report: researchReportSchema.nullable().default(null),
   /**
    * The assumption ledger. Seeded by the hypothesis agent after research,

@@ -26,3 +26,6 @@ export * from "./quote-extraction";
 export * from "./hypothesis";
 export * from "./pricing-intelligence";
 export * from "./respondent-profile";
+export * from "./context";
+export * from "./product-understanding";
+export * from "./test-designer";
