@@ -192,21 +192,21 @@ export const testingContextSchema = z.object({
       prototype_url: z.string().nullable().default(null),
       variant_a_url: z.string().nullable().default(null),
       variant_b_url: z.string().nullable().default(null),
-    }).default({}),
+    }).default({ web_url: null, app_store_url: null, play_store_url: null, testflight_or_apk_url: null, prototype_url: null, variant_a_url: null, variant_b_url: null }),
     physical: z.object({
       required: z.boolean().default(false),
       location: z.string().nullable().default(null),
       ships_to_tester: z.boolean().nullable().default(null),
       logistics_notes: z.string().nullable().default(null),
     }).default({ required: false, location: null, ships_to_tester: null, logistics_notes: null }),
-  }).default({ mode: "none", urls: {}, physical: { required: false, location: null, ships_to_tester: null, logistics_notes: null } }),
+  }).default({ mode: "none", urls: { web_url: null, app_store_url: null, play_store_url: null, testflight_or_apk_url: null, prototype_url: null, variant_a_url: null, variant_b_url: null }, physical: { required: false, location: null, ships_to_tester: null, logistics_notes: null } }),
   formats: z.array(z.enum(["interview","open_review","guided_task","variant_choice"])).default(["interview"]),
   ongoing: z.boolean().default(false),
   freelancer_requirements: z.object({
     needs_geographic_proximity: z.boolean().default(false),
     device_or_os_requirements: z.string().nullable().default(null),
     special_instructions: z.string().nullable().default(null),
-  }).default({}),
+  }).default({ needs_geographic_proximity: false, device_or_os_requirements: null, special_instructions: null }),
   confidence: z.enum(["high","medium","low"]).default("medium"),
   unresolved: z.array(z.string()).default([]),
 });
@@ -225,6 +225,26 @@ export const productModelSchema = z.object({
 });
 export type ProductModel = z.infer<typeof productModelSchema>;
 
+export const taskStatusSchema = z.enum(["draft","founder_review","qa","ready","live","done","paused","blocked"]);
+export type TaskStatus = z.infer<typeof taskStatusSchema>;
+
+export const taskSchema = z.object({
+  id: z.string(),
+  idea_id: z.string(),
+  format: z.enum(["interview","open_review","guided_task","variant_choice"]),
+  goal: roundGoalSchema,
+  spec_version: z.number().default(1),
+  status: taskStatusSchema.default("draft"),
+  assigned_to: z.string().nullable().default(null),
+  qa: z.object({
+    automated: z.record(z.string(), z.boolean()).default({}),
+    dry_run: z.object({ passed: z.boolean().default(false), tester: z.string().nullable().default(null) }).default({ passed: false, tester: null }),
+    founder_preview: z.object({ approved: z.boolean().default(false), at: z.string().nullable().default(null) }).default({ approved: false, at: null }),
+  }).default({ automated: {}, dry_run: { passed: false, tester: null }, founder_preview: { approved: false, at: null } }),
+  launch_gate: z.record(z.string(), z.boolean()).default({}),
+  responses: z.object({ count: z.number().default(0), target: z.number().default(19) }).default({ count: 0, target: 19 }),
+});
+
 export const testSpecSchema = z.object({
   version: z.number().default(1),
   estimated_tester_minutes: z.number().default(6),
@@ -238,7 +258,7 @@ export const testSpecSchema = z.object({
   interview: z.object({
     goal: roundGoalSchema.default("G1"),
     evidence_slots_covered: z.array(z.string()).default([]),
-    questions: z.array(questionSchema).default([]),
+    questions: z.array(z.lazy(() => questionSchema)).default([]),
     adaptive_probes: z.boolean().default(true),
   }).nullable().default(null),
   guided_task: z.object({
@@ -251,26 +271,6 @@ export const testSpecSchema = z.object({
   }).nullable().default(null),
 });
 export type TestSpec = z.infer<typeof testSpecSchema>;
-
-export const taskStatusSchema = z.enum(["draft","founder_review","qa","ready","live","done","paused","blocked"]);
-export type TaskStatus = z.infer<typeof taskStatusSchema>;
-
-export const taskSchema = z.object({
-  id: z.string(),
-  idea_id: z.string(),
-  format: z.enum(["interview","open_review","guided_task","variant_choice"]),
-  goal: roundGoalSchema,
-  spec_version: z.number().default(1),
-  status: taskStatusSchema.default("draft"),
-  assigned_to: z.string().nullable().default(null),
-  qa: z.object({
-    automated: z.record(z.boolean()).default({}),
-    dry_run: z.object({ passed: z.boolean().default(false), tester: z.string().nullable().default(null) }).default({}),
-    founder_preview: z.object({ approved: z.boolean().default(false), at: z.string().nullable().default(null) }).default({}),
-  }).default({}),
-  launch_gate: z.record(z.boolean()).default({}),
-  responses: z.object({ count: z.number().default(0), target: z.number().default(19) }).default({}),
-});
 export type Task = z.infer<typeof taskSchema>;
 
 export const competitorSchema = z.object({
@@ -783,7 +783,7 @@ export const ideaStateSchema = z.object({
   version_note: z.string().default(""),
   raw_submission: rawSubmissionSchema,
   structured: structuredSchema,
-  testing_context: testingContextSchema.default({}),
+  testing_context: testingContextSchema.default({} as any),
   product_model: productModelSchema.nullable().default(null),
   test_spec: testSpecSchema.nullable().default(null),
   tasks: z.array(taskSchema).default([]),
@@ -791,8 +791,8 @@ export const ideaStateSchema = z.object({
   onboarding_output: z.object({
     draft_test_spec: z.any().nullable().default(null),
     tier_choice: z.enum(["self_serve","fast_track"]).nullable().default(null),
-    share_link: z.object({ url: z.string().nullable().default(null), status: z.enum(["inactive","live","paused"]).default("inactive"), activated_at: z.string().nullable().default(null) }).default({}),
-  }).default({}),
+    share_link: z.object({ url: z.string().nullable().default(null), status: z.enum(["inactive","live","paused"]).default("inactive"), activated_at: z.string().nullable().default(null) }).default({ url: null, status: "inactive", activated_at: null } as any),
+  }).default({} as any),
   research_report: researchReportSchema.nullable().default(null),
   /**
    * The assumption ledger. Seeded by the hypothesis agent after research,
