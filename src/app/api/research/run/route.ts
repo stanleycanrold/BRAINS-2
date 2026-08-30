@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
-import { getIdea, updateIdeaState } from "@/lib/data/ideas";
+import { getIdea, updateCurrentState } from "@/lib/data/ideas";
 import { runAgent } from "@/lib/agents/runtime";
 import { researchAgent } from "@/lib/agents/catalog/research";
 import { getSearch } from "@/lib/llm";
@@ -51,10 +51,13 @@ export async function POST(req: Request) {
     }, { ideaStateVersionId: idea.versionId });
 
     // Append to market_scans
-    await updateIdeaState(ideaId, (s:any)=> ({
-      ...s,
-      market_scans: [...(s.market_scans||[]), { ...research, isSimulation: false, run_at: new Date().toISOString(), input: editableInput || problem }],
-    }));
+    const ideaForUpdate = await getIdea(ideaId, user.id);
+    if (ideaForUpdate) {
+      await updateCurrentState(ideaForUpdate.versionId, (s:any)=> ({
+        ...s,
+        market_scans: [...(s.market_scans||[]), { ...research, isSimulation: false, run_at: new Date().toISOString(), input: editableInput || problem }],
+      }));
+    }
 
     return NextResponse.json(research);
   } catch (e) {

@@ -54,8 +54,8 @@ export async function POST(request: Request) {
       rawSubmission: { description, target_audience: targetIcp || "Not specified yet", product_link: productLink || null, location_focus: testing_context?.access?.physical?.location || "", attachments: [] },
     });
 
-    // Patch the created idea's structured with testing_context/product_model/test_spec via direct DB update (simplified: use updateIdeaState)
-    const { updateIdeaState } = await import("@/lib/data/ideas");
+    // Patch the created idea's structured with testing_context/product_model/test_spec via direct DB update
+    const { updateCurrentState } = await import("@/lib/data/ideas");
     let current = idea;
     if (testing_context) {
       const { testSpec, tasks } = await (async () => {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         } catch (e) { console.error("[test-designer] failed", e); return { testSpec: null, tasks: [] }; }
       })();
 
-      const updated = await updateIdeaState(idea.id, (s:any)=> ({
+      const updatedState = await updateCurrentState(idea.versionId, (s:any)=> ({
         ...s,
         testing_context: testing_context || s.testing_context,
         product_model: pm || s.product_model,
@@ -81,11 +81,7 @@ export async function POST(request: Request) {
         tasks: tasks.length ? tasks : s.tasks,
         onboarding_output: { draft_test_spec: testSpec, tier_choice: null, share_link: { url: null, status: "inactive", activated_at: null } },
       }));
-      if (updated) current = { id: idea.id, title: ideaTitle, state: updated } as any;
-      else {
-        const refreshed = await getIdea(idea.id, user.id);
-        if (refreshed) current = refreshed;
-      }
+      current = { id: idea.id, title: ideaTitle, state: updatedState } as any;
     }
 
     const workspace = await projectWorkspace(current as any, { ownerName: user.name });
