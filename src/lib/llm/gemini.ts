@@ -46,8 +46,8 @@ function isQuotaError(msg: string): boolean {
 
 /** Gemini structured-output adapter — plug & play via GEMINI_MODEL env (AI Studio keys, no other Google keys needed). */
 export function createGeminiProvider(): LLMProvider {
-  // Plug-and-play: just set GEMINI_MODEL to any AI Studio model (gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash). No code change.
-  const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+  // Plug-and-play: use gemini-1.5-flash-001 (v1beta stable) — gemini-2.0-flash-exp also works
+  const model = process.env.GEMINI_MODEL || "gemini-1.5-flash-001";
 
   return {
     name: "gemini",
@@ -129,8 +129,8 @@ export function createGeminiProvider(): LLMProvider {
  */
 export function createGeminiSearchProvider(): SearchProvider {
   const keys = getGeminiKeys();
-  // Plug-and-play: GEMINI_SEARCH_MODEL can be any AI Studio model that supports google_search grounding
-  const model = process.env.GEMINI_SEARCH_MODEL || "gemini-1.5-flash";
+  // Plug-and-play: use gemini-1.5-flash-001 for search (supports google_search grounding, stable on v1beta)
+  const model = process.env.GEMINI_SEARCH_MODEL || "gemini-1.5-flash-001";
   const available = keys.length > 0;
 
   return {

@@ -6,7 +6,7 @@ export const contextOutput = z.object({
   round_goal: z.object({ primary: z.enum(["G1","G2","G3","G4","G5"]), secondary: z.enum(["G1","G2","G3","G4","G5"]).nullable().default(null) }),
   product_stage: z.enum(["idea_only","mvp","live"]),
   testing_context: z.object({
-    round_goal: z.object({ primary: z.enum(["G1","G2","G3","G4","G5"]).default("G1"), secondary: z.enum(["G1","G2","G3","G4","G5"]).nullable().default(null) }),
+    round_goal: z.object({ primary: z.enum(["G1","G2","G3","G4","G5"]).default("G1"), secondary: z.enum(["G1","G2","G3","G4","G5"]).nullable().default(null) }).default({ primary: "G1", secondary: null }),
     access: z.object({
       mode: z.enum(["none","web_url","app_store","testflight_apk","prototype_url","physical"]).default("none"),
       urls: z.object({
@@ -17,19 +17,19 @@ export const contextOutput = z.object({
         prototype_url: z.string().nullable().default(null),
         variant_a_url: z.string().nullable().default(null),
         variant_b_url: z.string().nullable().default(null),
-      }),
-      physical: z.object({ required: z.boolean().default(false), location: z.string().nullable().default(null), ships_to_tester: z.boolean().nullable().default(null), logistics_notes: z.string().nullable().default(null) }),
-    }),
-    formats: z.array(z.enum(["interview","open_review","guided_task","variant_choice"])),
+      }).default({ web_url: null, app_store_url: null, play_store_url: null, testflight_or_apk_url: null, prototype_url: null, variant_a_url: null, variant_b_url: null }),
+      physical: z.object({ required: z.boolean().default(false), location: z.string().nullable().default(null), ships_to_tester: z.boolean().nullable().default(null), logistics_notes: z.string().nullable().default(null) }).default({ required: false, location: null, ships_to_tester: null, logistics_notes: null }),
+    }).default({ mode: "none", urls: { web_url: null, app_store_url: null, play_store_url: null, testflight_or_apk_url: null, prototype_url: null, variant_a_url: null, variant_b_url: null }, physical: { required: false, location: null, ships_to_tester: null, logistics_notes: null } }),
+    formats: z.array(z.enum(["interview","open_review","guided_task","variant_choice"])).default(["interview"]),
     ongoing: z.boolean().default(false),
-    freelancer_requirements: z.object({ needs_geographic_proximity: z.boolean().default(false), device_or_os_requirements: z.string().nullable().default(null), special_instructions: z.string().nullable().default(null) }),
+    freelancer_requirements: z.object({ needs_geographic_proximity: z.boolean().default(false), device_or_os_requirements: z.string().nullable().default(null), special_instructions: z.string().nullable().default(null) }).default({ needs_geographic_proximity: false, device_or_os_requirements: null, special_instructions: null }),
     confidence: z.enum(["high","medium","low"]).default("medium"),
     unresolved: z.array(z.string()).default([]),
   }),
-  nextQuestions: z.array(z.object({ id: z.string(), text: z.string(), chips: z.array(z.string()).default([]), type: z.enum(["stage","form","goal","link","physical","ongoing"]).default("stage") })).max(2),
-  isComplete: z.boolean(),
-  summaryDraft: z.string(),
-});
+  nextQuestions: z.array(z.object({ id: z.string(), text: z.string(), chips: z.array(z.string()).default([]), type: z.enum(["stage","form","goal","link","physical","ongoing"]).default("stage") })).max(2).default([]),
+  isComplete: z.boolean().default(false),
+  summaryDraft: z.string().default(""),
+}).passthrough();
 
 export const contextAgent = defineAgent<{
   description: string;

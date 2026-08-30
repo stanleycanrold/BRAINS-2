@@ -33,7 +33,9 @@ function isUnsupportedSchemaError(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
   return (
     message.includes("does not support response format") ||
-    message.includes("json_schema")
+    message.includes("json_schema") ||
+    message.includes("JSON schema") ||
+    message.includes("required")
   );
 }
 
