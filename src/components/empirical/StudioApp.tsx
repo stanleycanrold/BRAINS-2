@@ -510,7 +510,7 @@ export function StudioApp({ initialWorkspaces, initialWorkspaceId, userRoles = [
                 {activeTab === "evidence" && <EvidenceTab quotes={quotes} respondents={respondents} onOpenRespondent={setSelectedRespondent} onShowToast={addToast} />}
                 {activeTab === "competitors" && <CompetitorTab competitors={competitors} workspaceName={meta.name} onSelectTab={setActiveTab} />}
                 {activeTab === "hypotheses" && <HypothesisTab hypotheses={hypotheses} onOpenNewHypothesis={() => setIsNewHypothesisOpen(true)} />}
-                {activeTab === "social" && <SocialScanTab mentions={socialMentions} workspace={meta} onShowToast={addToast} />}
+                {activeTab === "social" && <SocialScanTab mentions={socialMentions} workspace={meta} ideaId={meta.id} initialInput={`${meta.name} — ${meta.tagline}`} onShowToast={addToast} />}
                 {activeTab === "simulator" && <SimulatorTab />}
               </div>
             )}

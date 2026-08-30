@@ -18,9 +18,25 @@ interface SocialScanTabProps {
   onShowToast: (title: string, desc?: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export const SocialScanTab: React.FC<SocialScanTabProps> = ({ mentions, workspace, onShowToast }) => {
+export const SocialScanTab: React.FC<SocialScanTabProps & { ideaId?: string; initialInput?: string }> = ({ mentions, workspace, ideaId, initialInput, onShowToast }) => {
   const [activePlatform, setActivePlatform] = useState<string>('all');
   const [isGeneratingDrafts, setIsGeneratingDrafts] = useState(false);
+  const [researchInput, setResearchInput] = useState(initialInput || `${workspace?.tagline || workspace?.name || ""}`);
+  const [isResearching, setIsResearching] = useState(false);
+  const [researchResult, setResearchResult] = useState<any>(null);
+
+  const handleRunResearch = async () => {
+    if (!ideaId) { onShowToast("No idea", "Open a workspace first", "info"); return; }
+    setIsResearching(true);
+    try {
+      const res = await fetch("/api/research/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ideaId, editableInput: researchInput }) });
+      const data = await res.json();
+      if (res.ok && !data.unsourced) { setResearchResult(data); onShowToast("Market scan complete", `${data.evidence?.length || 0} findings`, "success"); }
+      else if (data.unsourced) { onShowToast("No public discussion found", "Try broader ICP or run simulation", "info"); }
+      else throw new Error(data.error);
+    } catch (e) { onShowToast("Research failed", "Try again", "error"); }
+    finally { setIsResearching(false); }
+  };
   const [drafts, setDrafts] = useState<{
     posts: Array<{ id: string; platform: string; targetCommunity: string; title: string; body: string; strategyRationale: string }>;
     comments: Array<{ id: string; platform: string; targetThreadScenario: string; commentText: string; approach: string }>;
@@ -118,6 +134,24 @@ export const SocialScanTab: React.FC<SocialScanTabProps> = ({ mentions, workspac
               )}
             </button>
           </div>
+        </div>
+
+        {/* Editable Research Input + Button-only scan */}
+        <div className="mt-5 p-4 rounded-xl border border-indigo-200 bg-indigo-50/50">
+          <label className="text-xs font-bold text-indigo-900 block mb-1">What to research online (editable)</label>
+          <textarea value={researchInput} onChange={e=> setResearchInput(e.target.value)} rows={2} placeholder="Describe the problem + ICP you want to check online perception for..." className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+          <div className="mt-2 flex items-center gap-2">
+            <button onClick={handleRunResearch} disabled={isResearching || !researchInput.trim()} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5">
+              {isResearching ? <><Loader2 className="w-3.5 h-3.5 animate-spin"/>Researching…</> : <><Radio className="w-3.5 h-3.5"/>Research online perception</>}
+            </button>
+            <span className="text-[11px] text-indigo-700">Manual — pulls what people are saying online into this tab</span>
+          </div>
+          {researchResult && (
+            <div className="mt-3 p-3 bg-white rounded-xl border border-indigo-200 text-xs">
+              <div className="font-bold">Found {researchResult.evidence?.length || 0} grounded findings, {researchResult.community_signals?.length || 0} verbatims</div>
+              <div className="text-slate-500 mt-1">{researchResult.problem_strength_reasoning?.slice(0,180)}</div>
+            </div>
+          )}
         </div>
 
         {/* Platform Tabs */}
