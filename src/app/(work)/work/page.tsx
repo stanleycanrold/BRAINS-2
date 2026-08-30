@@ -25,7 +25,7 @@ export default async function WorkDashboard() {
           />
           <WorkCard
             title="Available Jobs"
-            description="Browse and claim new work"
+            description="Browse by format: interview, A/B, guided_task"
             href="/work/available"
             icon="UsersThreeIcon"
             count={0}
@@ -56,6 +56,10 @@ export default async function WorkDashboard() {
             href="/work/settings"
             icon="CogIcon"
           />
+        </div>
+        <div className="mt-6 p-4 bg-white rounded-xl border">
+          <h3 className="text-xs font-bold">Task Formats (from testing_context)</h3>
+          <p className="text-xs text-slate-500">F1 badges: interview / open_review / guided_task / variant_choice (A/B) + goal + ongoing + device/geo. F2 detail switches per format with QA checklist (automated + dry-run + founder_preview).</p>
         </div>
       </div>
     </WorkShell>
