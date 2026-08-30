@@ -46,8 +46,8 @@ function isQuotaError(msg: string): boolean {
 
 /** Gemini structured-output adapter — plug & play via GEMINI_MODEL env (AI Studio keys, no other Google keys needed). */
 export function createGeminiProvider(): LLMProvider {
-  // Plug-and-play: use gemini-1.5-flash (v1beta stable)
-  const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+  // Plug-and-play: use gemini-2.0-flash (v1beta stable, supports json_schema)
+  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
   return {
     name: "gemini",
