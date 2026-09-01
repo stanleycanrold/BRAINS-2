@@ -66,6 +66,8 @@ export async function POST(req: Request) {
       out.testing_context.access = out.testing_context.access || { mode: "prototype_url", urls: {}, physical: {} };
       if (!out.testing_context.access.urls?.variant_a_url && productLink) out.testing_context.access.urls.variant_a_url = productLink;
     }
+    // Fix isComplete consistency: true iff no nextQuestions
+    out.isComplete = !out.nextQuestions || out.nextQuestions.length === 0;
 
     return NextResponse.json(out);
   } catch (e) {

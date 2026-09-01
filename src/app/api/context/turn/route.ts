@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     // Append last Q/A (use lastQuestionIds joined as q)
     history.push({ q: lastQuestionIds.join(" | ") || "follow-up", a: lastAnswer });
 
-    const out = await runAgent(contextAgent, {
+    let out: any = await runAgent(contextAgent, {
       description,
       targetAudience,
       stageHint,
@@ -44,10 +44,19 @@ export async function POST(req: Request) {
       conversationHistory: history,
     }, {});
 
+    // Enforce G4 -> variant_choice
+    if (out.round_goal?.primary === "G4" && !out.testing_context?.formats?.includes("variant_choice")) {
+      out.testing_context = out.testing_context || {};
+      out.testing_context.formats = ["variant_choice"];
+      out.testing_context.access = out.testing_context.access || { mode: "prototype_url", urls: {}, physical: {} };
+    }
+    // Fix isComplete consistency
+    out.isComplete = !out.nextQuestions || out.nextQuestions.length === 0;
+
     // Enforce 4-Q cap in code (PRD NFR)
     if (history.length + out.nextQuestions.length > 4) {
       out.nextQuestions = out.nextQuestions.slice(0, 4 - history.length);
-      if (out.nextQuestions.length === 0) out.isComplete = true;
+      out.isComplete = out.nextQuestions.length === 0;
     }
 
     return NextResponse.json({ ...out, conversationHistory: history });
