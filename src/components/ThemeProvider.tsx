@@ -55,24 +55,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * Applies the stored theme before first paint, so a dark-mode user never sees
- * a flash of the light theme on load.
- */
-export function ThemeScript() {
-  // Runs before first paint so a dark-mode user never sees a flash of light.
-  // Because it mutates <html> ahead of hydration, the root element carries
-  // suppressHydrationWarning - React would otherwise flag the attribute it
-  // finds as a server/client mismatch.
-  const script = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){document.documentElement.setAttribute("data-theme","light")}})();`;
-  return (
-    <script
-      id="brains-theme"
-      // Marks this as a plain DOM script rather than something React should
-      // try to reconcile, which is what triggered the "script tag while
-      // rendering React component" warning.
-      suppressHydrationWarning
-      dangerouslySetInnerHTML={{ __html: script }}
-    />
-  );
-}
+// ThemeScript moved to ./ThemeScript.tsx as a Server Component to avoid
+// "script tag while rendering React component" in Next 16 client components.
+export { ThemeScript } from "./ThemeScript";

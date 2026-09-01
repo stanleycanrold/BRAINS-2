@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { fontVariables } from "@/lib/fonts";
-import { ThemeProvider, ThemeScript } from "@/components/ThemeProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeScript } from "@/components/ThemeScript";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
