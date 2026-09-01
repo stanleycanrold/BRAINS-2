@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const out = await runAgent(contextAgent, {
+    let out: any = await runAgent(contextAgent, {
       description,
       targetAudience,
       stageHint,
@@ -59,6 +59,13 @@ export async function POST(req: Request) {
       productModelSummary,
       conversationHistory: [],
     }, {});
+    // Enforce G4 -> variant_choice even if agent misclassifies (safety net for A/B)
+    if (out.round_goal?.primary === "G4" && !out.testing_context?.formats?.includes("variant_choice")) {
+      out.testing_context = out.testing_context || {};
+      out.testing_context.formats = ["variant_choice"];
+      out.testing_context.access = out.testing_context.access || { mode: "prototype_url", urls: {}, physical: {} };
+      if (!out.testing_context.access.urls?.variant_a_url && productLink) out.testing_context.access.urls.variant_a_url = productLink;
+    }
 
     return NextResponse.json(out);
   } catch (e) {
