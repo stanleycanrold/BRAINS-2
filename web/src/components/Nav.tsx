@@ -138,16 +138,11 @@ export function Nav() {
             Everywhere else this bar IS the primary action, because content
             pages offer the composer instead of a button, and it stays solid. */}
         <div className="hidden items-center gap-2 md:flex">
-          <Button href={signInUrl} variant="ghost" size="compact">
-            Log in
-          </Button>
-          <Button
-            href={signUpUrl}
-            variant={appLike ? "secondary" : "primary"}
-            size="compact"
-            className={appLike ? "border-brand/50 text-brand hover:bg-brand-subtle" : undefined}
-          >
-            Sign up
+          <a href="mailto:stanley@nexabrains.io" className="type-body-m text-secondary hover:text-primary hidden lg:inline">
+            stanley@nexabrains.io
+          </a>
+          <Button href="/#contact" variant={appLike ? "secondary" : "primary"} size="compact">
+            Contact us
           </Button>
         </div>
 
@@ -188,11 +183,11 @@ export function Nav() {
             </Link>
           ))}
           <div className="mt-3 flex flex-col gap-2 border-t border-line pt-4">
-            <Button href={signInUrl} variant="secondary">
-              Log in
-            </Button>
-            <Button href={signUpUrl} variant="primary">
-              Sign up
+            <a href="mailto:stanley@nexabrains.io" className="type-body-m text-center text-secondary hover:text-primary py-2">
+              stanley@nexabrains.io
+            </a>
+            <Button href="/#contact" variant="primary" onClick={() => setOpen(false)}>
+              Contact us
             </Button>
           </div>
         </Container>

@@ -626,7 +626,69 @@ export default function HomePage() {
           </div>
         </Container>
       </section>
+
+      <section id="contact" className="mk-section bg-page border-t border-line">
+        <Container>
+          <div className="mx-auto max-w-[600px] text-center">
+            <h2 className="type-display-m text-primary">Contact us</h2>
+            <p className="type-body-m mt-2 text-secondary">
+              Email us at{" "}
+              <a href="mailto:stanley@nexabrains.io" className="text-brand hover:underline font-medium">
+                stanley@nexabrains.io
+              </a>{" "}
+              or send a message below — we’ll reply via Resend right away.
+            </p>
+            <ContactForm />
+          </div>
+        </Container>
+      </section>
     </>
+  );
+}
+
+function ContactForm() {
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [message, setMessage] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+  const [done, setDone] = React.useState(false);
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim() || !message.trim()) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim() }),
+      });
+      if (res.ok) {
+        setDone(true);
+        setName("");
+        setEmail("");
+        setMessage("");
+      }
+    } finally {
+      setSending(false);
+    }
+  };
+  if (done) {
+    return <p className="type-body-m mt-6 text-success">Message sent — we’ll reply from stanley@nexabrains.io shortly.</p>;
+  }
+  return (
+    <form onSubmit={onSubmit} className="mt-6 bg-raised border border-line rounded-2xl p-5 text-left space-y-3 shadow-xs text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="px-3 py-2.5 bg-page border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email" type="email" className="px-3 py-2.5 bg-page border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20" />
+      </div>
+      <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="How can we help?" rows={4} className="w-full px-3 py-2.5 bg-page border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20" />
+      <div className="flex items-center justify-between">
+        <span className="type-caption text-tertiary">We’ll reply from stanley@nexabrains.io</span>
+        <button type="submit" disabled={sending} className="px-5 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-on-accent rounded-xl text-sm font-bold">
+          {sending ? "Sending…" : "Send message"}
+        </button>
+      </div>
+    </form>
   );
 }
 
