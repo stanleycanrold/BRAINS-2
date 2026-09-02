@@ -7,7 +7,6 @@ import { ListIcon, XIcon, SunIcon, MoonIcon } from "@phosphor-icons/react/dist/s
 import { Logo } from "./Logo";
 import { Button } from "./Button";
 import { Container } from "./Container";
-import { signInUrl, signUpUrl } from "@/lib/urls";
 import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/cn";
 
@@ -183,25 +182,12 @@ export function Nav({ onContact }: { onContact?: () => void }) {
             pages offer the composer instead of a button, and it stays solid. */}
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
-          {onContact && (
-            <button
-              type="button"
-              onClick={onContact}
-              className="type-body-m text-secondary hover:text-primary transition-colors px-2"
-            >
-              Contact us
-            </button>
-          )}
-          <Button href={signInUrl} variant="ghost" size="compact">
-            Log in
-          </Button>
           <Button
-            href={signUpUrl}
+            onClick={onContact}
             variant={appLike ? "secondary" : "primary"}
             size="compact"
-            className={appLike ? "border-brand/50 text-brand hover:bg-brand-subtle" : undefined}
           >
-            Sign up
+            Contact us
           </Button>
         </div>
 
@@ -243,20 +229,11 @@ export function Nav({ onContact }: { onContact?: () => void }) {
           ))}
           <div className="mt-3 flex flex-col gap-2 border-t border-line pt-4">
             <ThemeToggle withLabel />
-            {onContact && (
-              <button
-                type="button"
-                onClick={() => { setOpen(false); onContact(); }}
-                className="type-body-l rounded-[8px] px-2 py-3 text-primary hover:bg-wash-hover text-left"
-              >
-                Contact us
-              </button>
-            )}
-            <Button href={signInUrl} variant="secondary">
-              Log in
-            </Button>
-            <Button href={signUpUrl} variant="primary">
-              Sign up
+            <Button
+              variant="primary"
+              onClick={() => { setOpen(false); onContact?.(); }}
+            >
+              Contact us
             </Button>
           </div>
         </Container>
