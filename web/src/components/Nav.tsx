@@ -85,7 +85,7 @@ function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
   );
 }
 
-export function Nav() {
+export function Nav({ onContact }: { onContact?: () => void }) {
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
   /**
@@ -183,6 +183,15 @@ export function Nav() {
             pages offer the composer instead of a button, and it stays solid. */}
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
+          {onContact && (
+            <button
+              type="button"
+              onClick={onContact}
+              className="type-body-m text-secondary hover:text-primary transition-colors px-2"
+            >
+              Contact us
+            </button>
+          )}
           <Button href={signInUrl} variant="ghost" size="compact">
             Log in
           </Button>
@@ -234,6 +243,15 @@ export function Nav() {
           ))}
           <div className="mt-3 flex flex-col gap-2 border-t border-line pt-4">
             <ThemeToggle withLabel />
+            {onContact && (
+              <button
+                type="button"
+                onClick={() => { setOpen(false); onContact(); }}
+                className="type-body-l rounded-[8px] px-2 py-3 text-primary hover:bg-wash-hover text-left"
+              >
+                Contact us
+              </button>
+            )}
             <Button href={signInUrl} variant="secondary">
               Log in
             </Button>

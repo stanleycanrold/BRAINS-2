@@ -16,7 +16,7 @@ import { signUpUrl } from "@/lib/urls";
  * pointed a link labelled "Answers" at the validation page.
  */
 
-const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
+const COLUMNS: { title: string; links: { href: string; label: string; action?: string }[] }[] = [
   {
     title: "Services",
     links: [
@@ -34,7 +34,10 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   },
   {
     title: "Company",
-    links: [{ href: "/about", label: "About" }],
+    links: [
+      { href: "/about", label: "About" },
+      { href: "#contact", label: "Contact us", action: "contact" },
+    ],
   },
   {
     title: "Get started",
@@ -42,7 +45,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   },
 ];
 
-export function Footer() {
+export function Footer({ onContact }: { onContact?: () => void }) {
   return (
     <footer className="border-t border-line">
       <Container className="py-14 sm:py-16">
@@ -64,12 +67,22 @@ export function Footer() {
                 <ul className="mt-4 space-y-3">
                   {col.links.map((link) => (
                     <li key={`${col.title}-${link.href}-${link.label}`}>
-                      <Link
-                        href={link.href}
-                        className="type-body-m text-secondary transition-colors duration-[120ms] hover:text-primary"
-                      >
-                        {link.label}
-                      </Link>
+                      {link.action === "contact" ? (
+                        <button
+                          type="button"
+                          onClick={() => onContact?.()}
+                          className="type-body-m text-secondary transition-colors duration-[120ms] hover:text-primary text-left"
+                        >
+                          {link.label}
+                        </button>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="type-body-m text-secondary transition-colors duration-[120ms] hover:text-primary"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

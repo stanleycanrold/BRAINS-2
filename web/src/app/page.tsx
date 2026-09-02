@@ -17,10 +17,12 @@ import { MobileCta } from '@/components/MobileCta';
 import { IdeaComposerModal } from '@/components/landing/components/IdeaComposerModal';
 import { ToastContainer, ToastMessage } from '@/components/landing/components/Toast';
 import { WebPlatform } from '@/components/landing/components/web/WebPlatform';
+import { ContactModal } from '@/components/ContactModal';
 import { dashboardUrl } from '@/lib/urls';
 
 export default function HomePage() {
   const [isIdeaComposerOpen, setIsIdeaComposerOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (
@@ -45,7 +47,7 @@ export default function HomePage() {
   return (
     <>
       <MobileCta />
-      <Nav />
+      <Nav onContact={() => setIsContactOpen(true)} />
 
       <WebPlatform
         onOpenStudio={openStudio}
@@ -53,13 +55,15 @@ export default function HomePage() {
         onSelectQuickIdea={() => setIsIdeaComposerOpen(true)}
       />
 
-      <Footer />
+      <Footer onContact={() => setIsContactOpen(true)} />
 
       <IdeaComposerModal
         isOpen={isIdeaComposerOpen}
         onClose={() => setIsIdeaComposerOpen(false)}
         onShowToast={addToast}
       />
+
+      <ContactModal open={isContactOpen} onClose={() => setIsContactOpen(false)} />
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </>

@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Search, ShieldCheck, DollarSign, Clock, CheckCircle2, Radio, Users2, Sparkles } from 'lucide-react';
+import { ArrowRight, ShieldCheck, DollarSign, Clock, CheckCircle2, Radio, Users2, Sparkles } from 'lucide-react';
 
 interface WebHeroProps {
   onOpenStudio: () => void;
   onOpenIdeaComposer: () => void;
-  onTrySandbox: (idea: string) => void;
+  onTrySandbox?: (idea: string) => void;
 }
 
 const ROTATING_TARGETS = ['idea', 'feature', 'MVP'];
@@ -14,9 +14,7 @@ const ROTATING_TARGETS = ['idea', 'feature', 'MVP'];
 export const WebHero: React.FC<WebHeroProps> = ({
   onOpenStudio,
   onOpenIdeaComposer,
-  onTrySandbox,
 }) => {
-  const [ideaInput, setIdeaInput] = useState('');
   const [targetIndex, setTargetIndex] = useState(0);
 
   useEffect(() => {
@@ -70,58 +68,23 @@ export const WebHero: React.FC<WebHeroProps> = ({
           </p>
         </div>
 
-        {/* Search / Hypothesis Input Form */}
-        <div className="mk-rise mk-delay-2 max-w-2xl mx-auto">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (ideaInput.trim()) {
-                onTrySandbox(ideaInput);
-              } else {
-                onOpenIdeaComposer();
-              }
-            }}
-            className="bg-raised border-2 border-brand p-1.5 sm:p-2 rounded-2xl shadow-md flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+        {/* Primary CTA — search input removed per founder request; validation starts via composer */}
+        <div className="mk-rise mk-delay-2 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={onOpenIdeaComposer}
+            className="px-7 py-3.5 bg-brand hover:bg-brand-hover text-on-accent text-sm font-bold rounded-xl flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
           >
-            <div className="flex-1 flex items-center gap-2.5 px-3 py-1.5">
-              <Search className="w-5 h-5 text-brand shrink-0" />
-              <input
-                type="text"
-                value={ideaInput}
-                onChange={(e) => setIdeaInput(e.target.value)}
-                placeholder="E.g. AI meal planner for marathon runners, or DevOps CLI for VPs of Eng..."
-                className="w-full bg-transparent text-sm sm:text-base text-primary placeholder:text-tertiary focus:outline-none font-medium"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="px-6 py-3 bg-brand hover:bg-brand-hover text-on-accent text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-sm"
-            >
-              <span>Validate in 48h</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
-
-          {/* Quick Click Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs">
-            <span className="text-secondary font-medium">Quick examples:</span>
-            {[
-              'VP of Eng (DevOps CLI)',
-              'Marathon Runners (Audio Pacing App)',
-              'Shopify Brands (Returns AI)',
-              'Independent Clinics (EHR Sync)',
-            ].map((ex, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setIdeaInput(ex)}
-                className="px-2.5 py-0.5 rounded-md bg-page hover:bg-sunken text-primary border border-line font-medium transition-colors cursor-pointer text-[11px]"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
+            <span>Validate your idea in 48h</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onOpenStudio}
+            className="px-7 py-3.5 bg-raised border border-line hover:bg-sunken text-primary text-sm font-bold rounded-xl transition-colors cursor-pointer"
+          >
+            Explore live demo
+          </button>
         </div>
 
         {/* 3-Pillar Foolproof Deliverable Cards (Social Scan + Paid Target Discovery + Decision Gate) */}

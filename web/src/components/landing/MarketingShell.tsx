@@ -5,6 +5,7 @@ import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 import { IdeaComposerModal } from './components/IdeaComposerModal';
 import { ToastContainer, type ToastMessage } from './components/Toast';
+import { ContactModal } from '@/components/ContactModal';
 import { dashboardUrl } from '@/lib/urls';
 
 type AddToast = (
@@ -16,8 +17,9 @@ type AddToast = (
 const StudioEntryContext = createContext<{
   openComposer: () => void;
   openStudio: () => void;
+  openContact: () => void;
   addToast: AddToast;
-}>({ openComposer: () => {}, openStudio: () => {}, addToast: () => {} });
+}>({ openComposer: () => {}, openStudio: () => {}, openContact: () => {}, addToast: () => {} });
 
 export function useStudioEntry() {
   return useContext(StudioEntryContext);
@@ -33,6 +35,7 @@ export function useStudioEntry() {
  */
 export function MarketingShell({ children }: { children: React.ReactNode }) {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast: AddToast = useCallback((title, description, type = 'success') => {
@@ -45,6 +48,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const openComposer = useCallback(() => setIsComposerOpen(true), []);
+  const openContact = useCallback(() => setIsContactOpen(true), []);
 
   // Cross-origin: the studio lives at app.brains.im.
   const openStudio = useCallback(() => {
@@ -52,13 +56,13 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <StudioEntryContext.Provider value={{ openComposer, openStudio, addToast }}>
+    <StudioEntryContext.Provider value={{ openComposer, openStudio, openContact, addToast }}>
       <div className="min-h-screen bg-page text-primary flex flex-col">
-        <Nav />
+        <Nav onContact={openContact} />
 
         <main className="flex-1">{children}</main>
 
-        <Footer />
+        <Footer onContact={openContact} />
       </div>
 
       <IdeaComposerModal
@@ -66,6 +70,8 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
         onClose={() => setIsComposerOpen(false)}
         onShowToast={addToast}
       />
+
+      <ContactModal open={isContactOpen} onClose={() => setIsContactOpen(false)} />
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </StudioEntryContext.Provider>
