@@ -5,8 +5,8 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-export const WebRunwayCalculator: React.FC<{ onOpenIdeaComposer: () => void }> = ({
-  onOpenIdeaComposer,
+export const WebRunwayCalculator: React.FC<{ onOpenContact: () => void }> = ({
+  onOpenContact,
 }) => {
   const [engineers, setEngineers] = useState<number>(2);
   const [salaryMonthly, setSalaryMonthly] = useState<number>(12000);
@@ -166,10 +166,10 @@ export const WebRunwayCalculator: React.FC<{ onOpenIdeaComposer: () => void }> =
 
             <div className="pt-4 mt-4 border-t border-line">
               <button
-                onClick={onOpenIdeaComposer}
+                onClick={onOpenContact}
                 className="w-full py-2.5 bg-brand hover:bg-brand-hover text-on-accent text-xs font-semibold rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <span>Validate Before Building</span>
+                <span>Contact us</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

@@ -3,13 +3,11 @@ import React from 'react';
 import { ArrowRight, Quote, ShieldCheck, DollarSign, CheckCircle2, UserCheck, Lock } from 'lucide-react';
 
 interface WebEmpatheticDiscoveryProps {
-  onOpenStudio: () => void;
-  onOpenIdeaComposer: () => void;
+  onOpenContact: () => void;
 }
 
 export const WebEmpatheticDiscovery: React.FC<WebEmpatheticDiscoveryProps> = ({
-  onOpenStudio,
-  onOpenIdeaComposer,
+  onOpenContact,
 }) => {
   return (
     <section className="py-16 sm:py-20 bg-page text-primary border-b border-line relative">
@@ -111,10 +109,10 @@ export const WebEmpatheticDiscovery: React.FC<WebEmpatheticDiscoveryProps> = ({
             Completely automated candidate sourcing. We recruit and compensate 30+ verified respondents for you.
           </p>
           <button
-            onClick={onOpenIdeaComposer}
+            onClick={onOpenContact}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary text-page hover:bg-primary/90 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
           >
-            <span>Set Target Customer Criteria</span>
+            <span>Contact us</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -8,8 +8,6 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { signUpUrl, signUpWithDraft, researchUrl } from "@/lib/urls";
-import { deviceSignal, visitorId } from "@/lib/fingerprint";
 
 /**
  * The idea composer - deliberately the same control as the app's own.
@@ -269,67 +267,22 @@ export function IdeaComposer({
   }, [value, large]);
 
   /**
-   * Start the real research pass, then move to where it will appear.
-   *
-   * The whole run is the same one a signed-in founder gets: extraction, five
-   * live searches, sourced evidence, the workarounds, the counter-evidence
-   * and the proposed changes. No account, no email, no wall.
-   *
-   * Only the POST is awaited here, and it returns a token in well under a
-   * second. The pass itself continues server side while the results page
-   * polls, which is why a ninety second job does not need the visitor to hold
-   * still on this screen or keep a request open.
-   *
-   * The navigation is deliberate and replaced an in-place render. A brief
-   * this long does not belong wedged under a text box halfway down an
-   * article, and a page of its own is reloadable, linkable and sendable to a
-   * co-founder.
+   * Manual-first: SaaS research flow disabled. The composer now hands the
+   * founder off to direct contact — email pre-filled with what they typed,
+   * or the booking link. No API call, no token, no signup.
    */
   async function submit() {
     const description = value.trim();
     if (description.length < 20 || pending) return;
 
     setState({ kind: "pending" });
-
-    try {
-      // No `credentials: include`. It requires the server to send
-      // Access-Control-Allow-Credentials, and the cookie it would carry is a
-      // third-party one that Safari and Firefox drop outright. It failed
-      // closed: the browser rejected every response before the page saw it,
-      // and the composer reported the API unreachable while it was answering
-      // normally.
-      const res = await fetch(researchUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description,
-          fingerprint: deviceSignal(),
-          visitor: visitorId(),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data?.token) {
-        setState({
-          kind: "error",
-          message: data?.error ?? "That did not go through. Try again in a moment.",
-          submitted: description,
-        });
-        return;
-      }
-
-      router.push(`/research/${data.token}`);
-    } catch {
-      // Usually the app being unreachable rather than anything the visitor
-      // did. Signup still works, so the message points there rather than
-      // stranding them.
-      setState({
-        kind: "error",
-        message: "We could not start that run just now. You can still continue.",
-        submitted: description,
-      });
-    }
+    // Give a brief tick for UX, then open mail client with the idea
+    const subject = encodeURIComponent("BRAINS AI — idea to validate");
+    const body = encodeURIComponent(
+      `Hi Stanley,\n\nI'd like to validate this idea:\n\n${description}\n\n---\nSent from brains.im`,
+    );
+    window.location.href = `mailto:stanley@nexabrains.io?subject=${subject}&body=${body}`;
+    setState({ kind: "idle" });
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
@@ -396,14 +349,12 @@ export function IdeaComposer({
             large ? "px-4 pt-1 pb-4" : "px-3 pt-1 pb-3",
           )}
         >
-          {/* Attaching a document is a signed-in capability. The control stays
-              visible so the capability is discoverable, but it sends you to
-              sign up rather than opening a file picker that could not do
-              anything useful with the file out here. */}
-          <a
-            href={signUpUrl}
-            aria-label="Sign up to attach documents"
-            title="Sign up to attach documents"
+          {/* Attachments are handled manually for now — opens contact. */}
+          <button
+            type="button"
+            onClick={submit}
+            aria-label="Contact us to share documents"
+            title="Contact us to share documents"
             className={cn(
               "flex size-8 shrink-0 items-center justify-center rounded-full border border-line",
               "text-secondary transition-colors duration-[120ms]",
@@ -411,7 +362,7 @@ export function IdeaComposer({
             )}
           >
             <PaperclipIcon size={15} aria-hidden="true" />
-          </a>
+          </button>
 
           {/* Deliberately empty. The reassurance line lives once, beneath the
               composer, rather than being repeated inside it. */}
@@ -448,10 +399,10 @@ export function IdeaComposer({
         <div className="mk-panel mt-4 p-5">
           <p className="type-body-m text-primary">{state.message}</p>
           <a
-            href={signUpWithDraft(state.submitted)}
+            href={`mailto:stanley@nexabrains.io?subject=${encodeURIComponent("BRAINS AI — idea to validate")}&body=${encodeURIComponent(state.submitted)}`}
             className="type-body-m mt-3 inline-block text-brand hover:underline"
           >
-            Continue to the full run
+            Email us this idea
           </a>
         </div>
       ) : null}

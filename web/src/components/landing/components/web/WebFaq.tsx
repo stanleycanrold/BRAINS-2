@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 
-export const WebFaq: React.FC<{ onOpenIdeaComposer: () => void }> = ({ onOpenIdeaComposer }) => {
+export const WebFaq: React.FC<{ onOpenContact: () => void }> = ({ onOpenContact }) => {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   const faqs = [
@@ -81,10 +81,10 @@ export const WebFaq: React.FC<{ onOpenIdeaComposer: () => void }> = ({ onOpenIde
             </p>
           </div>
           <button
-            onClick={onOpenIdeaComposer}
+            onClick={onOpenContact}
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-raised hover:bg-sunken text-brand text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
           >
-            <span>Start 48-Hour Validation</span>
+            <span>Contact us</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

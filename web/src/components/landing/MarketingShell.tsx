@@ -3,10 +3,8 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
-import { IdeaComposerModal } from './components/IdeaComposerModal';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { ContactModal } from '@/components/ContactModal';
-import { dashboardUrl } from '@/lib/urls';
 
 type AddToast = (
   title: string,
@@ -15,11 +13,12 @@ type AddToast = (
 ) => void;
 
 const StudioEntryContext = createContext<{
-  openComposer: () => void;
-  openStudio: () => void;
   openContact: () => void;
   addToast: AddToast;
-}>({ openComposer: () => {}, openStudio: () => {}, openContact: () => {}, addToast: () => {} });
+  // legacy no-ops for any remaining callers during transition
+  openComposer: () => void;
+  openStudio: () => void;
+}>({ openContact: () => {}, addToast: () => {}, openComposer: () => {}, openStudio: () => {} });
 
 export function useStudioEntry() {
   return useContext(StudioEntryContext);
@@ -34,7 +33,6 @@ export function useStudioEntry() {
  * the app. The marketing site has no backend and fabricates nothing.
  */
 export function MarketingShell({ children }: { children: React.ReactNode }) {
-  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -47,13 +45,10 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const openComposer = useCallback(() => setIsComposerOpen(true), []);
   const openContact = useCallback(() => setIsContactOpen(true), []);
-
-  // Cross-origin: the studio lives at app.brains.im.
-  const openStudio = useCallback(() => {
-    window.location.href = dashboardUrl;
-  }, []);
+  // legacy shims
+  const openComposer = openContact;
+  const openStudio = openContact;
 
   return (
     <StudioEntryContext.Provider value={{ openComposer, openStudio, openContact, addToast }}>
@@ -64,12 +59,6 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
 
         <Footer onContact={openContact} />
       </div>
-
-      <IdeaComposerModal
-        isOpen={isComposerOpen}
-        onClose={() => setIsComposerOpen(false)}
-        onShowToast={addToast}
-      />
 
       <ContactModal open={isContactOpen} onClose={() => setIsContactOpen(false)} />
 

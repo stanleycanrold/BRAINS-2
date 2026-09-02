@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { Container } from "./Container";
-import { signUpUrl } from "@/lib/urls";
 
 /**
  * The footer is nav, in every sense that matters: hand-maintained site chrome
@@ -41,7 +40,10 @@ const COLUMNS: { title: string; links: { href: string; label: string; action?: s
   },
   {
     title: "Get started",
-    links: [{ href: signUpUrl, label: "Create an account" }],
+    links: [
+      { href: "#contact", label: "Contact us", action: "contact" },
+      { href: "https://calendar.app.google/PmNmyQbGWNgM5cfz7", label: "Book a meeting" },
+    ],
   },
 ];
 
@@ -65,7 +67,9 @@ export function Footer({ onContact }: { onContact?: () => void }) {
                   {col.title}
                 </h3>
                 <ul className="mt-4 space-y-3">
-                  {col.links.map((link) => (
+                  {col.links.map((link) => {
+                    const isExternal = link.href.startsWith("http");
+                    return (
                     <li key={`${col.title}-${link.href}-${link.label}`}>
                       {link.action === "contact" ? (
                         <button
@@ -75,6 +79,15 @@ export function Footer({ onContact }: { onContact?: () => void }) {
                         >
                           {link.label}
                         </button>
+                      ) : isExternal ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="type-body-m text-secondary transition-colors duration-[120ms] hover:text-primary"
+                        >
+                          {link.label}
+                        </a>
                       ) : (
                         <Link
                           href={link.href}
@@ -84,7 +97,7 @@ export function Footer({ onContact }: { onContact?: () => void }) {
                         </Link>
                       )}
                     </li>
-                  ))}
+                  );})}
                 </ul>
               </div>
             ))}

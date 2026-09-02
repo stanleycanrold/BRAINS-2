@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Button } from "./Button";
-import { signUpUrl } from "@/lib/urls";
 import { cn } from "@/lib/cn";
 
 /**
@@ -13,7 +12,7 @@ import { cn } from "@/lib/cn";
  * it up instead - but only after the hero has scrolled past, so it never
  * covers the composer it is trying to send people to.
  */
-export function MobileCta() {
+export function MobileCta({ onContact }: { onContact?: () => void }) {
   const [visible, setVisible] = React.useState(false);
 
   React.useEffect(() => {
@@ -33,12 +32,12 @@ export function MobileCta() {
       aria-hidden={!visible}
     >
       <Button
-        href={signUpUrl}
+        onClick={onContact}
         variant="primary"
         className="w-full"
         tabIndex={visible ? undefined : -1}
       >
-        Start free
+        Contact us
       </Button>
     </div>
   );

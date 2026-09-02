@@ -1,4 +1,4 @@
-import { SITE_URL, signUpUrl } from "@/lib/urls";
+import { SITE_URL } from "@/lib/urls";
 
 /**
  * The sitewide entity graph: who publishes this, and what the product is.
@@ -57,7 +57,7 @@ export function SiteJsonLd() {
         price: "0",
         priceCurrency: "USD",
         category: "free",
-        url: signUpUrl,
+        url: `${SITE_URL}/#contact`,
       },
     },
   ];

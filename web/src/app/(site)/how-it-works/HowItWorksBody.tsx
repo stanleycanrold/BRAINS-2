@@ -60,7 +60,7 @@ const STEPS = [
 ];
 
 export function HowItWorksBody() {
-  const { openComposer } = useStudioEntry();
+  const { openContact } = useStudioEntry();
 
   return (
     <div className="bg-page text-primary">
@@ -169,17 +169,23 @@ export function HowItWorksBody() {
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.08] max-w-2xl">
               See it run on your own idea.
             </h2>
-            <button
-              onClick={openComposer}
-              className="px-6 py-3.5 rounded-xl bg-on-accent text-brand hover:bg-on-accent/90 text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md"
-            >
-              <span>Validate your idea</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <p className="text-sm text-on-accent/70 flex items-center gap-2">
-              <Check className="w-4 h-4 text-success" />
-              Free to start. No card. Nothing you type is lost at signup.
-            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={openContact}
+                className="px-6 py-3.5 rounded-xl bg-on-accent text-brand hover:bg-on-accent/90 text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md"
+              >
+                <span>Contact us</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <a
+                href="https://calendar.app.google/PmNmyQbGWNgM5cfz7"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3.5 rounded-xl border border-on-accent/40 text-on-accent text-sm font-bold hover:bg-on-accent/10 transition-all inline-flex items-center gap-2"
+              >
+                Book a meeting
+              </a>
+            </div>
           </div>
         </div>
       </section>

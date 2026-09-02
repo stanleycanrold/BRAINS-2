@@ -2,8 +2,8 @@
 import React from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 
-export const WebPricingSection: React.FC<{ onOpenIdeaComposer: () => void }> = ({
-  onOpenIdeaComposer,
+export const WebPricingSection: React.FC<{ onOpenContact: () => void }> = ({
+  onOpenContact,
 }) => {
   return (
     <section id="pricing" className="py-24 bg-page text-primary border-b border-line">
@@ -52,10 +52,10 @@ export const WebPricingSection: React.FC<{ onOpenIdeaComposer: () => void }> = (
             </div>
 
             <button
-              onClick={onOpenIdeaComposer}
+              onClick={onOpenContact}
               className="w-full py-3 rounded-xl bg-page hover:bg-sunken border border-line text-xs font-bold text-primary transition-all cursor-pointer"
             >
-              Start Free Audit
+              Contact us
             </button>
           </div>
 
@@ -90,10 +90,10 @@ export const WebPricingSection: React.FC<{ onOpenIdeaComposer: () => void }> = (
             </div>
 
             <button
-              onClick={onOpenIdeaComposer}
+              onClick={onOpenContact}
               className="w-full py-3.5 rounded-xl bg-brand hover:bg-brand-hover text-on-accent text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <span>Start 48-Hour Validation</span>
+              <span>Contact us</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -121,10 +121,10 @@ export const WebPricingSection: React.FC<{ onOpenIdeaComposer: () => void }> = (
             </div>
 
             <button
-              onClick={onOpenIdeaComposer}
+              onClick={onOpenContact}
               className="w-full py-3 rounded-xl bg-page hover:bg-sunken border border-line text-xs font-bold text-primary transition-all cursor-pointer"
             >
-              Subscribe to Studio
+              Contact us
             </button>
           </div>
         </div>

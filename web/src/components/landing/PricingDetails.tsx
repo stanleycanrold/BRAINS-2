@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Check, ChevronDown } from 'lucide-react';
 import { useStudioEntry } from './MarketingShell';
-import { signUpUrl } from '@/lib/urls';
 
 /**
  * The published pricing facts from the site's original pricing page, folded
@@ -29,12 +28,12 @@ const INCLUDED = [
 const TRACKS = [
   {
     id: 'self-serve',
-    name: 'Self-serve',
-    price: 'Free',
-    priceNote: 'No card, no time limit',
-    tagline: 'You find the people.',
-    body: 'Everything above, and you gather the responses yourself using the questions and the share link. The report is the same one a paid round produces.',
-    cta: { label: 'Start free', href: signUpUrl },
+    name: 'Manual validation',
+    price: 'On request',
+    priceNote: 'We run it for you',
+    tagline: 'We find the people.',
+    body: 'We run the full research and customer conversations manually and deliver the scored report with all the evidence.',
+    cta: null,
   },
   {
     id: 'fast-track',
@@ -42,7 +41,7 @@ const TRACKS = [
     price: 'Priced per round',
     priceNote: 'Itemised before you pay',
     tagline: 'We find the people.',
-    body: 'Respondents sourced to match your market, conversations run and screened, and the validation round back on your dashboard in one to two weeks.',
+    body: 'Respondents sourced to match your market, conversations run and screened, and the validation round back in one to two weeks.',
     cta: null,
   },
   {
@@ -141,7 +140,7 @@ function LabelRow({ left, right }: { left: string; right: string }) {
 }
 
 export function PricingDetails() {
-  const { openComposer } = useStudioEntry();
+  const { openContact } = useStudioEntry();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
@@ -200,22 +199,13 @@ export function PricingDetails() {
                 <p className="text-sm text-secondary leading-relaxed flex-1 border-t border-line pt-4">
                   {track.body}
                 </p>
-                {track.cta ? (
-                  <a
-                    href={track.cta.href}
-                    className="w-full py-3 rounded-xl bg-brand hover:bg-brand-hover text-on-accent text-xs font-bold flex items-center justify-center gap-2 transition-all"
-                  >
-                    <span>{track.cta.label}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
-                ) : (
-                  <a
-                    href="#how-price-works"
-                    className="w-full py-3 rounded-xl bg-page hover:bg-sunken border border-line text-xs font-bold text-primary text-center transition-all"
-                  >
-                    How the price works
-                  </a>
-                )}
+                <button
+                  onClick={openContact}
+                  className="w-full py-3 rounded-xl bg-brand hover:bg-brand-hover text-on-accent text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                >
+                  <span>Contact us</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
           </div>
@@ -399,23 +389,23 @@ export function PricingDetails() {
               Find out this week, not next quarter.
             </h2>
             <p className="text-base text-on-accent/70 leading-relaxed max-w-xl">
-              The research costs nothing and comes back in under 60 seconds.
-              Start with the idea you are least sure about, and decide on
-              evidence instead of a hunch.
+              We run validations manually — tell us about your idea and we&apos;ll scope it with you directly.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={openComposer}
+                onClick={openContact}
                 className="px-6 py-3.5 rounded-xl bg-on-accent text-brand hover:bg-on-accent/90 text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md"
               >
-                <span>Validate your idea</span>
+                <span>Contact us</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               <a
-                href={signUpUrl}
-                className="px-6 py-3.5 rounded-xl border border-on-accent/25 text-on-accent text-sm font-bold hover:bg-on-accent/10 transition-all"
+                href="https://calendar.app.google/PmNmyQbGWNgM5cfz7"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3.5 rounded-xl border border-on-accent/25 text-on-accent text-sm font-bold hover:bg-on-accent/10 transition-all inline-flex items-center gap-2"
               >
-                Start free
+                Book a meeting
               </a>
             </div>
           </div>

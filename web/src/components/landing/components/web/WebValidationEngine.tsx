@@ -3,9 +3,8 @@ import React from 'react';
 import { Cpu, ArrowRight, Send, CheckCircle2, UserCheck, BarChart3 } from 'lucide-react';
 
 export const WebValidationEngine: React.FC<{
-  onOpenStudio: () => void;
-  onOpenIdeaComposer: () => void;
-}> = ({ onOpenStudio, onOpenIdeaComposer }) => {
+  onOpenContact: () => void;
+}> = ({ onOpenContact }) => {
   const steps = [
     {
       step: 'Step 01',
@@ -76,10 +75,10 @@ export const WebValidationEngine: React.FC<{
             <span>Target respondents are screened to eliminate polite bias and give you honest clarity.</span>
           </div>
           <button
-            onClick={onOpenIdeaComposer}
+            onClick={onOpenContact}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0a0f1d] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
           >
-            <span>Start 48-Hour Validation</span>
+            <span>Contact us</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -11,11 +11,11 @@ import { WebRunwayCalculator } from './components/web/WebRunwayCalculator';
  * mounted by the route beneath this.
  */
 export function PricingPage() {
-  const { openComposer } = useStudioEntry();
+  const { openContact } = useStudioEntry();
   return (
     <>
-      <WebPricingSection onOpenIdeaComposer={openComposer} />
-      <WebRunwayCalculator onOpenIdeaComposer={openComposer} />
+      <WebPricingSection onOpenContact={openContact} />
+      <WebRunwayCalculator onOpenContact={openContact} />
     </>
   );
 }

@@ -4,16 +4,18 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ShieldCheck, DollarSign, Clock, CheckCircle2, Radio, Users2, Sparkles } from 'lucide-react';
 
 interface WebHeroProps {
-  onOpenStudio: () => void;
-  onOpenIdeaComposer: () => void;
+  onOpenContact: () => void;
+  onOpenStudio?: () => void;
+  onOpenIdeaComposer?: () => void;
   onTrySandbox?: (idea: string) => void;
 }
+
+const BOOKING_URL = "https://calendar.app.google/PmNmyQbGWNgM5cfz7";
 
 const ROTATING_TARGETS = ['idea', 'feature', 'MVP'];
 
 export const WebHero: React.FC<WebHeroProps> = ({
-  onOpenStudio,
-  onOpenIdeaComposer,
+  onOpenContact,
 }) => {
   const [targetIndex, setTargetIndex] = useState(0);
 
@@ -68,23 +70,24 @@ export const WebHero: React.FC<WebHeroProps> = ({
           </p>
         </div>
 
-        {/* Primary CTA — search input removed per founder request; validation starts via composer */}
+        {/* Primary CTA — manual first: Contact us / Book a meeting (no SaaS link) */}
         <div className="mk-rise mk-delay-2 flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
-            onClick={onOpenIdeaComposer}
+            onClick={onOpenContact}
             className="px-7 py-3.5 bg-brand hover:bg-brand-hover text-on-accent text-sm font-bold rounded-xl flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
           >
-            <span>Validate your idea in 48h</span>
+            <span>Contact us</span>
             <ArrowRight className="w-4 h-4" />
           </button>
-          <button
-            type="button"
-            onClick={onOpenStudio}
-            className="px-7 py-3.5 bg-raised border border-line hover:bg-sunken text-primary text-sm font-bold rounded-xl transition-colors cursor-pointer"
+          <a
+            href={BOOKING_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-7 py-3.5 bg-raised border border-line hover:bg-sunken text-primary text-sm font-bold rounded-xl transition-colors cursor-pointer inline-flex items-center gap-2"
           >
-            Explore live demo
-          </button>
+            Book a meeting
+          </a>
         </div>
 
         {/* 3-Pillar Foolproof Deliverable Cards (Social Scan + Paid Target Discovery + Decision Gate) */}
@@ -161,10 +164,10 @@ export const WebHero: React.FC<WebHeroProps> = ({
           </div>
 
           <button
-            onClick={onOpenStudio}
+            onClick={onOpenContact}
             className="w-full sm:w-auto px-4 py-2 rounded-xl bg-raised border border-line hover:bg-sunken text-xs font-bold text-brand flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
           >
-            <span>Explore Live Studio Demo</span>
+            <span>Contact us to see a sample report</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

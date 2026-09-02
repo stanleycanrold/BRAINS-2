@@ -2,7 +2,7 @@
 import React from 'react';
 import { ArrowRight, Check, X, ShieldAlert, Sparkles } from 'lucide-react';
 
-export const WebCaseStudies: React.FC<{ onOpenStudio: () => void }> = ({ onOpenStudio }) => {
+export const WebCaseStudies: React.FC<{ onOpenContact?: () => void }> = () => {
   return (
     <section className="py-16 sm:py-20 bg-raised text-primary border-b border-line">
       <div className="max-w-5xl mx-auto px-5 sm:px-8 space-y-8 sm:space-y-10">

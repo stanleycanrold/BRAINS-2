@@ -14,7 +14,8 @@ import { ArticleJsonLd } from "./SiteJsonLd";
 import { ReportPreview } from "./ReportPreview";
 import { getFaq, getRelated } from "@/content";
 import type { ContentPage } from "@/content/types";
-import { SITE_URL, signUpUrl } from "@/lib/urls";
+import { SITE_URL } from "@/lib/urls";
+import { useStudioEntry } from "@/components/landing/MarketingShell";
 
 /**
  * The master template. Every pSEO page on the site is this component with a
@@ -39,11 +40,12 @@ import { SITE_URL, signUpUrl } from "@/lib/urls";
 export function ArticlePage({ page }: { page: ContentPage }) {
   const related = getRelated(page);
   const faq = getFaq(page);
+  const { openContact } = useStudioEntry();
 
   return (
     <>
       <ReadingProgress />
-      <MobileCta />
+      <MobileCta onContact={openContact} />
       {faq ? <FaqJsonLd items={faq} /> : null}
       <ArticleJsonLd
         headline={page.metaTitle}
@@ -155,13 +157,22 @@ export function ArticlePage({ page }: { page: ContentPage }) {
                 <p className="type-body-xl mt-5 max-w-[52ch] text-secondary">
                   {page.cta.body}
                 </p>
-                <p className="type-caption mt-6 text-tertiary">
-                  Or{" "}
-                  <a href={signUpUrl} className="text-brand hover:underline">
-                    create an account
-                  </a>{" "}
-                  first. Nothing you type here is lost when you sign up.
-                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button
+                    onClick={openContact}
+                    className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-on-accent rounded-xl text-sm font-bold inline-flex items-center gap-2"
+                  >
+                    Contact us
+                  </button>
+                  <a
+                    href="https://calendar.app.google/PmNmyQbGWNgM5cfz7"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-2.5 border border-line text-primary hover:bg-sunken rounded-xl text-sm font-bold inline-flex items-center gap-2"
+                  >
+                    Book a meeting
+                  </a>
+                </div>
               </div>
               <IdeaComposer
                 facet={page.tool.facet}

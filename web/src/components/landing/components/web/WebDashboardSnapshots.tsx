@@ -3,9 +3,8 @@ import React from 'react';
 import { ShieldCheck, DollarSign, ArrowRight, CheckCircle2, FileCheck, FileText } from 'lucide-react';
 
 export const WebDashboardSnapshots: React.FC<{
-  onOpenStudio: () => void;
-  onOpenIdeaComposer: () => void;
-}> = ({ onOpenStudio, onOpenIdeaComposer }) => {
+  onOpenContact: () => void;
+}> = ({ onOpenContact }) => {
   return (
     <section className="py-16 sm:py-20 bg-raised text-primary border-b border-line">
       <div className="max-w-5xl mx-auto px-5 sm:px-8 space-y-8 sm:space-y-10">
@@ -44,10 +43,10 @@ export const WebDashboardSnapshots: React.FC<{
             </div>
 
             <button
-              onClick={onOpenStudio}
+              onClick={onOpenContact}
               className="px-3.5 py-2 bg-brand hover:bg-brand-hover text-on-accent text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             >
-              <span>Explore Live Studio</span>
+              <span>Contact us</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
